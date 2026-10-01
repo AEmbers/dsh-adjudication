@@ -1,0 +1,83 @@
+{
+  "name": "empty",
+  "domain": "algo-model",
+  "format": "experiment-record",
+  "description": "空实验记录：没有任何实验。P0 必须产出空集（合法结论），P1 全空，工作单必须说「这本身就是结论」，而不是让模型凭空评审。",
+  "input": {
+    "format": "experiment-record",
+    "payload": {
+      "experiments": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": []
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空输入下唯一成立的锚点是「拒绝」：没有 tracker 记录，就无法确认任何指标。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/vision/model-v1/metrics.json",
+          "content": "metric accuracy = 0.912\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-records"
+      }
+    ],
+    "negative": [
+      {
+        "note": "空 excerpt 永远不是锚点 —— 规范化后为空即没有可核验的内容。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          }
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "documents": [
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt",
+        "expectCode": "empty-excerpt"
+      }
+    ]
+  }
+}

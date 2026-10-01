@@ -1,0 +1,150 @@
+{
+  "name": "missing-baseline",
+  "domain": "algo-model",
+  "format": "experiment-record",
+  "description": "边界：一个没有 baseline 的实验。它必须被枚举（recall-first 不因为缺基线就丢掉候选），但工作单必须点名「没有 baseline —— 单题分数高不等于整体好转」。这个 fixture 恰好是 1 个候选落在 1 条路径上，所以它也是本领域唯一能达成 100% 覆盖率的形状。",
+  "input": {
+    "format": "experiment-record",
+    "payload": {
+      "experiments": [
+        {
+          "id": "vision/model-alpha",
+          "name": "alpha run",
+          "seed": 7,
+          "dataset": {
+            "train": 1000,
+            "valid": 200,
+            "test": 200,
+            "splitsHash": "sha256:ddd"
+          },
+          "metrics": [
+            {
+              "name": "precision",
+              "value": 0.77,
+              "definition": "micro precision on the test split"
+            }
+          ],
+          "hyperparams": {
+            "lr": 0.01
+          },
+          "budget": {
+            "steps": 5000,
+            "gpuHours": 1
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": [
+      "experiments/vision/model-alpha/metrics.json"
+    ],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "vision/model-alpha"
+    ],
+    "bundles": 1,
+    "noteFragments": [
+      "没有 baseline"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 正确行号 + 值一致 -> declared-locator；缺基线不影响锚点，只影响结论。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-alpha/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-alpha",
+            "metricName": "precision",
+            "value": 0.77,
+            "startLine": 4
+          },
+          "excerpt": "metric precision = 0.77"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-alpha/metrics.json",
+              "content": "# experiment vision/model-alpha (alpha run)\nseed = 7\ndataset = train:1000 valid:200 test:200 splits:sha256:ddd\nmetric precision = 0.77\nmetric precision.definition = micro precision on the test split\nbaseline = (none)"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-alpha\",\"metrics\":[{\"name\":\"precision\",\"value\":0.77,\"definition\":\"micro precision on the test split\"}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-alpha",
+              "metrics": [
+                {
+                  "name": "precision",
+                  "value": 0.77,
+                  "definition": "micro precision on the test split"
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-alpha\",\"metrics\":[{\"name\":\"precision\",\"value\":0.77,\"definition\":\"micro precision on the test split\"}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "experiments/vision/model-alpha/metrics.json",
+        "expectStart": 4,
+        "expectCode": "metric-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "数值不符 -> value-mismatch：没有基线时更容易把数字「记成想要的样子」，引擎不接受。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-alpha/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-alpha",
+            "metricName": "precision",
+            "value": 0.8
+          },
+          "excerpt": "metric precision = 0.77"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-alpha/metrics.json",
+              "content": "# experiment vision/model-alpha (alpha run)\nmetric precision = 0.77\nbaseline = (none)"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-alpha\",\"metrics\":[{\"name\":\"precision\",\"value\":0.77}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-alpha",
+              "metrics": [
+                {
+                  "name": "precision",
+                  "value": 0.77
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-alpha\",\"metrics\":[{\"name\":\"precision\",\"value\":0.77}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "value-mismatch"
+      }
+    ]
+  }
+}

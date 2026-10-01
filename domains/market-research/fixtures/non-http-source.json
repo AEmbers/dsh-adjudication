@@ -1,0 +1,361 @@
+{
+  "name": "non-http-source",
+  "domain": "market-research",
+  "format": "research-seed",
+  "description": "边界三（本域特有）：seed 里有两个 http(s) 来源和一个**无法再取回**的来源（file:// 本地扫描件）。后者进入 excluded 并写明原因 —— 不是「当作没问题」，而是「没有被枚举，因为无法再取回，也就无法支撑任何一手结论」。同时它没有声明证据强度，于是 notes 里出现「未声明强度的来源一律按推测标注」：不向上猜测是本域的硬规则，而这条 note 即使在来源被排除时也要出现。两个 http 来源各 3 个候选（强度行 / 引文 / 结论），共 6 个候选、2 捆 —— 每捆 3 个候选，证明「一捆 = 一个来源」而不是「一捆 = 一个候选」。",
+  "input": {
+    "format": "research-seed",
+    "payload": {
+      "question": "东南亚餐饮 SaaS 市场",
+      "scope": {
+        "market": "restaurant SaaS",
+        "geography": "SEA"
+      },
+      "sources": [
+        {
+          "id": "sea-primary",
+          "title": "Restaurant SaaS adoption in Southeast Asia",
+          "url": "https://example.org/sea-fnb-saas",
+          "publisher": "Regional Industry Council",
+          "retrievedAt": "2025-04-02",
+          "strength": "primary",
+          "quotes": [
+            "Restaurant SaaS adoption reached 31% of outlets in 2024."
+          ]
+        },
+        {
+          "id": "sea-secondary",
+          "title": "Roundup of restaurant tech",
+          "url": "https://news.example.net/sea-restaurant-tech",
+          "publisher": "Example News",
+          "retrievedAt": "2025-03-18",
+          "strength": "secondary",
+          "quotes": [
+            "Analysts expect adoption to keep rising through 2025."
+          ]
+        },
+        {
+          "id": "local-scan",
+          "title": "market scan (local scan)",
+          "url": "file:///C:/reports/sea-fnb-market-scan.pdf",
+          "quotes": [
+            "Local scan page 12: outlets grew 31%."
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "id": "c-sea-adoption",
+          "sourceId": "sea-primary",
+          "strength": "primary",
+          "figure": "31%",
+          "text": "东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%"
+        },
+        {
+          "id": "c-sea-outlook",
+          "sourceId": "sea-secondary",
+          "strength": "secondary",
+          "text": "分析机构预计渗透率在 2025 年继续上升"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "research/saas/sources/sea-primary.md",
+      "research/saas/sources/sea-primary.md",
+      "research/saas/sources/sea-primary.md",
+      "research/saas/sources/sea-secondary.md",
+      "research/saas/sources/sea-secondary.md",
+      "research/saas/sources/sea-secondary.md"
+    ],
+    "admitted": 6,
+    "excludedByPredicate": {},
+    "sourceExcluded": 1,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [
+      "research/saas/sources/sea-primary",
+      "research/saas/sources/sea-secondary"
+    ],
+    "bundles": 2,
+    "bundleSizes": {
+      "research/saas/sources/sea-primary": 3,
+      "research/saas/sources/sea-secondary": 3
+    },
+    "sameBundle": [
+      [
+        "sea-secondary#source",
+        "c-sea-outlook#claim"
+      ]
+    ],
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界",
+      "没有 http(s) URL",
+      "一律按「推测」标注"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "http 来源的结论：逐字抄写结论行 + 强度一致 -> claim-confirmed。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/sea-primary.md",
+          "locator": {
+            "sourceId": "sea-primary",
+            "kind": "claim",
+            "claimId": "c-sea-adoption",
+            "strength": "primary"
+          },
+          "excerpt": "claim c-sea-adoption = 东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%"
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\",\"url\":\"https://example.org/sea-fnb-saas\"},{\"id\":\"local-scan\",\"url\":\"file:///C:/reports/sea-fnb-market-scan.pdf\"}],\"claims\":[{\"id\":\"c-sea-adoption\",\"sourceId\":\"sea-primary\",\"strength\":\"primary\",\"text\":\"东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%\"}]}",
+          "sources": [
+            {
+              "id": "sea-primary",
+              "strength": "primary",
+              "url": "https://example.org/sea-fnb-saas"
+            },
+            {
+              "id": "local-scan",
+              "url": "file:///C:/reports/sea-fnb-market-scan.pdf"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-sea-adoption",
+              "sourceId": "sea-primary",
+              "strength": "primary",
+              "text": "东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/saas/sources/sea-primary.md",
+              "content": "# source sea-primary (Restaurant SaaS adoption in Southeast Asia)\nstrength = primary (一手)\nurl = https://example.org/sea-fnb-saas\nretrieved = 2025-04-02\npublisher = Regional Industry Council\nquote 1 :: Restaurant SaaS adoption reached 31% of outlets in 2024.\n--- claims ---\nclaim c-sea-adoption = 东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\",\"url\":\"https://example.org/sea-fnb-saas\"},{\"id\":\"local-scan\",\"url\":\"file:///C:/reports/sea-fnb-market-scan.pdf\"}],\"claims\":[{\"id\":\"c-sea-adoption\",\"sourceId\":\"sea-primary\",\"strength\":\"primary\",\"text\":\"东南亚餐饮门店的 SaaS 渗透率在 2024 年达到 31%\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/saas/sources/sea-primary.md",
+        "expectStart": 8,
+        "expectCode": "claim-confirmed"
+      },
+      {
+        "note": "二手来源 + 二手结论是允许的：口径未被抬高时锚点正常确认（recall-first 不会因为强度低就判不通过）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/sea-secondary.md",
+          "locator": {
+            "sourceId": "sea-secondary",
+            "kind": "claim",
+            "claimId": "c-sea-outlook",
+            "strength": "secondary"
+          },
+          "excerpt": "claim c-sea-outlook = 分析机构预计渗透率在 2025 年继续上升"
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-secondary\",\"strength\":\"secondary\",\"url\":\"https://news.example.net/sea-restaurant-tech\"}],\"claims\":[{\"id\":\"c-sea-outlook\",\"sourceId\":\"sea-secondary\",\"strength\":\"secondary\",\"text\":\"分析机构预计渗透率在 2025 年继续上升\"}]}",
+          "sources": [
+            {
+              "id": "sea-secondary",
+              "strength": "secondary",
+              "url": "https://news.example.net/sea-restaurant-tech"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-sea-outlook",
+              "sourceId": "sea-secondary",
+              "strength": "secondary",
+              "text": "分析机构预计渗透率在 2025 年继续上升"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/saas/sources/sea-secondary.md",
+              "content": "# source sea-secondary (Roundup of restaurant tech)\nstrength = secondary (二手)\nurl = https://news.example.net/sea-restaurant-tech\nretrieved = 2025-03-18\npublisher = Example News\nquote 1 :: Analysts expect adoption to keep rising through 2025.\n--- claims ---\nclaim c-sea-outlook = 分析机构预计渗透率在 2025 年继续上升\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-secondary\",\"strength\":\"secondary\",\"url\":\"https://news.example.net/sea-restaurant-tech\"}],\"claims\":[{\"id\":\"c-sea-outlook\",\"sourceId\":\"sea-secondary\",\"strength\":\"secondary\",\"text\":\"分析机构预计渗透率在 2025 年继续上升\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/saas/sources/sea-secondary.md",
+        "expectStart": 8,
+        "expectCode": "claim-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "无法再取回的来源在锚点层同样被拒：unknown-source（它没有被枚举，也没有进入来源表）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/local-scan.md",
+          "locator": {
+            "sourceId": "local-scan",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: Local scan page 12: outlets grew 31%."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\",\"url\":\"https://example.org/sea-fnb-saas\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "sea-primary",
+              "strength": "primary",
+              "url": "https://example.org/sea-fnb-saas"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/saas/sources/local-scan.md",
+              "content": "# source local-scan\nstrength = speculation (推测) [未声明，按推测处理]\nquote 1 :: Local scan page 12: outlets grew 31%.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\",\"url\":\"https://example.org/sea-fnb-saas\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "unknown-source"
+      },
+      {
+        "note": "转述不锚定：把 31% 说成「约三成」，意思对、字不对。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/sea-primary.md",
+          "locator": {
+            "sourceId": "sea-primary",
+            "kind": "quote"
+          },
+          "excerpt": "Restaurant SaaS adoption reached about 30% of outlets."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "sea-primary",
+              "strength": "primary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/saas/sources/sea-primary.md",
+              "content": "# source sea-primary\nstrength = primary (一手)\nquote 1 :: Restaurant SaaS adoption reached 31% of outlets in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      },
+      {
+        "note": "本地扫描件没有声明强度，按推测处理；把它当一手引用即被拒绝（这是本域最想抓住的失败模式）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/local-scan.md",
+          "locator": {
+            "sourceId": "local-scan",
+            "kind": "quote",
+            "strength": "primary"
+          },
+          "excerpt": "quote 1 :: Local scan page 12: outlets grew 31%."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"local-scan\",\"url\":\"file:///C:/reports/sea-fnb-market-scan.pdf\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "local-scan",
+              "url": "file:///C:/reports/sea-fnb-market-scan.pdf"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/saas/sources/local-scan.md",
+              "content": "# source local-scan\nstrength = speculation (推测) [未声明，按推测处理]\nquote 1 :: Local scan page 12: outlets grew 31%.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"local-scan\",\"url\":\"file:///C:/reports/sea-fnb-market-scan.pdf\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "strength-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行命中两份卡片 -> 拒绝猜测。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/saas/sources/a.md",
+          "locator": {
+            "sourceId": "sea-primary",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: Restaurant SaaS adoption reached 31% of outlets in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "documents": [
+            {
+              "path": "research/saas/sources/a.md",
+              "content": "quote 1 :: Restaurant SaaS adoption reached 31% of outlets in 2024.\n"
+            },
+            {
+              "path": "research/saas/sources/b.md",
+              "content": "quote 1 :: Restaurant SaaS adoption reached 31% of outlets in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\"}],\"claims\":[]}"
+            }
+          ],
+          "sources": [
+            {
+              "id": "sea-primary",
+              "strength": "primary"
+            }
+          ],
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"sea-primary\",\"strength\":\"primary\"}],\"claims\":[]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "research/saas/sources/a.md:1",
+          "research/saas/sources/b.md:1"
+        ]
+      }
+    ]
+  }
+}

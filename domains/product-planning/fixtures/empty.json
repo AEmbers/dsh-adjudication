@@ -1,0 +1,58 @@
+{
+  "name": "empty",
+  "domain": "product-planning",
+  "format": "requirement-registry-and-plan",
+  "input": {
+    "format": "requirement-registry-and-plan",
+    "payload": {
+      "requirements": [],
+      "plans": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空计划不改变锚点语义：需求原文仍然逐字可重算",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {},
+          "excerpt": "月度对账需要两天人工，期望自动比对"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "content": "月度对账需要两天人工，期望自动比对",
+          "metrics": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "空摘录 -> 未锚定",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {},
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "content": "月度对账需要两天人工，期望自动比对",
+          "metrics": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ]
+  }
+}

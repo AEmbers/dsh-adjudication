@@ -1,0 +1,235 @@
+{
+  "name": "happy-path",
+  "domain": "tech-doc",
+  "format": "doc-corpus-and-api-surface",
+  "description": "两篇文档、四个段落、六处可机械核验的断言（2 个签名、3 个围栏示例、1 个链接），按文档分捆后是 2 捆，其中 docs/api/reference.md 一捆 4 条——用于证明 P2 真的按文档分捆，而不是给每条断言单开一捆。同时也证明散文句子不会被变成候选：两篇文档里的「Install the package:」「Read …」这类句子都没有产出候选。",
+  "input": {
+    "format": "doc-corpus-and-api-surface",
+    "payload": {
+      "documents": [
+        {
+          "path": "docs/api/reference.md",
+          "title": "API reference",
+          "sections": [
+            {
+              "anchor": "compute-total",
+              "text": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n\n```ts\nconst total = computeTotal(items)\n```"
+            },
+            {
+              "anchor": "examples",
+              "text": "```js\nconst t = computeTotal(items, { round: true })\n```\n\nSee [Options](./options.md)."
+            }
+          ]
+        },
+        {
+          "path": "docs/guide/getting-started.md",
+          "title": "Getting started",
+          "sections": [
+            {
+              "anchor": "install",
+              "text": "Install the package:\n\n```bash\nnpm i dsh-adjudication\n```"
+            },
+            {
+              "anchor": "next-steps",
+              "text": "Read [the API reference](../api/reference.md)."
+            }
+          ]
+        }
+      ],
+      "api": [
+        {
+          "name": "computeTotal",
+          "signature": "computeTotal(items: Item[], options: Options = {}): number",
+          "params": [
+            { "name": "items", "required": true },
+            { "name": "options", "required": false, "default": "{}" }
+          ],
+          "returns": "number"
+        },
+        {
+          "name": "Options",
+          "signature": "interface Options { round?: boolean }",
+          "params": [],
+          "returns": null
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "docs/api/reference.md",
+      "docs/api/reference.md",
+      "docs/api/reference.md",
+      "docs/api/reference.md",
+      "docs/guide/getting-started.md",
+      "docs/guide/getting-started.md"
+    ],
+    "admitted": 6,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["docs/api/reference.md", "docs/guide/getting-started.md"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "签名断言：文档写出的签名与 API surface 重算出的签名逐字一致，才准锚定。位置由滑窗重算，模型不给行号。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "compute-total", "apiName": "computeTotal", "claimKind": "signature" },
+          "excerpt": "computeTotal(items: Item[], options: Options = {}): number"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n\n```ts\nconst total = computeTotal(items)\n```\n```js\nconst t = computeTotal(items, { round: true })\n```\n\nSee [Options](./options.md).",
+          "sections": [{ "anchor": "compute-total", "text": "unused by the verifier" }, { "anchor": "examples", "text": "unused by the verifier" }],
+          "api": [
+            {
+              "name": "computeTotal",
+              "signature": "computeTotal(items: Item[], options: Options = {}): number",
+              "params": [
+                { "name": "items", "required": true },
+                { "name": "options", "required": false, "default": "{}" }
+              ],
+              "returns": "number"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 3
+      },
+      {
+        "note": "围栏示例断言：整段示例逐字锚定。示例不声称某个具名 API，因此不做签名比对——没有声明就不核验，这与「核验不了却放行」是两件事。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "examples", "claimKind": "example" },
+          "excerpt": "```js\nconst t = computeTotal(items, { round: true })\n```"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n\n```ts\nconst total = computeTotal(items)\n```\n```js\nconst t = computeTotal(items, { round: true })\n```\n\nSee [Options](./options.md).",
+          "sections": [{ "anchor": "compute-total" }, { "anchor": "examples" }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 8
+      }
+    ],
+    "negative": [
+      {
+        "note": "签名漂移：位置能锚定，但文档写出的签名与 API surface 不一致 —— 这是本领域存在的理由，必须判未锚定而不是交给复核者去吵。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "compute-total", "apiName": "computeTotal", "claimKind": "signature" },
+          "excerpt": "computeTotal(items: Item[]): number"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[]): number\n",
+          "sections": [{ "anchor": "compute-total" }],
+          "api": [
+            {
+              "name": "computeTotal",
+              "signature": "computeTotal(items: Item[], options: Options = {}): number",
+              "params": [
+                { "name": "items", "required": true },
+                { "name": "options", "required": false, "default": "{}" }
+              ],
+              "returns": "number"
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "声明了签名却拿不出 API surface：「无法核验」不是「一致」。这是本领域最容易被糊弄过去的一格，必须判未锚定。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "compute-total", "apiName": "computeTotal", "claimKind": "signature" },
+          "excerpt": "computeTotal(items: Item[], options: Options = {}): number"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n",
+          "sections": [{ "anchor": "compute-total" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "转述不锚定：把 `Options = {}` 写成 `options?`，逐字比对必然落空。锚点只承认抄写。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "compute-total", "claimKind": "signature" },
+          "excerpt": "computeTotal(items: Item[], options?: Options): number"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "段落锚不存在：原文能定位，但它被挂在一个文档里没有的标题下 —— 发现落在了错误的位置，一样是未锚定。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "nonexistent-section", "claimKind": "signature" },
+          "excerpt": "computeTotal(items: Item[], options: Options = {}): number"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "## computeTotal\n\ncomputeTotal(items: Item[], options: Options = {}): number\n",
+          "sections": [{ "anchor": "compute-total" }, { "anchor": "examples" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一篇文档里出现两次也不猜：位置不唯一一律未锚定，请复核者补足上下文。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/api/reference.md",
+          "locator": { "docPath": "docs/api/reference.md", "anchor": "compute-total", "claimKind": "signature" },
+          "excerpt": "computeTotal(items)"
+        },
+        "subject": {
+          "path": "docs/api/reference.md",
+          "content": "computeTotal(items)\ncomputeTotal(items)\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["docs/api/reference.md:1", "docs/api/reference.md:2"]
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：声明的文档不在可比对集合里，原文在另外两篇文档里各命中一次，无从判断是哪一处。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/gone.md",
+          "locator": { "docPath": "docs/gone.md", "anchor": "x", "claimKind": "example" },
+          "excerpt": "npm i dsh-adjudication"
+        },
+        "subject": {
+          "documents": [
+            { "path": "docs/a.md", "sections": [{ "anchor": "one", "text": "npm i dsh-adjudication" }] },
+            { "path": "docs/b.md", "sections": [{ "anchor": "two", "text": "npm i dsh-adjudication" }] }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["docs/a.md:1", "docs/b.md:1"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,647 @@
+{
+  "name": "unclosed-only",
+  "domain": "user-feedback",
+  "format": "feedback-ledger",
+  "description": "一条闭环都没有的台账：4 条反馈全部没有 closedBy、没有任何决策在 addresses 里提到它们，另有 1 个孤儿决策。recall-first 下这份台账的覆盖率必然不完整，报告必须把 5 项缺口逐条列出而不是给一个计数——这份 fixture 就是用来钉住「清单而非计数」的。",
+  "input": {
+    "format": "feedback-ledger",
+    "payload": {
+      "documents": [
+        {
+          "path": "feedback/unclosed.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 3072
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-2001",
+                "quote": "支付成功后订单状态没有更新",
+                "source": "客服工单",
+                "severity": "blocker",
+                "reach": "all",
+                "frequency": 1,
+                "theme": "payment",
+                "status": "open"
+              },
+              {
+                "id": "fb-2002",
+                "quote": "退款到账时间比说明的晚了三天",
+                "source": "客服工单",
+                "severity": "high",
+                "reach": "many",
+                "frequency": 2,
+                "theme": "payment",
+                "status": "open"
+              },
+              {
+                "id": "fb-2003",
+                "quote": "搜索结果里出现了已下架的商品",
+                "source": "应用商店",
+                "severity": "medium",
+                "reach": "some",
+                "frequency": 5,
+                "theme": "search",
+                "status": "open"
+              },
+              {
+                "id": "fb-2004",
+                "quote": "夜间模式下弹窗文字看不清",
+                "source": "应用商店",
+                "severity": "low",
+                "reach": "few",
+                "frequency": 18,
+                "theme": "ui",
+                "status": "open"
+              }
+            ],
+            "decisions": [
+              {
+                "id": "dec-31",
+                "title": "支付网关升级",
+                "rationale": "与反馈台账无关的基础设施改造",
+                "addresses": [],
+                "status": "shipped",
+                "owner": "erin"
+              }
+            ],
+            "themes": [
+              {
+                "id": "payment",
+                "name": "支付",
+                "members": []
+              },
+              {
+                "id": "search",
+                "name": "搜索",
+                "members": []
+              },
+              {
+                "id": "ui",
+                "name": "界面细节",
+                "members": [
+                  "fb-2004"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "feedback/unclosed-fb-2001.json",
+      "feedback/unclosed-fb-2002.json",
+      "feedback/unclosed-fb-2003.json",
+      "feedback/unclosed-fb-2004.json",
+      "feedback/unclosed-dec-31.json",
+      "feedback/unclosed-theme-payment.json",
+      "feedback/unclosed-theme-search.json",
+      "feedback/unclosed-theme-ui.json"
+    ],
+    "admitted": 8,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "这个台账里每条反馈都无人处理——这正是它要证明的事。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/unclosed.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-2001"
+          }
+        },
+        "subject": {
+          "path": "feedback/unclosed.json",
+          "documents": [
+            {
+              "path": "feedback/unclosed.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 3072
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-2001",
+                    "quote": "支付成功后订单状态没有更新",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 1,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2002",
+                    "quote": "退款到账时间比说明的晚了三天",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "many",
+                    "frequency": 2,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2003",
+                    "quote": "搜索结果里出现了已下架的商品",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 5,
+                    "theme": "search",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2004",
+                    "quote": "夜间模式下弹窗文字看不清",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 18,
+                    "theme": "ui",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-31",
+                    "title": "支付网关升级",
+                    "rationale": "与反馈台账无关的基础设施改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "payment",
+                    "name": "支付",
+                    "members": []
+                  },
+                  {
+                    "id": "search",
+                    "name": "搜索",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-2004"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/unclosed.json"
+      },
+      {
+        "note": "四个反馈都不属于任何决策，所以孤儿决策成立。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/unclosed.json",
+          "locator": {
+            "kind": "orphan-decision",
+            "decisionId": "dec-31"
+          }
+        },
+        "subject": {
+          "path": "feedback/unclosed.json",
+          "documents": [
+            {
+              "path": "feedback/unclosed.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 3072
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-2001",
+                    "quote": "支付成功后订单状态没有更新",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 1,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2002",
+                    "quote": "退款到账时间比说明的晚了三天",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "many",
+                    "frequency": 2,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2003",
+                    "quote": "搜索结果里出现了已下架的商品",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 5,
+                    "theme": "search",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2004",
+                    "quote": "夜间模式下弹窗文字看不清",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 18,
+                    "theme": "ui",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-31",
+                    "title": "支付网关升级",
+                    "rationale": "与反馈台账无关的基础设施改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "payment",
+                    "name": "支付",
+                    "members": []
+                  },
+                  {
+                    "id": "search",
+                    "name": "搜索",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-2004"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/unclosed.json"
+      },
+      {
+        "note": "主题 ui 两侧一致（members 里有 fb-2004，fb-2004 的 theme 也是 ui），但 payment 只有单边——两种都要能分辨。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/unclosed.json",
+          "locator": {
+            "kind": "theme-membership",
+            "themeId": "ui",
+            "feedbackId": "fb-2004"
+          }
+        },
+        "subject": {
+          "path": "feedback/unclosed.json",
+          "documents": [
+            {
+              "path": "feedback/unclosed.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 3072
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-2001",
+                    "quote": "支付成功后订单状态没有更新",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 1,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2002",
+                    "quote": "退款到账时间比说明的晚了三天",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "many",
+                    "frequency": 2,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2003",
+                    "quote": "搜索结果里出现了已下架的商品",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 5,
+                    "theme": "search",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2004",
+                    "quote": "夜间模式下弹窗文字看不清",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 18,
+                    "theme": "ui",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-31",
+                    "title": "支付网关升级",
+                    "rationale": "与反馈台账无关的基础设施改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "payment",
+                    "name": "支付",
+                    "members": []
+                  },
+                  {
+                    "id": "search",
+                    "name": "搜索",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-2004"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/unclosed.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "payment 主题只被记录侧声明、目录侧 members 为空——单边不算成立。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/unclosed.json",
+          "locator": {
+            "kind": "theme-membership",
+            "themeId": "payment",
+            "feedbackId": "fb-2001"
+          }
+        },
+        "subject": {
+          "path": "feedback/unclosed.json",
+          "documents": [
+            {
+              "path": "feedback/unclosed.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 3072
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-2001",
+                    "quote": "支付成功后订单状态没有更新",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 1,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2002",
+                    "quote": "退款到账时间比说明的晚了三天",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "many",
+                    "frequency": 2,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2003",
+                    "quote": "搜索结果里出现了已下架的商品",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 5,
+                    "theme": "search",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2004",
+                    "quote": "夜间模式下弹窗文字看不清",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 18,
+                    "theme": "ui",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-31",
+                    "title": "支付网关升级",
+                    "rationale": "与反馈台账无关的基础设施改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "payment",
+                    "name": "支付",
+                    "members": []
+                  },
+                  {
+                    "id": "search",
+                    "name": "搜索",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-2004"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "声称某条反馈已闭环，但台账里根本没有任何闭环——与事实相反。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/unclosed.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "fb-2001",
+            "decisionId": "dec-31"
+          }
+        },
+        "subject": {
+          "path": "feedback/unclosed.json",
+          "documents": [
+            {
+              "path": "feedback/unclosed.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 3072
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-2001",
+                    "quote": "支付成功后订单状态没有更新",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 1,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2002",
+                    "quote": "退款到账时间比说明的晚了三天",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "many",
+                    "frequency": 2,
+                    "theme": "payment",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2003",
+                    "quote": "搜索结果里出现了已下架的商品",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 5,
+                    "theme": "search",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-2004",
+                    "quote": "夜间模式下弹窗文字看不清",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 18,
+                    "theme": "ui",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-31",
+                    "title": "支付网关升级",
+                    "rationale": "与反馈台账无关的基础设施改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "payment",
+                    "name": "支付",
+                    "members": []
+                  },
+                  {
+                    "id": "search",
+                    "name": "搜索",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-2004"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  },
+  "observations": {
+    "bundleKeys": [
+      "doc/feedback/unclosed.json",
+      "theme/payment",
+      "theme/search",
+      "theme/ui"
+    ],
+    "rankChecks": {
+      "byLoss": [
+        "fb-2001",
+        "fb-2002",
+        "fb-2003",
+        "fb-2004"
+      ],
+      "byFrequency": [
+        "fb-2004",
+        "fb-2003",
+        "fb-2002",
+        "fb-2001"
+      ],
+      "drownRisk": [
+        "fb-2001"
+      ]
+    },
+    "gapCount": 4,
+    "gapFeedbackIds": [
+      "fb-2001",
+      "fb-2002",
+      "fb-2003",
+      "fb-2004"
+    ],
+    "orphanDecisionIds": [
+      "dec-31"
+    ]
+  }
+}

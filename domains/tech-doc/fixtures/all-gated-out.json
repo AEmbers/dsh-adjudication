@@ -1,0 +1,69 @@
+{
+  "name": "all-gated-out",
+  "domain": "tech-doc",
+  "format": "doc-corpus-and-api-surface",
+  "description": "P0 枚举出 5 处可验证断言（5 篇文档各一条链接），P1 把它们全部排除：4 处落在领域包自己的排除规则上（产物目录、构建产物、版本库目录、生成文档），1 处由引擎默认排除规则拦下（依赖目录）。这是「源头有东西、闸门后为空」的边界——必须能被区分于 empty。CHANGED (t23)：本 fixture 现在**不带自己的 gate**——它证明的是「pack 自己能排干」，而不是「pack ∪ fixture 能排干」。",
+  "input": {
+    "format": "doc-corpus-and-api-surface",
+    "payload": {
+      "documents": [
+        { "path": "node_modules/leftpad/README.md", "title": "leftpad", "sections": [{ "anchor": "usage", "text": "See [the guide](./guide.md)." }] },
+        { "path": "dist/api.md", "title": "built api", "sections": [{ "anchor": "usage", "text": "See [the guide](./guide.md)." }] },
+        { "path": "build/README.md", "title": "built readme", "sections": [{ "anchor": "usage", "text": "See [the guide](./guide.md)." }] },
+        { "path": ".git/hooks/NOTES.md", "title": "hook notes", "sections": [{ "anchor": "usage", "text": "See [the guide](./guide.md)." }] },
+        { "path": "generated/api.md", "title": "generated api", "sections": [{ "anchor": "usage", "text": "See [the guide](./guide.md)." }] }
+      ],
+      "api": []
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": ["node_modules/leftpad/README.md", "dist/api.md", "build/README.md", ".git/hooks/NOTES.md", "generated/api.md"],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "user-exclude": [".git/hooks/NOTES.md", "build/README.md", "dist/api.md", "generated/api.md"],
+      "default-path": ["node_modules/leftpad/README.md"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的文档里，原文依然可以被逐字锚定；闸门与锚点是两层，不该互相冒充。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "generated/api.md",
+          "locator": { "docPath": "generated/api.md", "anchor": "usage", "claimKind": "link" },
+          "excerpt": "See [the guide](./guide.md)."
+        },
+        "subject": {
+          "path": "generated/api.md",
+          "content": "See [the guide](./guide.md).\n",
+          "sections": [{ "anchor": "usage" }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "段落锚与文档结构矛盾：原文找得到，但它被挂在一个不存在的标题下，必须判未锚定。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "generated/api.md",
+          "locator": { "docPath": "generated/api.md", "anchor": "features", "claimKind": "link" },
+          "excerpt": "See [the guide](./guide.md)."
+        },
+        "subject": {
+          "path": "generated/api.md",
+          "content": "See [the guide](./guide.md).\n",
+          "sections": [{ "anchor": "usage" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

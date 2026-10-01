@@ -1,0 +1,57 @@
+{
+  "name": "empty",
+  "domain": "tech-test",
+  "format": "test-inventory-and-coverage",
+  "description": "空集边界：没有用例、没有覆盖条目、没有源码快照。合法结果是 0 个候选而不是抛错——「没有输入」和「输入坏了」是两回事，报告必须能区分它们。",
+  "input": {
+    "format": "test-inventory-and-coverage",
+    "payload": {
+      "cases": [],
+      "coverage": { "files": {} },
+      "source": {}
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "P0 空集不影响 P5：锚点层面对的是原文，与候选集是否为空无关。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/a.ts",
+          "locator": {},
+          "excerpt": "const x = compute()"
+        },
+        "subject": {
+          "path": "src/a.ts",
+          "content": "export function run() {\n  const x = compute()\n  return x\n}",
+          "coverage": { "files": { "src/a.ts": { "lines": { "1": 1, "3": 2, "4": 2 } } } }
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "没有任何可比对源码时必须判未锚定（no-documents），绝不当作「锚点成立但无法核验」。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/a.ts",
+          "locator": {},
+          "excerpt": "const x = compute()"
+        },
+        "subject": { "path": "src/a.ts", "documents": [] },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents"
+      }
+    ]
+  }
+}

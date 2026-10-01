@@ -1,0 +1,262 @@
+{
+  "name": "relocate-ambiguous",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "声明的图不在语料里，而同一个依赖边在**两张**图里同样成立 —— 跨图搬迁不唯一。P5 的第三级降级（relocated-unique）只有在唯一命中时才允许搬迁，这里正是它必须拒绝的场景：挑一张「看起来对」的图，等于替模型猜它指的是哪份计划。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "project/team-a/plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 1024
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T1",
+                "title": "共享组件抽取",
+                "owner": "alice",
+                "estimateDays": 2,
+                "status": "todo",
+                "team": "alpha"
+              },
+              {
+                "id": "T2",
+                "title": "调用方改造",
+                "owner": "alice",
+                "estimateDays": 3,
+                "status": "todo",
+                "team": "alpha",
+                "dependsOn": [
+                  "T1"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "path": "project/team-b/plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 1024
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T1",
+                "title": "共享组件抽取",
+                "owner": "bob",
+                "estimateDays": 2,
+                "status": "todo",
+                "team": "beta"
+              },
+              {
+                "id": "T2",
+                "title": "调用方改造",
+                "owner": "bob",
+                "estimateDays": 3,
+                "status": "todo",
+                "team": "beta",
+                "dependsOn": [
+                  "T1"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "project/team-a/plan-t2-t1.json",
+      "project/team-a/plan-task-t1.json",
+      "project/team-a/plan-task-t2.json",
+      "project/team-b/plan-t2-t1.json",
+      "project/team-b/plan-task-t1.json",
+      "project/team-b/plan-task-t2.json"
+    ],
+    "admitted": 6,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "ws/alpha",
+      "ws/beta"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "声明指向的图名不在语料里，但这条边只在**一张**图里成立 —— 允许唯一搬迁，并在 detail 里说明搬到了哪。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/unknown/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T2",
+            "to": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/unknown/plan.json",
+          "documents": [
+            {
+              "path": "project/team-a/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "path": "project/team-b/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T3"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "project/team-a/plan.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "同一条边在两张语义不同的图里都成立（两个团队各有一份同样的改造计划）。此时「T2 依赖 T1」有两个同样成立的落点 —— 必须返回 relocation-ambiguous 并列出两个竞争者，绝不挑一个。注：两张图共享 T1/T2 这两个 id 本身**不是**拒绝的理由（每个团队的 plan 都有 T1），决定因素是声明在几张图里成立。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/unknown/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T2",
+            "to": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/unknown/plan.json",
+          "documents": [
+            {
+              "path": "project/team-a/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "path": "project/team-b/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "project/team-a/plan.json#task-edge",
+          "project/team-b/plan.json#task-edge"
+        ]
+      },
+      {
+        "note": "同一条边在两张语义不同的图里都成立（两个团队各有一份同样的改造计划）。两个落点同样成立就是「搬迁不唯一」，必须拒绝并列出两者 —— 绝不挑 id 字典序靠前的那张。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/unknown/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T2",
+            "to": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/unknown/plan.json",
+          "documents": [
+            {
+              "path": "project/team-a/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "path": "project/team-b/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "dependsOn": [
+                      "T1"
+                    ],
+                    "id": "T2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "project/team-a/plan.json#task-edge",
+          "project/team-b/plan.json#task-edge"
+        ]
+      }
+    ]
+  }
+}

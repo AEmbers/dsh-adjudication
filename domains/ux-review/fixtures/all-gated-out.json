@@ -1,0 +1,118 @@
+{
+  "name": "all-gated-out",
+  "domain": "ux-review",
+  "format": "flow-spec",
+  "description": "P0 枚举出 4 个 (分支, 步骤) 候选，P1 闸门把每一个都排除，且各因不同谓词：user-exclude（导出快照分支不是交互面）/ deleted（已归档分支）/ binary（只有位图的设计稿节点）/ too-large（超大导出屏幕）。这证明「P0 有产出」与「P1 全排除」在计划里是可区分的。",
+  "input": {
+    "format": "flow-spec",
+    "payload": {
+      "flow": {
+        "id": "checkout",
+        "name": "结算流程",
+        "steps": [
+          { "id": "s1", "name": "购物车页", "type": "screen", "next": "s2" },
+          { "id": "s2", "name": "旧地址表单", "type": "form", "next": "s3" },
+          { "id": "s3", "name": "位图预览", "type": "screen" },
+          { "id": "s4", "name": "全量导出", "type": "screen" }
+        ]
+      },
+      "branches": [
+        { "id": "exported", "kind": "export-snapshot", "steps": ["s1"] },
+        { "id": "archived", "kind": "happy", "steps": ["s2"], "archived": true },
+        { "id": "imageonly", "kind": "happy", "steps": ["s3"] },
+        { "id": "bulk", "kind": "happy", "steps": ["s4"] }
+      ],
+      "prototype": {
+        "nodes": [
+          { "id": "s1", "name": "购物车页", "screen": "screens/checkout/cart.png" },
+          { "id": "s2", "name": "旧地址表单", "screen": "screens/legacy/address.png" },
+          { "id": "s3", "name": "位图预览", "screen": "screens/checkout/preview.png", "imageOnly": true },
+          { "id": "s4", "name": "全量导出", "screen": "screens/checkout/export-full.png", "bytes": 2097152 }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "checkout/archived/s2",
+      "checkout/bulk/s4",
+      "checkout/exported/s1",
+      "checkout/imageonly/s3"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": ["checkout/imageonly/s3"],
+      "deleted": ["checkout/archived/s2"],
+      "user-exclude": ["checkout/exported/s1"],
+      "too-large": ["checkout/bulk/s4"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的候选，它的步骤侧绑定仍然可以重算 —— 闸门决定「本领域是否审它」，锚点决定「这句话与这个绑定成不成立」。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/exported/s1",
+          "locator": { "branchId": "exported", "stepId": "s1" },
+          "excerpt": "next = s2"
+        },
+        "subject": {
+          "path": "checkout/exported/s1",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "exported", "kind": "export-snapshot", "steps": ["s1"] }],
+          "documents": [
+            { "path": "checkout/exported/s1", "content": "步骤 s1 — 购物车页（类型 screen）\n  next    = s2\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把 next 写成后续，语义相同但逐字不同 -> no-match。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/bulk/s4",
+          "locator": { "branchId": "bulk", "stepId": "s4" },
+          "excerpt": "后续 = s5"
+        },
+        "subject": {
+          "path": "checkout/bulk/s4",
+          "flow": { "id": "checkout", "steps": [{ "id": "s4" }] },
+          "branches": [{ "id": "bulk", "kind": "happy", "steps": ["s4"] }],
+          "documents": [
+            { "path": "checkout/bulk/s4", "content": "步骤 s4 — 全量导出（类型 screen）\n  next    = (未声明)\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "分支不存在：拒绝把发现挂到一个流程里根本没有的分支上。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/ghost/s1",
+          "locator": { "branchId": "ghost", "stepId": "s1" },
+          "excerpt": "next = s2"
+        },
+        "subject": {
+          "path": "checkout/ghost/s1",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "exported", "kind": "export-snapshot", "steps": ["s1"] }],
+          "documents": [
+            { "path": "checkout/ghost/s1", "content": "next = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": []
+  }
+}

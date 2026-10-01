@@ -1,0 +1,117 @@
+{
+  "name": "orphan-both-sides",
+  "domain": "product-planning",
+  "format": "requirement-registry-and-plan",
+  "input": {
+    "format": "requirement-registry-and-plan",
+    "payload": {
+      "requirements": [
+        {
+          "id": "req-served",
+          "title": "这条需求有人承接",
+          "status": "confirmed"
+        },
+        {
+          "id": "req-nobody",
+          "title": "这条需求确认了但没人承接",
+          "status": "confirmed"
+        },
+        {
+          "id": "req-draft",
+          "title": "这条需求还没确认",
+          "status": "proposed"
+        }
+      ],
+      "plans": [
+        {
+          "id": "plan-serves",
+          "title": "承接 req-served 的方案",
+          "serves": [
+            "req-served"
+          ],
+          "metric": {
+            "name": "覆盖率",
+            "baseline": 0,
+            "target": 1,
+            "window": "2026 Q2"
+          }
+        },
+        {
+          "id": "plan-ghost",
+          "title": "承接了一个不存在的需求",
+          "serves": [
+            "req-ghost"
+          ],
+          "metric": null
+        },
+        {
+          "id": "plan-lonely",
+          "title": "不承接任何需求的方案",
+          "serves": [],
+          "metric": null
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "plans/plan-lonely/orphan",
+      "plans/plan-serves/serves/req-served",
+      "requirements/req-draft/orphan",
+      "requirements/req-nobody/orphan"
+    ],
+    "admitted": 3,
+    "excludedByPredicate": {
+      "deleted": [
+        "requirements/req-draft/orphan"
+      ]
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "孤儿方案的标题同样是可引用的原文",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-nobody",
+          "locator": {
+            "requirementId": "req-nobody"
+          },
+          "excerpt": "这条需求确认了但没人承接"
+        },
+        "subject": {
+          "path": "requirements/req-nobody",
+          "content": "这条需求确认了但没人承接",
+          "metrics": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "断链：需求库里没有这个 ID，抄写原文也无处可锚 -> no-match",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ghost",
+          "locator": {},
+          "excerpt": "这条需求从来不存在"
+        },
+        "subject": {
+          "path": "requirements/req-ghost",
+          "documents": [
+            {
+              "path": "requirements/req-nobody",
+              "content": "这条需求确认了但没人承接",
+              "metrics": []
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

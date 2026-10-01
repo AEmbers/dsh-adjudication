@@ -1,0 +1,80 @@
+{
+  "name": "empty",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/none/trace.json",
+      "nodes": [],
+      "edges": [],
+      "idSpace": [],
+      "upstream": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空语料上唯一成立的裁决是「无法重算」：没有节点就没有可确认的关系。这条用例断言的是**拒绝**，不是确认。",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/none/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/none/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "subject": {
+          "path": "chains/none/trace.json",
+          "content": "{\"graphPath\":\"chains/none/trace.json\",\"nodes\":[],\"edges\":[],\"idSpace\":[],\"upstream\":[]}",
+          "documents": [
+            {
+              "path": "chains/none/trace.json",
+              "content": "{\"graphPath\":\"chains/none/trace.json\",\"nodes\":[],\"edges\":[],\"idSpace\":[],\"upstream\":[]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "同一个声明的另一种写法：即使把它当成空语料里的「拒绝」，也不许升成可信 tier",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/none/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/none/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "subject": {
+          "path": "chains/none/trace.json",
+          "content": "{\"graphPath\":\"chains/none/trace.json\",\"nodes\":[],\"edges\":[],\"idSpace\":[],\"upstream\":[]}",
+          "documents": [
+            {
+              "path": "chains/none/trace.json",
+              "content": "{\"graphPath\":\"chains/none/trace.json\",\"nodes\":[],\"edges\":[],\"idSpace\":[],\"upstream\":[]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

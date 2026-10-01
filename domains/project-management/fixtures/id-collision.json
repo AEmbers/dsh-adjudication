@@ -1,0 +1,241 @@
+{
+  "name": "id-collision",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "同一个任务 ID 被两张不同的图声明（storage-plan 与 legacy-import 都叫 T4）。重复 ID 让「T4→T6 这条边」失去指向 —— 关于它的任何结论都无法被重算。这类缺陷的优先级高于它引起的任何具体问题，因为它是「锚点不可重算」本身。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "project/storage-plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 2048
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T4",
+                "title": "对象存储选型",
+                "owner": "alice",
+                "estimateDays": 2,
+                "status": "todo",
+                "team": "storage"
+              },
+              {
+                "id": "T6",
+                "title": "冷热分层策略",
+                "owner": "alice",
+                "estimateDays": 4,
+                "status": "todo",
+                "team": "storage",
+                "dependsOn": [
+                  "T4"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "path": "project/legacy-import.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 1024
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T4",
+                "title": "旧系统迁移清单（同名 ID，不同东西）",
+                "owner": "bob",
+                "estimateDays": 5,
+                "status": "todo",
+                "team": "migration"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "project/storage-plan-t6-t4.json",
+      "project/storage-plan-task-t4.json",
+      "project/storage-plan-task-t6.json",
+      "project/legacy-import-task-t4.json"
+    ],
+    "admitted": 4,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "ws/migration",
+      "ws/storage"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "单图内的边仍然可以重算 —— ID 冲突只在跨图时发生，验证器必须能区分「这张图内部自洽」与「整个语料不自洽」。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/storage-plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T6",
+            "to": "T4"
+          }
+        },
+        "subject": {
+          "path": "project/storage-plan.json",
+          "documents": [
+            {
+              "path": "project/storage-plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4"
+                  },
+                  {
+                    "id": "T6",
+                    "dependsOn": [
+                      "T4"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/storage-plan.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "方向与存在性都由引擎重算：storage-plan 里真实存在的是 T6 → T4，声明写成 T4 → T6 就是反向边，必须判矛盾。这条负例证明「图会让模型说错方向」，紧接着的探针证明「同一 ID 出现在两张图里时，连方向问题都不该回答」。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/storage-plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T4",
+            "to": "T6"
+          }
+        },
+        "subject": {
+          "path": "project/storage-plan.json",
+          "documents": [
+            {
+              "path": "project/storage-plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4"
+                  },
+                  {
+                    "id": "T6",
+                    "dependsOn": [
+                      "T4"
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "path": "project/legacy-import.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4",
+                    "dependsOn": [
+                      "T6"
+                    ]
+                  },
+                  {
+                    "id": "T6"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectAmbiguousIn": [
+          "project/legacy-import.json#T4",
+          "project/storage-plan.json#T4"
+        ]
+      }
+    ],
+    "ambiguous": [
+      {
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "claim": {
+          "locator": {
+            "to": "T4",
+            "kind": "task-edge",
+            "from": "T6"
+          },
+          "kind": "task-and-edge",
+          "path": "project/unknown.json"
+        },
+        "note": "声明的图不在语料里，而 T6 → T4 这条边在两张图里都成立 —— 搬迁不唯一，必须拒绝并列出两个落点。注意 T4、T6 这两个 id 同时出现在两张图里本身不是拒绝的理由（每个团队的 plan 都有自己的 T1）；决定因素是「声明在几张图里成立」。",
+        "expectAmbiguousIn": [
+          "project/legacy-import.json#task-edge",
+          "project/storage-plan.json#task-edge"
+        ],
+        "subject": {
+          "documents": [
+            {
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4"
+                  },
+                  {
+                    "dependsOn": [
+                      "T4"
+                    ],
+                    "id": "T6"
+                  }
+                ]
+              },
+              "path": "project/storage-plan.json"
+            },
+            {
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4"
+                  },
+                  {
+                    "dependsOn": [
+                      "T4"
+                    ],
+                    "id": "T6"
+                  }
+                ]
+              },
+              "path": "project/legacy-import.json"
+            }
+          ],
+          "path": "project/unknown.json"
+        }
+      }
+    ]
+  }
+}

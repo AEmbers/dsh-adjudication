@@ -1,0 +1,181 @@
+{
+  "name": "ambiguous-route",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/dual/trace.json",
+      "nodes": [
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s2/u1"
+        },
+        {
+          "id": "D1",
+          "type": "design",
+          "ref": "design/dual-a.md#L1-L8"
+        },
+        {
+          "id": "D2",
+          "type": "design",
+          "ref": "design/dual-b.md#L1-L8"
+        },
+        {
+          "id": "I1",
+          "type": "implementation",
+          "ref": "src/dual.ts#L1-L20"
+        }
+      ],
+      "edges": [
+        {
+          "from": "R1",
+          "to": "D1",
+          "kind": "derives"
+        },
+        {
+          "from": "D1",
+          "to": "I1",
+          "kind": "implements"
+        },
+        {
+          "from": "R1",
+          "to": "D2",
+          "kind": "derives"
+        },
+        {
+          "from": "D2",
+          "to": "I1",
+          "kind": "implements"
+        }
+      ],
+      "idSpace": [],
+      "upstream": [
+        {
+          "domain": "sessions",
+          "ref": "sessions/s2/u1"
+        },
+        {
+          "domain": "design",
+          "ref": "design/dual-a.md#L1-L8"
+        },
+        {
+          "domain": "design",
+          "ref": "design/dual-b.md#L1-L8"
+        },
+        {
+          "domain": "src",
+          "ref": "src/dual.ts#L1-L20"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 12,
+    "admitted": 12,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "locator 把整条路径点名了 —— 即使图上还有另一条，这一条也是被确认的那一条",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/dual/trace.json",
+          "locator": {
+            "kind": "chain-path",
+            "fromId": "R1",
+            "toId": "I1",
+            "route": [
+              "R1",
+              "D1",
+              "I1"
+            ]
+          }
+        },
+        "subjectPath": "chains/dual/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1",
+          "D1",
+          "I1"
+        ],
+        "subject": {
+          "path": "chains/dual/trace.json",
+          "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}",
+          "documents": [
+            {
+              "path": "chains/dual/trace.json",
+              "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "声明的路径在图上不存在（少一跳）—— 不锚定，也不替它补中间节点",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/dual/trace.json",
+          "locator": {
+            "kind": "chain-path",
+            "fromId": "R1",
+            "toId": "I1",
+            "route": [
+              "R1",
+              "I1"
+            ]
+          }
+        },
+        "subjectPath": "chains/dual/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/dual/trace.json",
+          "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}",
+          "documents": [
+            {
+              "path": "chains/dual/trace.json",
+              "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "两条路径同样成立 —— 读法不唯一，列出全部竞争路径而不是挑一条",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/dual/trace.json",
+          "locator": {
+            "kind": "chain-path",
+            "fromId": "R1",
+            "toId": "I1"
+          }
+        },
+        "subjectPath": "chains/dual/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "chains/dual/trace.json#chain:R1→D1→I1",
+          "chains/dual/trace.json#chain:R1→D2→I1"
+        ],
+        "subject": {
+          "path": "chains/dual/trace.json",
+          "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}",
+          "documents": [
+            {
+              "path": "chains/dual/trace.json",
+              "content": "{\"graphPath\":\"chains/dual/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s2/u1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"id\":\"D2\",\"type\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dual.ts#L1-L20\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"D1\",\"kind\":\"derives\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"R1\",\"to\":\"D2\",\"kind\":\"derives\"},{\"from\":\"D2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s2/u1\"},{\"domain\":\"design\",\"ref\":\"design/dual-a.md#L1-L8\"},{\"domain\":\"design\",\"ref\":\"design/dual-b.md#L1-L8\"},{\"domain\":\"src\",\"ref\":\"src/dual.ts#L1-L20\"}]}"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

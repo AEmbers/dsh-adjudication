@@ -1,0 +1,179 @@
+{
+  "name": "all-gated-out",
+  "domain": "risk-compliance",
+  "format": "clause-and-surface",
+  "description": "P0 枚举出 7 个绑定，P1 闸门把每一个都排除，且每个都因不同的谓词被排除：binary（已脱敏）/ deleted（已退役）/ user-exclude（制度备忘 .md 不是受审面）/ secret（凭据侧路径）/ default-path（vendor 与 node_modules）/ too-large（导出快照超限）。这证明「P0 有产出」与「P1 全排除」在计划里是可区分的。",
+  "input": {
+    "format": "clause-and-surface",
+    "payload": {
+      "clauses": [
+        {
+          "id": "ALL-00",
+          "title": "全局受监管面",
+          "text": "对所有受监管面逐条取证：数据流向、权限边、对外接口、留存策略、日志内容。",
+          "appliesTo": ["**"]
+        }
+      ],
+      "surface": [
+        {
+          "id": "redacted-flow",
+          "type": "data-flow",
+          "path": "service/payments/flow.ts",
+          "description": "支付数据流向，已按安全要求脱敏，无可读内容。",
+          "evidence": "[REDACTED]",
+          "redacted": true
+        },
+        {
+          "id": "retired-policy",
+          "type": "retention",
+          "path": "data/retired/policy.ts",
+          "description": "已退役的留存实现，由 data/archive/policy.ts 取代。",
+          "evidence": "export const RETIRED = true // superseded by data/archive/policy.ts",
+          "retired": true
+        },
+        {
+          "id": "retention-memo",
+          "type": "policy-memo",
+          "path": "policy/retention-memo.md",
+          "description": "留存策略备忘：这是规则侧的输入，不是受监管面。",
+          "evidence": "留存期限暂定 180 天，待法务确认。"
+        },
+        {
+          "id": "vendor-legacy",
+          "type": "external-api",
+          "path": "vendor/legacy/sync.ts",
+          "description": "第三方 vendor 目录下的同步实现。",
+          "evidence": "export function sync(payload) { return http.post(LEGACY_ENDPOINT, payload) }"
+        },
+        {
+          "id": "env-file",
+          "type": "secret-store",
+          "path": "config/.env",
+          "description": "凭据文件：凭据侧路径的优先级高于任何用户规则。",
+          "evidence": "DB_PASSWORD=example-not-a-real-secret"
+        },
+        {
+          "id": "huge-export",
+          "type": "export",
+          "path": "service/export/full-dump.ts",
+          "description": "全量导出快照，体积超过单次读取上限。",
+          "evidence": "export async function fullDump() { return db.raw('select * from events') }",
+          "bytes": 2097152
+        },
+        {
+          "id": "node-mod",
+          "type": "data-flow",
+          "path": "node_modules/leftpad/index.js",
+          "description": "依赖目录内的实现，不在受审范围内。",
+          "evidence": "module.exports = function leftpad(value) { return String(value) }"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 7,
+    "paths": [
+      "all-00/config/.env",
+      "all-00/data/retired/policy.ts",
+      "all-00/node_modules/leftpad/index.js",
+      "all-00/policy/retention-memo.md",
+      "all-00/service/export/full-dump.ts",
+      "all-00/service/payments/flow.ts",
+      "all-00/vendor/legacy/sync.ts"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": ["all-00/service/payments/flow.ts"],
+      "secret": ["all-00/config/.env"],
+      "deleted": ["all-00/data/retired/policy.ts"],
+      "user-exclude": ["all-00/policy/retention-memo.md"],
+      "default-path": ["all-00/node_modules/leftpad/index.js", "all-00/vendor/legacy/sync.ts"],
+      "too-large": ["all-00/service/export/full-dump.ts"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的候选，其证据原文仍然可以逐字锚定 —— 闸门决定的是「本领域是否审它」，锚点决定的是「这句话在不在材料里」。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "vendor/legacy/sync.ts",
+          "locator": { "clauseId": "ALL-00" },
+          "excerpt": "export function sync(payload) { return http.post(LEGACY_ENDPOINT, payload) }"
+        },
+        "subject": {
+          "path": "vendor/legacy/sync.ts",
+          "clauses": [{ "id": "ALL-00", "title": "全局受监管面", "text": "对所有受监管面逐条取证。" }],
+          "documents": [
+            { "path": "vendor/legacy/sync.ts", "content": "export function sync(payload) { return http.post(LEGACY_ENDPOINT, payload) }\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把 db.raw 写成 db.executeRaw，语义相同但逐字不同 -> no-match。不许模糊匹配救它。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/export/full-dump.ts",
+          "locator": { "clauseId": "ALL-00" },
+          "excerpt": "export async function fullDump() { return db.executeRaw('select * from events') }"
+        },
+        "subject": {
+          "path": "service/export/full-dump.ts",
+          "clauses": [{ "id": "ALL-00", "title": "全局受监管面", "text": "对所有受监管面逐条取证。" }],
+          "documents": [
+            { "path": "service/export/full-dump.ts", "content": "export async function fullDump() { return db.raw('select * from events') }\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：同一行在 vendor 与 service 两个文件里逐字出现，声明的文件不在文档集中 -> relocation-ambiguous，必须列出竞争位置。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/unknown/where.ts",
+          "locator": { "clauseId": "ALL-00" },
+          "excerpt": "module.exports = function leftpad(value) { return String(value) }"
+        },
+        "subject": {
+          "path": "service/unknown/where.ts",
+          "clauses": [{ "id": "ALL-00", "title": "全局受监管面", "text": "对所有受监管面逐条取证。" }],
+          "documents": [
+            { "path": "vendor/legacy/leftpad.js", "content": "module.exports = function leftpad(value) { return String(value) }\n" },
+            { "path": "service/util/leftpad.js", "content": "module.exports = function leftpad(value) { return String(value) }\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["vendor/legacy/leftpad.js:1", "service/util/leftpad.js:1"]
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一文件内重复行：唯一命中在文件内也不成立，同样拒绝。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/dup.ts",
+          "locator": { "clauseId": "ALL-00" },
+          "excerpt": "const flag = true"
+        },
+        "subject": {
+          "path": "service/dup.ts",
+          "clauses": [{ "id": "ALL-00", "title": "全局受监管面", "text": "对所有受监管面逐条取证。" }],
+          "documents": [
+            { "path": "service/dup.ts", "content": "const flag = true\nconst other = 1\nconst flag = true\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
+      }
+    ]
+  }
+}

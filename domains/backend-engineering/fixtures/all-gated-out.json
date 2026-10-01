@@ -1,0 +1,128 @@
+{
+  "name": "all-gated-out",
+  "domain": "backend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/assets/logo.png b/assets/logo.png\nindex 1111111..2222222 100644\nBinary files a/assets/logo.png and b/assets/logo.png differ\ndiff --git a/config/.env b/config/.env\nindex 4444444..5555555 100644\n--- a/config/.env\n+++ b/config/.env\n@@ -1,1 +1,1 @@\n-API_TOKEN=old_value\n+API_TOKEN=new_value\ndiff --git a/generated/types.ts b/generated/types.ts\nindex 1212121..1313131 100644\n--- a/generated/types.ts\n+++ b/generated/types.ts\n@@ -1,1 +1,1 @@\n-export type A = 1\n+export type A = 2\ndiff --git a/legacy/old.go b/legacy/old.go\ndeleted file mode 100644\nindex 3333333..0000000\n--- a/legacy/old.go\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-package legacy\n-func Old() {}\ndiff --git a/node_modules/leftpad/index.js b/node_modules/leftpad/index.js\nindex 6666666..7777777 100644\n--- a/node_modules/leftpad/index.js\n+++ b/node_modules/leftpad/index.js\n@@ -1,1 +1,1 @@\n-module.exports = () => ''\n+module.exports = () => ' '\ndiff --git a/README.md b/README.md\nindex 8888888..9999999 100644\n--- a/README.md\n+++ b/README.md\n@@ -1,1 +1,1 @@\n-old docs\n+new docs\n",
+      "files": [
+        {
+          "path": "assets/logo.png",
+          "bytes": 20480,
+          "binary": true,
+          "status": "binary"
+        },
+        {
+          "path": "config/.env",
+          "bytes": 64,
+          "status": "modified"
+        },
+        {
+          "path": "generated/types.ts",
+          "bytes": 4096,
+          "status": "modified"
+        },
+        {
+          "path": "legacy/old.go",
+          "deleted": true,
+          "status": "deleted"
+        },
+        {
+          "path": "node_modules/leftpad/index.js",
+          "bytes": 128,
+          "status": "modified"
+        },
+        {
+          "path": "README.md",
+          "bytes": 512,
+          "status": "modified"
+        }
+      ]
+    }
+  },
+  "gate": {
+    "exclude": [
+      "**/generated/**"
+    ]
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "README.md",
+      "assets/logo.png",
+      "config/.env",
+      "generated/types.ts",
+      "legacy/old.go",
+      "node_modules/leftpad/index.js"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": [
+        "assets/logo.png"
+      ],
+      "secret": [
+        "config/.env"
+      ],
+      "deleted": [
+        "legacy/old.go"
+      ],
+      "user-exclude": [
+        "generated/types.ts"
+      ],
+      "extension": [
+        "README.md"
+      ],
+      "default-path": [
+        "node_modules/leftpad/index.js"
+      ]
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的文件里原文依然可锚定 —— 闸门与锚点是两层",
+        "claim": {
+          "kind": "diff-line",
+          "path": "legacy/old.go",
+          "locator": {},
+          "excerpt": "func Old() {}"
+        },
+        "subject": {
+          "path": "legacy/old.go",
+          "documents": [
+            {
+              "path": "legacy/old.go",
+              "content": "package legacy\nfunc Old() {}"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "二进制候选没有可抄写的原文 -> no-match",
+        "claim": {
+          "kind": "diff-line",
+          "path": "assets/logo.png",
+          "locator": {},
+          "excerpt": "Binary files differ"
+        },
+        "subject": {
+          "path": "assets/logo.png",
+          "documents": [
+            {
+              "path": "assets/logo.png",
+              "content": "\u0000\u0001\u0002 binary"
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

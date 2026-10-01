@@ -1,0 +1,55 @@
+{
+  "name": "empty",
+  "domain": "frontend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": ""
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空 diff 不改变锚点语义",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/styles/cart.css",
+          "locator": {},
+          "excerpt": "display: flex;"
+        },
+        "subject": {
+          "path": "src/styles/cart.css",
+          "content": ".cart {\n  display: flex;\n  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "空摘录 -> 未锚定",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/styles/cart.css",
+          "locator": {},
+          "excerpt": "  "
+        },
+        "subject": {
+          "path": "src/styles/cart.css",
+          "content": ".cart {\n  display: flex;\n  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ]
+  }
+}

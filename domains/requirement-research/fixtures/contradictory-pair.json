@@ -1,0 +1,94 @@
+{
+  "name": "contradictory-pair",
+  "domain": "requirement-research",
+  "format": "interview-corpus",
+  "input": {
+    "format": "interview-corpus",
+    "payload": {
+      "sessions": [
+        {
+          "id": "s4",
+          "participant": {
+            "id": "p4",
+            "role": "warehouse-operator"
+          },
+          "startedAt": "2026-02-01T09:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-02-01T09:00:00Z",
+              "speaker": "participant",
+              "text": "拣货路径必须由系统指定，人工判断太慢了。"
+            }
+          ]
+        },
+        {
+          "id": "s5",
+          "participant": {
+            "id": "p5",
+            "role": "warehouse-operator"
+          },
+          "startedAt": "2026-02-01T11:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-02-01T11:00:00Z",
+              "speaker": "participant",
+              "text": "系统指定的路径经常绕远，我宁可自己看货架决定。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 2,
+    "admitted": 2,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "两个相互矛盾的诉求都能各自锚定 —— 冲突是发现，不是锚点问题",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s5",
+          "locator": {
+            "utteranceIndex": 1,
+            "t": "2026-02-01T11:00:00Z"
+          },
+          "excerpt": "系统指定的路径经常绕远，我宁可自己看货架决定。"
+        },
+        "subject": {
+          "path": "sessions/s5",
+          "content": "系统指定的路径经常绕远，我宁可自己看货架决定。",
+          "times": [
+            "2026-02-01T11:00:00Z"
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "把两条矛盾原话「调和」成第三条 -> 无命中，调和产物没有锚点",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s4",
+          "locator": {},
+          "excerpt": "拣货路径应由系统指定，但允许人工覆盖。"
+        },
+        "subject": {
+          "path": "sessions/s4",
+          "content": "拣货路径必须由系统指定，人工判断太慢了。",
+          "times": [
+            "2026-02-01T09:00:00Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

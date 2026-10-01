@@ -1,0 +1,719 @@
+{
+  "name": "happy-path",
+  "domain": "market-research",
+  "format": "research-seed",
+  "description": "一个研究问题、三个来源（一手 / 二手 / 推测各一个）、每个来源一条逐字引文与一条结论：P0 枚举出 3×3=9 个候选（来源强度行、引文、结论各一），P1 全部准入，P2 按「一个来源」分成 3 捆 —— 每捆 3 个候选，这正是「一捆 = 一个来源」而不是「一捆 = 一个候选」的证据。锚点样例覆盖 正例（declared-locator 结论确认、recomputed-unique 引文确认、强度行确认、搬迁确认、链级确认）、反例（转述不锚定、口径洗白：二手来源按一手引用、未知来源、行号与原文矛盾、kind 不符、没有来源登记表）与歧义（同一行命中两份卡片）。",
+  "input": {
+    "format": "research-seed",
+    "payload": {
+      "question": "欧洲中小企业 ESG 报告软件市场",
+      "scope": {
+        "market": "ESG reporting software",
+        "segment": "SMB",
+        "geography": "EU",
+        "timeframe": "2024-2026"
+      },
+      "sources": [
+        {
+          "id": "eu-regulation",
+          "title": "SMB ESG reporting obligations",
+          "url": "https://ec.europa.eu/esg-smb-report-2025",
+          "publisher": "European Commission",
+          "retrievedAt": "2025-03-01",
+          "strength": "primary",
+          "quotes": [
+            "EU member states transposed the CSRD for listed SMBs by 2026."
+          ]
+        },
+        {
+          "id": "vendor-blog",
+          "title": "How our customers grew",
+          "url": "https://example-vendor.com/blog/esg-growth",
+          "publisher": "Example Vendor",
+          "retrievedAt": "2025-02-11",
+          "strength": "secondary",
+          "quotes": [
+            "Our own customer base grew 18% in 2024."
+          ]
+        },
+        {
+          "id": "forum-thread",
+          "title": "Which ESG tool do you use?",
+          "url": "https://forum.example.net/t/esg-tools/42",
+          "retrievedAt": "2025-01-20",
+          "strength": "speculation",
+          "quotes": [
+            "I think most SMBs still use spreadsheets."
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "id": "c-market-18",
+          "sourceId": "eu-regulation",
+          "strength": "primary",
+          "figure": "18%",
+          "text": "欧洲中小企业 ESG 软件支出在 2024 年增长 18%"
+        },
+        {
+          "id": "c-vendor-growth",
+          "sourceId": "vendor-blog",
+          "strength": "secondary",
+          "figure": "18%",
+          "text": "供应商称其客户群在 2024 年增长 18%"
+        },
+        {
+          "id": "c-forum-spreadsheet",
+          "sourceId": "forum-thread",
+          "strength": "speculation",
+          "text": "多数中小企业仍在使用电子表格"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 9,
+    "admitted": 9,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [
+      "research/esg/sources/eu-regulation",
+      "research/esg/sources/forum-thread",
+      "research/esg/sources/vendor-blog"
+    ],
+    "bundles": 3,
+    "bundleSizes": {
+      "research/esg/sources/eu-regulation": 3,
+      "research/esg/sources/vendor-blog": 3,
+      "research/esg/sources/forum-thread": 3
+    },
+    "sameBundle": [
+      [
+        "vendor-blog#source",
+        "c-vendor-growth#claim"
+      ],
+      [
+        "eu-regulation#quote#1",
+        "c-market-18#claim"
+      ]
+    ],
+    "candidateIds": [
+      "eu-regulation#source",
+      "eu-regulation#quote#1",
+      "c-market-18#claim",
+      "vendor-blog#source",
+      "vendor-blog#quote#1",
+      "c-vendor-growth#claim",
+      "forum-thread#source",
+      "forum-thread#quote#1",
+      "c-forum-spreadsheet#claim"
+    ],
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界",
+      "证据强度"
+    ],
+    "strengths": {
+      "eu-regulation": "primary",
+      "vendor-blog": "secondary",
+      "forum-thread": "speculation"
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写结论行 + 正确行号 + 证据强度一致 -> declared-locator：引擎确认了模型声明的行与强度，而不是采信它。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/eu-regulation.md",
+          "locator": {
+            "sourceId": "eu-regulation",
+            "kind": "claim",
+            "claimId": "c-market-18",
+            "strength": "primary",
+            "startLine": 8
+          },
+          "excerpt": "claim c-market-18 = 欧洲中小企业 ESG 软件支出在 2024 年增长 18%"
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\",\"url\":\"https://ec.europa.eu/esg-smb-report-2025\"},{\"id\":\"vendor-blog\",\"strength\":\"secondary\",\"url\":\"https://example-vendor.com/blog/esg-growth\"}],\"claims\":[{\"id\":\"c-market-18\",\"sourceId\":\"eu-regulation\",\"strength\":\"primary\",\"text\":\"欧洲中小企业 ESG 软件支出在 2024 年增长 18%\"}]}",
+          "sources": [
+            {
+              "id": "eu-regulation",
+              "strength": "primary",
+              "url": "https://ec.europa.eu/esg-smb-report-2025"
+            },
+            {
+              "id": "vendor-blog",
+              "strength": "secondary",
+              "url": "https://example-vendor.com/blog/esg-growth"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-market-18",
+              "sourceId": "eu-regulation",
+              "strength": "primary",
+              "text": "欧洲中小企业 ESG 软件支出在 2024 年增长 18%"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/eu-regulation.md",
+              "content": "# source eu-regulation (SMB ESG reporting obligations)\nstrength = primary (一手)\nurl = https://ec.europa.eu/esg-smb-report-2025\nretrieved = 2025-03-01\npublisher = European Commission\nquote 1 :: EU member states transposed the CSRD for listed SMBs by 2026.\n--- claims ---\nclaim c-market-18 = 欧洲中小企业 ESG 软件支出在 2024 年增长 18%"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\",\"url\":\"https://ec.europa.eu/esg-smb-report-2025\"},{\"id\":\"vendor-blog\",\"strength\":\"secondary\",\"url\":\"https://example-vendor.com/blog/esg-growth\"}],\"claims\":[{\"id\":\"c-market-18\",\"sourceId\":\"eu-regulation\",\"strength\":\"primary\",\"text\":\"欧洲中小企业 ESG 软件支出在 2024 年增长 18%\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "research/esg/sources/eu-regulation.md",
+        "expectStart": 8,
+        "expectCode": "claim-confirmed"
+      },
+      {
+        "note": "引文候选：逐字抄写引文行，不给行号 -> recomputed-unique，代码 quote-confirmed。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "quote",
+            "quoteIndex": 1,
+            "strength": "secondary"
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\",\"url\":\"https://example-vendor.com/blog/esg-growth\"}],\"claims\":[{\"id\":\"c-vendor-growth\",\"sourceId\":\"vendor-blog\",\"strength\":\"secondary\"}]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary",
+              "url": "https://example-vendor.com/blog/esg-growth"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-vendor-growth",
+              "sourceId": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog (How our customers grew)\nstrength = secondary (二手)\nurl = https://example-vendor.com/blog/esg-growth\nretrieved = 2025-02-11\npublisher = Example Vendor\nquote 1 :: Our own customer base grew 18% in 2024.\n--- claims ---\nclaim c-vendor-growth = 供应商称其客户群在 2024 年增长 18%"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\",\"url\":\"https://example-vendor.com/blog/esg-growth\"}],\"claims\":[{\"id\":\"c-vendor-growth\",\"sourceId\":\"vendor-blog\",\"strength\":\"secondary\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/esg/sources/vendor-blog.md",
+        "expectStart": 6,
+        "expectCode": "quote-confirmed"
+      },
+      {
+        "note": "来源候选：抄写的是证据强度行本身，落点必须确认为「这一份来源声明的强度」-> strength-confirmed。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/forum-thread.md",
+          "locator": {
+            "sourceId": "forum-thread",
+            "kind": "source",
+            "strength": "speculation"
+          },
+          "excerpt": "strength = speculation (推测)"
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"forum-thread\",\"strength\":\"speculation\",\"url\":\"https://forum.example.net/t/esg-tools/42\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "forum-thread",
+              "strength": "speculation",
+              "url": "https://forum.example.net/t/esg-tools/42"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/forum-thread.md",
+              "content": "# source forum-thread (Which ESG tool do you use?)\nstrength = speculation (推测)\nurl = https://forum.example.net/t/esg-tools/42\nretrieved = 2025-01-20\nquote 1 :: I think most SMBs still use spreadsheets."
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"forum-thread\",\"strength\":\"speculation\",\"url\":\"https://forum.example.net/t/esg-tools/42\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/esg/sources/forum-thread.md",
+        "expectStart": 2,
+        "expectCode": "strength-confirmed"
+      },
+      {
+        "note": "声明的路径里没有这一行，但另一份来源卡片唯一命中 -> relocated-unique：按搬迁确认，而不是猜测。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/moved.md",
+          "locator": {
+            "sourceId": "eu-regulation",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: EU member states transposed the CSRD for listed SMBs by 2026."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "documents": [
+            {
+              "path": "research/esg/sources/eu-regulation.md",
+              "content": "# source eu-regulation\nstrength = primary (一手)\nquote 1 :: EU member states transposed the CSRD for listed SMBs by 2026.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\",\"url\":\"https://ec.europa.eu/esg-smb-report-2025\"}],\"claims\":[]}"
+            }
+          ],
+          "sources": [
+            {
+              "id": "eu-regulation",
+              "strength": "primary",
+              "url": "https://ec.europa.eu/esg-smb-report-2025"
+            }
+          ],
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\",\"url\":\"https://ec.europa.eu/esg-smb-report-2025\"}],\"claims\":[]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "research/esg/sources/eu-regulation.md",
+        "expectStart": 3,
+        "expectCode": "quote-relocated"
+      },
+      {
+        "note": "adjudication_anchor 只能给出 excerpt/path（没有领域 locator）时的链级确认：原文逐字存在，结论明确写着「具体结论与强度未确认」。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {},
+          "excerpt": "strength = secondary (二手)"
+        },
+        "subject": {
+          "path": "research/esg/sources/vendor-blog.md",
+          "documents": [
+            {
+              "path": "research/esg/sources.json",
+              "content": "{\"question\":\"欧洲中小企业 ESG 报告软件市场\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            },
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/esg/sources/vendor-blog.md",
+        "expectStart": 2,
+        "expectCode": "source-confirmed"
+      },
+      {
+        "note": "只容忍空白/缩进差异：多写两个空格仍然命中，标点与数字不吞。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "quote",
+            "strength": "secondary"
+          },
+          "excerpt": "quote 1 ::   Our own   customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/esg/sources/vendor-blog.md",
+        "expectStart": 3,
+        "expectCode": "quote-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：意思一样、数字一样，少了一个「在」字就不是原文。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/eu-regulation.md",
+          "locator": {
+            "sourceId": "eu-regulation",
+            "kind": "claim",
+            "claimId": "c-market-18"
+          },
+          "excerpt": "claim c-market-18 = 欧洲中小企业 ESG 软件支出 2024 年增长 18%"
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\"}],\"claims\":[{\"id\":\"c-market-18\",\"sourceId\":\"eu-regulation\",\"strength\":\"primary\"}]}",
+          "sources": [
+            {
+              "id": "eu-regulation",
+              "strength": "primary"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-market-18",
+              "sourceId": "eu-regulation",
+              "strength": "primary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/eu-regulation.md",
+              "content": "# source eu-regulation\nstrength = primary (一手)\n--- claims ---\nclaim c-market-18 = 欧洲中小企业 ESG 软件支出在 2024 年增长 18%\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\"}],\"claims\":[{\"id\":\"c-market-18\",\"sourceId\":\"eu-regulation\",\"strength\":\"primary\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      },
+      {
+        "note": "本领域的关键反例：引文逐字存在，但结论声明的强度高于它的来源 —— 二手来源被按一手引用（口径洗白），在读取引文之前就被拒绝。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "claim",
+            "claimId": "c-laundered"
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[{\"id\":\"c-laundered\",\"sourceId\":\"vendor-blog\",\"strength\":\"primary\"}]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-laundered",
+              "sourceId": "vendor-blog",
+              "strength": "primary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[{\"id\":\"c-laundered\",\"sourceId\":\"vendor-blog\",\"strength\":\"primary\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "strength-mismatch"
+      },
+      {
+        "note": "来源不在 seed 里 -> unknown-source：不猜它是一手还是二手。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/ghost.md",
+          "locator": {
+            "sourceId": "ghost-report",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/ghost.md",
+              "content": "# source ghost-report\nstrength = primary (一手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "unknown-source",
+        "expectKnownSources": [
+          "vendor-blog"
+        ]
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch：不修补、不裁剪，直接拒绝。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "quote",
+            "startLine": 99
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "locator-mismatch"
+      },
+      {
+        "note": "锚点 kind 不符 -> kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "diff-line",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {},
+          "excerpt": "strength = secondary (二手)"
+        },
+        "subject": {
+          "path": "research/esg/sources/vendor-blog.md",
+          "content": "strength = secondary (二手)\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch",
+        "expectCode": "kind-mismatch"
+      },
+      {
+        "note": "没有来源登记表 -> no-documents/no-sources：本域不用卡片文本代替来源表（没有表就无法重算强度）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/esg/sources/vendor-blog.md",
+          "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-sources"
+      },
+      {
+        "note": "结论不在它声称的来源名下 -> unknown-claim。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog",
+            "kind": "claim",
+            "claimId": "c-other"
+          },
+          "excerpt": "quote 1 :: Our own customer base grew 18% in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[{\"id\":\"c-vendor-growth\",\"sourceId\":\"vendor-blog\",\"strength\":\"secondary\"}]}",
+          "sources": [
+            {
+              "id": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "claims": [
+            {
+              "id": "c-vendor-growth",
+              "sourceId": "vendor-blog",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/vendor-blog.md",
+              "content": "# source vendor-blog\nstrength = secondary (二手)\nquote 1 :: Our own customer base grew 18% in 2024.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"vendor-blog\",\"strength\":\"secondary\"}],\"claims\":[{\"id\":\"c-vendor-growth\",\"sourceId\":\"vendor-blog\",\"strength\":\"secondary\"}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "unknown-claim"
+      },
+      {
+        "note": "未声明强度的来源按「推测」处理，不得被当成一手（不向上猜测）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/unlabeled.md",
+          "locator": {
+            "sourceId": "unlabeled",
+            "kind": "quote",
+            "strength": "primary"
+          },
+          "excerpt": "quote 1 :: Nobody labelled this one."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"unlabeled\",\"url\":\"https://example.net/x\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "unlabeled",
+              "url": "https://example.net/x"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/esg/sources/unlabeled.md",
+              "content": "# source unlabeled\nstrength = speculation (推测) [未声明，按推测处理]\nquote 1 :: Nobody labelled this one.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"unlabeled\",\"url\":\"https://example.net/x\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "strength-mismatch"
+      },
+      {
+        "note": "摘录为空 -> empty-excerpt：没有原文就没有锚点。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/vendor-blog.md",
+          "locator": {
+            "sourceId": "vendor-blog"
+          },
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "research/esg/sources/vendor-blog.md",
+          "content": "strength = secondary (二手)\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt",
+        "expectCode": "empty-excerpt"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行出现在两份来源卡片里 -> 位置不唯一，拒绝猜测它属于哪一份，并列出全部竞争位置。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/esg/sources/eu-regulation.md",
+          "locator": {
+            "sourceId": "eu-regulation",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: EU member states transposed the CSRD for listed SMBs by 2026."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "documents": [
+            {
+              "path": "research/esg/sources/a.md",
+              "content": "quote 1 :: EU member states transposed the CSRD for listed SMBs by 2026.\n"
+            },
+            {
+              "path": "research/esg/sources/b.md",
+              "content": "quote 1 :: EU member states transposed the CSRD for listed SMBs by 2026.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\"}],\"claims\":[]}"
+            }
+          ],
+          "sources": [
+            {
+              "id": "eu-regulation",
+              "strength": "primary"
+            }
+          ],
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"eu-regulation\",\"strength\":\"primary\"}],\"claims\":[]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "research/esg/sources/a.md:1",
+          "research/esg/sources/b.md:1"
+        ]
+      }
+    ]
+  }
+}

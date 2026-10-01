@@ -169,7 +169,26 @@ if (sections.length === 1) {
 
 try {
   const result = await tools.get('adjudication_activate').execute({ domain: 'code-review' }, {})
-  check('activate registers the domain toolset', result.ok === true && result.tools.length === 3, JSON.stringify(result).slice(0, 200))
+  // CHANGED (t4). Was `result.tools.length === 3`.
+  //
+  // Activation returns EVERY tool the domain contributes, and `code-review` now
+  // ships as a v2 directory pack whose `evidence.js` contributes three bounded
+  // tools — a contract requirement (P7), not a regression. Asserting a count
+  // would go stale again the moment a domain adds a fourth tool, so the check is
+  // now the SET of names: the three declared domain tools plus the three
+  // evidence tools that `evidenceToolName()` derives.
+  const expected = [
+    'adjudicate_code_review',
+    'adjudicate_code_review_plan',
+    'adjudicate_code_review_rules',
+    'adjudicate_code_review_evidence_read_lines',
+    'adjudicate_code_review_evidence_search_diff',
+    'adjudicate_code_review_evidence_enclosing',
+  ]
+  const missing = expected.filter((name) => !result.tools.includes(name))
+  const unexpected = result.tools.filter((name) => !expected.includes(name))
+  check('activate registers the domain toolset', result.ok === true && missing.length === 0 && unexpected.length === 0,
+    `missing=${JSON.stringify(missing)} unexpected=${JSON.stringify(unexpected)} got=${JSON.stringify(result.tools)}`)
   check('the domain tools exist after activation', tools.has('adjudicate_code_review'), names().join(','))
 } catch (error) {
   check('activate registers the domain toolset', false, String(error?.stack ?? error))
@@ -197,7 +216,12 @@ try {
   const submitted = await tools.get('adjudication_submit').execute({
     domain: 'code-review',
     total: 1,
-    findings: [{ id: 'a', path: 'src/a.ts', start: 3, severity: 'high', message: 'x', evidence: 'y', defended: true }],
+    // CHANGED (t17): submit now recomputes every anchor through the domain's
+    // anchorVerifier instead of trusting `finding.anchored`/`finding.start`, so
+    // the finding must quote a line and the document must be supplied. The
+    // assertion below is unchanged.
+    documents: [{ path: 'src/a.ts', content: 'const a = 1\nconst b = 2\nconst c = 3' }],
+    findings: [{ id: 'a', path: 'src/a.ts', start: 3, severity: 'high', message: 'x', evidence: 'const c = 3', defended: true }],
   }, {})
   check('submit runs P6/P7', submitted.findings.length === 1, JSON.stringify(submitted).slice(0, 200))
 } catch (error) {

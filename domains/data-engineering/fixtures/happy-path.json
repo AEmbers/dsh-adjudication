@@ -1,0 +1,961 @@
+{
+  "name": "happy-path",
+  "domain": "data-engineering",
+  "format": "lineage-and-schema",
+  "description": "三条链、一个仓库 schema、以及一个「第二个写入者」（clean_orders_retry 也写 analytics.orders_daily）：P0 枚举出 5+5 条边与 6 个「SQL 里出现过」的产出字段，P1 全部准入，P2 按血缘链分成 3 捆 —— 其中 analytics.orders_daily 那一捆跨了两个不同脚本，这正是「一捆 = 一条链」而不是「一捆 = 一条路径」的证据。锚点样例覆盖 正例（declared-locator / recomputed-unique / relocated-unique / chain 级确认）、反例（转述不锚定、图上没有这条边、行号与原文矛盾、kind 不符、缺血缘图、未知节点、字段不在链上）与歧义（同文档重复行、跨文档重复命中）。",
+  "input": {
+    "format": "lineage-and-schema",
+    "payload": {
+      "nodes": [
+        {
+          "id": "orders_stream",
+          "type": "source",
+          "inputs": [],
+          "outputs": [
+            "raw.orders"
+          ],
+          "path": "dags/orders_stream.sql",
+          "sql": "insert into raw.orders\nselect order_id, amount, created_at\nfrom source.orders_stream"
+        },
+        {
+          "id": "clean_orders",
+          "type": "transform",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "analytics.orders_daily"
+          ],
+          "path": "dags/clean_orders.sql",
+          "sql": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+        },
+        {
+          "id": "clean_orders_retry",
+          "type": "transform",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "analytics.orders_daily"
+          ],
+          "path": "dags/clean_orders_v2.sql",
+          "sql": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null and created_at >= current_date - 1"
+        },
+        {
+          "id": "orders_report",
+          "type": "transform",
+          "inputs": [
+            "analytics.orders_daily"
+          ],
+          "outputs": [
+            "reporting.orders_summary"
+          ],
+          "path": "dags/orders_report.sql",
+          "sql": "insert into reporting.orders_summary\nselect order_id, sum(amount) as amount_total\nfrom analytics.orders_daily\ngroup by order_id"
+        }
+      ],
+      "schema": {
+        "raw.orders": {
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "amount",
+              "type": "numeric",
+              "nullable": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "nullable": false
+            }
+          ]
+        },
+        "analytics.orders_daily": {
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "amount",
+              "type": "numeric",
+              "nullable": true
+            }
+          ]
+        },
+        "reporting.orders_summary": {
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "amount_total",
+              "type": "numeric",
+              "nullable": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "expect": {
+    "candidates": 16,
+    "paths": [
+      "models/raw/orders.sql",
+      "models/raw/orders.sql",
+      "models/raw/orders.sql",
+      "models/raw/orders.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/reporting/orders_summary.sql",
+      "models/reporting/orders_summary.sql",
+      "models/reporting/orders_summary.sql",
+      "models/reporting/orders_summary.sql"
+    ],
+    "admitted": 16,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "analytics.orders_daily",
+      "raw.orders",
+      "reporting.orders_summary"
+    ],
+    "bundles": 3,
+    "bundleSizes": {
+      "analytics.orders_daily": 8,
+      "raw.orders": 4,
+      "reporting.orders_summary": 4
+    },
+    "sameBundle": [
+      [
+        "clean_orders#edge#raw.orders->clean_orders",
+        "clean_orders_retry#column#analytics.orders_daily.amount"
+      ]
+    ],
+    "separateNodesInOneBundle": [
+      "clean_orders",
+      "clean_orders_retry"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 正确行号 -> declared-locator：引擎确认了模型声明的行，而不是采信它。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders",
+            "startLine": 3
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]},{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              },
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "analytics.orders_daily": {
+              "columns": [
+                {
+                  "name": "order_id",
+                  "type": "text",
+                  "nullable": false
+                },
+                {
+                  "name": "amount",
+                  "type": "numeric",
+                  "nullable": true
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]},{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "models/analytics/orders_daily.sql",
+        "expectStart": 3,
+        "expectCode": "edge-confirmed"
+      },
+      {
+        "note": "不给行号，原文在指名文档里唯一命中 -> recomputed-unique。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/reporting/orders_summary.sql",
+          "locator": {
+            "nodeId": "orders_report",
+            "from": "analytics.orders_daily",
+            "to": "orders_report"
+          },
+          "excerpt": "from analytics.orders_daily"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/reporting/orders_summary.sql",
+              "content": "insert into reporting.orders_summary\nselect order_id, sum(amount) as amount_total\nfrom analytics.orders_daily\ngroup by order_id"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/reporting/orders_summary.sql",
+        "expectStart": 3,
+        "expectCode": "edge-confirmed"
+      },
+      {
+        "note": "字段锚点：该字段确实在 schema 里，且该表确实由这个节点产出。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "table": "analytics.orders_daily",
+            "column": "amount"
+          },
+          "excerpt": "select order_id, amount, created_at"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "analytics.orders_daily": {
+              "columns": [
+                {
+                  "name": "order_id",
+                  "type": "text",
+                  "nullable": false
+                },
+                {
+                  "name": "amount",
+                  "type": "numeric",
+                  "nullable": true
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/analytics/orders_daily.sql",
+        "expectStart": 2,
+        "expectCode": "column-confirmed"
+      },
+      {
+        "note": "声明的文档不含原文，但另一份文档唯一命中 -> relocated-unique（发现搬迁，而不是猜测）。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/moved.sql",
+          "locator": {
+            "nodeId": "orders_report",
+            "from": "analytics.orders_daily",
+            "to": "orders_report"
+          },
+          "excerpt": "group by order_id"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/reporting/orders_summary.sql",
+              "content": "insert into reporting.orders_summary\nselect order_id, sum(amount) as amount_total\nfrom analytics.orders_daily\ngroup by order_id"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "models/reporting/orders_summary.sql",
+        "expectStart": 4,
+        "expectCode": "edge-confirmed"
+      },
+      {
+        "note": "链级确认：没有 locator（adjudication_anchor 的参数里没有领域 locator），但原文逐字存在且这条链在图里 —— 结论明确写着「边未确认」。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/raw/orders.sql",
+          "locator": {},
+          "excerpt": "insert into raw.orders"
+        },
+        "subject": {
+          "path": "models/raw/orders.sql",
+          "documents": [
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_stream\",\"inputs\":[],\"outputs\":[\"raw.orders\"]}]}"
+            },
+            {
+              "path": "models/raw/orders.sql",
+              "content": "insert into raw.orders\nselect order_id, amount, created_at\nfrom source.orders_stream"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/raw/orders.sql",
+        "expectStart": 1,
+        "expectCode": "chain-confirmed"
+      },
+      {
+        "note": "血缘图以约定文档 lineage/graph.json 随发现一起交回（引擎重算路径只能给验证器 documents）时，边检查照样成立。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "models/analytics/orders_daily.sql",
+          "documents": [
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}"
+            },
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/analytics/orders_daily.sql",
+        "expectStart": 3,
+        "expectCode": "edge-confirmed"
+      },
+      {
+        "note": "缩进与 diff 标记被容忍（只吞空白与前导 +/-），标点不吞。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          },
+          "excerpt": "+\t from   raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/analytics/orders_daily.sql",
+        "expectStart": 3,
+        "expectCode": "edge-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把两行合成一行读起来更像人话，但引擎比对的是逐字原文。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          },
+          "excerpt": "from raw.orders where amount is not null"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      },
+      {
+        "note": "本领域的关键反例：原文逐字存在，但血缘图里没有这条边 —— 文本不能证明边。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/reporting/orders_summary.sql",
+          "locator": {
+            "nodeId": "orders_report",
+            "from": "raw.orders",
+            "to": "orders_report"
+          },
+          "excerpt": "from analytics.orders_daily"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/reporting/orders_summary.sql",
+              "content": "insert into reporting.orders_summary\nselect order_id, sum(amount) as amount_total\nfrom analytics.orders_daily\ngroup by order_id"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "edge-unconfirmed"
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch：不修补、不裁剪，直接拒绝。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders",
+            "startLine": 99
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "locator-mismatch"
+      },
+      {
+        "note": "没有血缘图 -> 拒绝：本领域不用 SQL 文本代替图结构。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "models/analytics/orders_daily.sql",
+          "content": "from raw.orders\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-lineage"
+      },
+      {
+        "note": "锚点 kind 不符 -> kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "diff-line",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {},
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "models/analytics/orders_daily.sql",
+          "content": "from raw.orders\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch",
+        "expectCode": "kind-mismatch"
+      },
+      {
+        "note": "血缘图里没有这个节点 -> unknown-node。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "no_such_node",
+            "from": "raw.orders",
+            "to": "no_such_node"
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}",
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "from raw.orders\n"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "unknown-node"
+      },
+      {
+        "note": "链级声明里的表在图里没有任何节点触及 -> unknown-chain。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/ghost/table.sql",
+          "locator": {},
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}",
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "documents": [
+            {
+              "path": "models/ghost/table.sql",
+              "content": "from raw.orders\n"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "unknown-chain"
+      },
+      {
+        "note": "字段不属于这个节点产出的表 -> 该字段不在这条血缘链上。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "table": "reporting.orders_summary",
+            "column": "amount_total"
+          },
+          "excerpt": "select order_id, amount, created_at"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"reporting.orders_summary\":{\"columns\":[{\"name\":\"amount_total\",\"type\":\"numeric\",\"nullable\":false}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "reporting.orders_summary": {
+              "columns": [
+                {
+                  "name": "amount_total",
+                  "type": "numeric",
+                  "nullable": false
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"reporting.orders_summary\":{\"columns\":[{\"name\":\"amount_total\",\"type\":\"numeric\",\"nullable\":false}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "column-not-on-edge"
+      },
+      {
+        "note": "schema 里没有这个字段 -> unknown-column，并列出真实字段。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "table": "analytics.orders_daily",
+            "column": "discount_amount"
+          },
+          "excerpt": "select order_id, amount, created_at"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "analytics.orders_daily": {
+              "columns": [
+                {
+                  "name": "order_id",
+                  "type": "text",
+                  "nullable": false
+                },
+                {
+                  "name": "amount",
+                  "type": "numeric",
+                  "nullable": true
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "unknown-column",
+        "expectKnownColumns": [
+          "order_id",
+          "amount"
+        ]
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一份文档里出现两次 -> 位置不唯一，拒绝猜测，并列出竞争位置。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/dup.sql",
+          "locator": {
+            "nodeId": "orders_report",
+            "from": "analytics.orders_daily",
+            "to": "orders_report"
+          },
+          "excerpt": "group by order_id"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/dup.sql",
+              "content": "group by order_id\ngroup by order_id"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "models/dup.sql:1",
+          "models/dup.sql:2"
+        ]
+      },
+      {
+        "note": "跨文件两处命中 -> 搬迁不唯一，拒绝猜测。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/moved.sql",
+          "locator": {
+            "nodeId": "orders_report",
+            "from": "analytics.orders_daily",
+            "to": "orders_report"
+          },
+          "excerpt": "group by order_id"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/a.sql",
+              "content": "group by order_id\n"
+            },
+            {
+              "path": "models/b.sql",
+              "content": "group by order_id\n"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "orders_report",
+                "inputs": [
+                  "analytics.orders_daily"
+                ],
+                "outputs": [
+                  "reporting.orders_summary"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"orders_report\",\"inputs\":[\"analytics.orders_daily\"],\"outputs\":[\"reporting.orders_summary\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "models/a.sql:1",
+          "models/b.sql:1"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "name": "missing-tolerance",
+  "domain": "operator-design",
+  "format": "operator-registry-and-tests",
+  "description": "「名义上覆盖、数值上没验证」这一类缺口的最小案例：该形态有一个测试，但 tolerance 为 null —— 测试跑得起来，却什么都没约束住。候选只有这一条，且 findingKind 必须是 missing-tolerance 而不是 uncovered-form：把两者混为一谈，报告就会把「有测试但没断言」误报成「没有测试」，而修复方式完全不同。",
+  "input": {
+    "format": "operator-registry-and-tests",
+    "payload": {
+      "operators": [
+        {
+          "name": "layer_norm",
+          "signature": "void layer_norm(Tensor& out, const Tensor& x)",
+          "backends": ["cuda"],
+          "dtypes": ["fp32"],
+          "shapeBranches": ["contiguous"],
+          "path": "src/ops/layer_norm.cu",
+          "source": "// layer_norm\nvoid layer_norm(Tensor& out, const Tensor& x) {\n}"
+        }
+      ],
+      "tests": [
+        { "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": null, "asserted": true }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": ["src/ops/layer_norm.cu"],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "有测试但没有可用容差：清单正面支持这一条，因此锚定。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/layer_norm.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/layer_norm.cu", "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "missing-tolerance" },
+          "excerpt": "void layer_norm(Tensor& out, const Tensor& x) {"
+        },
+        "subject": {
+          "path": "src/ops/layer_norm.cu",
+          "content": "// layer_norm\nvoid layer_norm(Tensor& out, const Tensor& x) {\n}",
+          "operators": [
+            {
+              "name": "layer_norm",
+              "signature": "void layer_norm(Tensor& out, const Tensor& x)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32"],
+              "shapeBranches": ["contiguous"]
+            }
+          ],
+          "tests": [
+            { "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": null, "asserted": true }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "同一形态被误报为 uncovered-form：清单里明明有测试，这是主张与清单矛盾，必须判未锚定。两类缺口的修复方式不同，混淆会让报告指向错误的修法。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/layer_norm.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/layer_norm.cu", "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void layer_norm(Tensor& out, const Tensor& x) {"
+        },
+        "subject": {
+          "path": "src/ops/layer_norm.cu",
+          "content": "// layer_norm\nvoid layer_norm(Tensor& out, const Tensor& x) {\n}",
+          "operators": [
+            {
+              "name": "layer_norm",
+              "signature": "void layer_norm(Tensor& out, const Tensor& x)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32"],
+              "shapeBranches": ["contiguous"]
+            }
+          ],
+          "tests": [
+            { "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": null, "asserted": true }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "声称没容差但清单里该测试断言了真实容差：被正面否定，判未锚定。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/layer_norm.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/layer_norm.cu", "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "missing-tolerance" },
+          "excerpt": "void layer_norm(Tensor& out, const Tensor& x) {"
+        },
+        "subject": {
+          "path": "src/ops/layer_norm.cu",
+          "content": "// layer_norm\nvoid layer_norm(Tensor& out, const Tensor& x) {\n}",
+          "operators": [
+            {
+              "name": "layer_norm",
+              "signature": "void layer_norm(Tensor& out, const Tensor& x)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32"],
+              "shapeBranches": ["contiguous"]
+            }
+          ],
+          "tests": [
+            { "operator": "layer_norm", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": { "atol": 1e-5, "rtol": 1e-4 }, "asserted": true }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

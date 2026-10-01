@@ -10,12 +10,19 @@
     "./engine": "./lib/engine.js",
     "./registry": "./lib/registry.js",
     "./domains": "./lib/domains.js",
+    "./contracts": "./lib/contracts.js",
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
     "index.js",
+    "contract-test.mjs",
+    "domains-test.mjs",
+    "smoke-test.mjs",
+    "mount-test.mjs",
     "lib",
+    "domains",
+    "docs",
     "cordis.patch.yml",
     "README.md",
     "CHANGELOG.md",
@@ -42,7 +49,11 @@
     "url": "https://github.com/AEmbers/dsh-adjudication/issues"
   },
   "scripts": {
-    "test": "node smoke-test.mjs && node mount-test.mjs",
+    "test": "node contract-test.mjs && node lib/imports-check.mjs && node lib/kernel-test.mjs && node domains-test.mjs && node smoke-test.mjs && node mount-test.mjs",
+    "test:contracts": "node contract-test.mjs",
+    "test:imports": "node lib/imports-check.mjs",
+    "test:kernel": "node lib/kernel-test.mjs",
+    "test:domains": "node domains-test.mjs",
     "test:unit": "node smoke-test.mjs",
     "test:mount": "node mount-test.mjs",
     "pack:check": "npm pack --dry-run"

@@ -1,0 +1,239 @@
+{
+  "name": "orphan-column",
+  "domain": "data-engineering",
+  "format": "lineage-and-schema",
+  "description": "边界：schema 里有一张没有任何节点声明 inputs/outputs 的孤儿表，另有一个既无输入也无输出的孤儿节点。两者都必须进入 excluded 并说明原因，而不是被静默枚举成候选。同时验证：不在任何一条边上的字段无法被锚定。",
+  "input": {
+    "format": "lineage-and-schema",
+    "payload": {
+      "nodes": [
+        {
+          "id": "orders_stream",
+          "type": "source",
+          "inputs": [],
+          "outputs": [
+            "raw.orders"
+          ],
+          "path": "dags/orders_stream.sql",
+          "sql": "insert into raw.orders\nselect order_id, amount, created_at\nfrom source.orders_stream"
+        },
+        {
+          "id": "clean_orders",
+          "type": "transform",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "analytics.orders_daily"
+          ],
+          "path": "dags/clean_orders.sql",
+          "sql": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+        },
+        {
+          "id": "no_edges",
+          "type": "transform",
+          "inputs": [],
+          "outputs": [],
+          "path": "dags/no_edges.sql",
+          "sql": "select 1"
+        }
+      ],
+      "schema": {
+        "raw.orders": {
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "amount",
+              "type": "numeric",
+              "nullable": true
+            },
+            {
+              "name": "created_at",
+              "type": "timestamp",
+              "nullable": false
+            }
+          ]
+        },
+        "analytics.orders_daily": {
+          "columns": [
+            {
+              "name": "order_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "amount",
+              "type": "numeric",
+              "nullable": true
+            }
+          ]
+        },
+        "staging.orphan_events": {
+          "columns": [
+            {
+              "name": "event_id",
+              "type": "text",
+              "nullable": false
+            },
+            {
+              "name": "payload",
+              "type": "jsonb",
+              "nullable": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/analytics/orders_daily.sql",
+      "models/raw/orders.sql",
+      "models/raw/orders.sql",
+      "models/raw/orders.sql",
+      "models/raw/orders.sql"
+    ],
+    "admitted": 8,
+    "excludedByPredicate": {},
+    "sourceExcluded": 2,
+    "sourceExcludedReasons": [
+      "孤儿表",
+      "孤儿节点"
+    ],
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "analytics.orders_daily",
+      "raw.orders"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "孤儿表里的字段即使逐字抄对，也不在任何一条血缘边上 —— 先被结构检查拒绝。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "table": "staging.orphan_events",
+            "column": "event_id"
+          },
+          "excerpt": "select order_id, amount, created_at"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"staging.orphan_events\":{\"columns\":[{\"name\":\"event_id\",\"type\":\"text\",\"nullable\":false}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "staging.orphan_events": {
+              "columns": [
+                {
+                  "name": "event_id",
+                  "type": "text",
+                  "nullable": false
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"staging.orphan_events\":{\"columns\":[{\"name\":\"event_id\",\"type\":\"text\",\"nullable\":false}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "column-not-on-edge"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：字段名对、行的措辞是自己写的，就不算抄写。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/analytics/orders_daily.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "table": "analytics.orders_daily",
+            "column": "amount"
+          },
+          "excerpt": "select order_id and amount from the daily table"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/analytics/orders_daily.sql",
+              "content": "insert into analytics.orders_daily\nselect order_id, amount, created_at\nfrom raw.orders\nwhere amount is not null"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "analytics.orders_daily"
+                ]
+              }
+            ]
+          },
+          "schema": {
+            "analytics.orders_daily": {
+              "columns": [
+                {
+                  "name": "order_id",
+                  "type": "text",
+                  "nullable": false
+                },
+                {
+                  "name": "amount",
+                  "type": "numeric",
+                  "nullable": true
+                }
+              ]
+            }
+          },
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"analytics.orders_daily\"]}],\"schema\":{\"analytics.orders_daily\":{\"columns\":[{\"name\":\"order_id\",\"type\":\"text\",\"nullable\":false},{\"name\":\"amount\",\"type\":\"numeric\",\"nullable\":true}]}}}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      }
+    ]
+  }
+}

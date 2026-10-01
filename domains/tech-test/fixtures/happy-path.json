@@ -1,0 +1,225 @@
+{
+  "name": "happy-path",
+  "domain": "tech-test",
+  "format": "test-inventory-and-coverage",
+  "description": "8 个候选跨 3 个模块根（src/core 4 条、src/api 3 条、pkg/util 1 条），用于证明 P2 真的按模块分捆而不是给每条候选单开一捆。其中 src/core 的 4 条来自两类缺口（连续未执行行区间 2 条 + 从未走到的分支 2 条），src/api 的 3 条跨了「未执行行」与「弱断言用例」两类来源——这是刻意造的，因为一个只按来源分捆的实现会在这里露馅。",
+  "input": {
+    "format": "test-inventory-and-coverage",
+    "payload": {
+      "cases": [
+        { "id": "t1", "file": "src/core/engine.spec.ts", "assertions": [{ "kind": "equals", "target": "halted" }] },
+        { "id": "t2", "file": "src/api/handler.spec.ts", "assertions": [{ "kind": "no-throw", "target": "handle" }] },
+        { "id": "t3", "file": "src/api/handler.spec.ts", "assertions": [] }
+      ],
+      "coverage": {
+        "files": {
+          "src/core/engine.ts": {
+            "lines": { "1": 3, "2": 3, "3": 3, "4": 3, "5": 0, "6": 0, "7": 1, "8": 1, "9": 0, "10": 0, "11": 1, "12": 1 },
+            "branches": { "if@4": 3, "then@5": 0, "catch@9": 0 }
+          },
+          "src/api/handler.ts": {
+            "lines": { "1": 2, "2": 2, "3": 2, "4": 0, "5": 0, "6": 2, "7": 2 },
+            "branches": { "if@3": 2 }
+          },
+          "pkg/util/bytes.ts": {
+            "lines": { "1": 4, "2": 0, "3": 0, "4": 0, "5": 4, "6": 4 },
+            "branches": {}
+          }
+        }
+      },
+      "source": {
+        "src/core/engine.ts": {
+          "lines": [
+            "export function run(input: string): string {",
+            "  const trimmed = input.trim()",
+            "  const upper = trimmed.toUpperCase()",
+            "  if (upper === 'STOP') {",
+            "    return 'halted'",
+            "  }",
+            "  try {",
+            "    return JSON.parse(upper)",
+            "  } catch (error) {",
+            "    return 'invalid'",
+            "  }",
+            "}"
+          ]
+        },
+        "src/api/handler.ts": {
+          "lines": [
+            "export function handle(req: Request): Response {",
+            "  const body = parse(req)",
+            "  if (!body.ok) {",
+            "    return reject(400, 'bad request')",
+            "  }",
+            "  return accept(body.value)",
+            "}"
+          ]
+        },
+        "pkg/util/bytes.ts": {
+          "lines": [
+            "export function toHex(buffer: Uint8Array): string {",
+            "  if (buffer.length === 0) {",
+            "    return ''",
+            "  }",
+            "  return Array.from(buffer).map((b) => b.toString(16)).join('')",
+            "}"
+          ]
+        },
+        "src/api/handler.spec.ts": {
+          "lines": [
+            "import { handle } from './handler'",
+            "",
+            "describe('handle', () => {",
+            "  it('does not throw', () => {",
+            "    handle(request)",
+            "  })",
+            "})"
+          ]
+        }
+      }
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "src/core/engine.ts",
+      "src/core/engine.ts",
+      "src/core/engine.ts",
+      "src/core/engine.ts",
+      "src/api/handler.ts",
+      "pkg/util/bytes.ts",
+      "src/api/handler.spec.ts",
+      "src/api/handler.spec.ts"
+    ],
+    "admitted": 8,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["src/core", "src/api", "pkg/util"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "模型不输出行号：原文在文件里唯一命中，引擎重算位置。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "pkg/util/bytes.ts",
+          "locator": {},
+          "excerpt": "return ''"
+        },
+        "subject": {
+          "path": "pkg/util/bytes.ts",
+          "content": "export function toHex(buffer: Uint8Array): string {\n  if (buffer.length === 0) {\n    return ''\n  }\n  return Array.from(buffer).map((b) => b.toString(16)).join('')\n}",
+          "coverage": { "files": { "pkg/util/bytes.ts": { "lines": { "1": 4, "2": 0, "3": 0, "4": 0, "5": 4, "6": 4 } } } }
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 3
+      },
+      {
+        "note": "模型给了行号且与原文相符时采信行号（declared-locator），但覆盖核验仍然照跑。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/api/handler.ts",
+          "locator": { "startLine": 4 },
+          "excerpt": "return reject(400, 'bad request')"
+        },
+        "subject": {
+          "path": "src/api/handler.ts",
+          "content": "export function handle(req: Request): Response {\n  const body = parse(req)\n  if (!body.ok) {\n    return reject(400, 'bad request')\n  }\n  return accept(body.value)\n}",
+          "coverage": { "files": { "src/api/handler.ts": { "lines": { "1": 2, "2": 2, "3": 2, "6": 2, "7": 2 } } } }
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 4
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把 bad request 改写成 invalid request，逐字比对必然落空。锚点只承认抄写。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/api/handler.ts",
+          "locator": {},
+          "excerpt": "return reject(400, 'invalid request')"
+        },
+        "subject": {
+          "path": "src/api/handler.ts",
+          "content": "export function handle(req: Request): Response {\n  const body = parse(req)\n  if (!body.ok) {\n    return reject(400, 'bad request')\n  }\n  return accept(body.value)\n}",
+          "coverage": { "files": { "src/api/handler.ts": { "lines": { "1": 2, "2": 2, "3": 2, "6": 2, "7": 2 } } } }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "覆盖数据正面否定：抄的那一行已被用例命中，「未执行」的主张与数据矛盾，必须判未锚定。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/api/handler.ts",
+          "locator": {},
+          "excerpt": "return accept(body.value)"
+        },
+        "subject": {
+          "path": "src/api/handler.ts",
+          "content": "export function handle(req: Request): Response {\n  const body = parse(req)\n  if (!body.ok) {\n    return reject(400, 'bad request')\n  }\n  return accept(body.value)\n}",
+          "coverage": { "files": { "src/api/handler.ts": { "lines": { "1": 2, "2": 2, "3": 2, "6": 2, "7": 2 } } } }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "行号与原文矛盾：声明第 2 行但那里不是这段原文，拒绝猜测、不回退到滑窗重算。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/core/engine.ts",
+          "locator": { "startLine": 2 },
+          "excerpt": "return 'halted'"
+        },
+        "subject": {
+          "path": "src/core/engine.ts",
+          "content": "export function run(input: string): string {\n  const trimmed = input.trim()\n  const upper = trimmed.toUpperCase()\n  if (upper === 'STOP') {\n    return 'halted'\n  }\n}",
+          "coverage": { "files": { "src/core/engine.ts": { "lines": { "1": 3, "5": 0 } } } }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "跨文件歧义拒绝猜测：声明的路径不在可比对源码里，原文在另外两个文件里各命中一次，无从判断是哪一处。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/gone.ts",
+          "locator": {},
+          "excerpt": "return fallback"
+        },
+        "subject": {
+          "documents": [
+            { "path": "src/a.ts", "content": "export function a() {\n  return fallback\n}" },
+            { "path": "src/b.ts", "content": "export function b() {\n  return fallback\n}" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/a.ts:2", "src/b.ts:2"]
+      },
+      {
+        "note": "同文件内出现两次也不猜：位置不唯一一律未锚定，请复核者补足上下文。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/core/engine.ts",
+          "locator": {},
+          "excerpt": "return 'invalid'"
+        },
+        "subject": {
+          "path": "src/core/engine.ts",
+          "content": "export function run(input: string): string {\n  if (!input) {\n    return 'invalid'\n  }\n  return 'invalid'\n}",
+          "coverage": { "files": { "src/core/engine.ts": { "lines": { "1": 3 } } } }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/core/engine.ts:3", "src/core/engine.ts:5"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "all-gated-out",
+  "domain": "tech-test",
+  "format": "test-inventory-and-coverage",
+  "description": "P0 枚举出 5 个覆盖缺口（5 个文件在覆盖报告里连条目都没有，因此整文件都是未执行），P1 把它们全部排除：3 个命中 pack 自己声明的排除规则（.git/dist/build），1 个命中 pack 新增的 `**/generated/**`，1 个落在引擎默认排除路径（依赖目录）。这是「源头有东西、闸门后为空」的边界——必须能被区分于 empty。CHANGED (t23)：本 fixture 现在**不带自己的 gate**——它证明的是「pack 自己能排干」，而不是「pack ∪ fixture 能排干」。",
+  "input": {
+    "format": "test-inventory-and-coverage",
+    "payload": {
+      "cases": [{ "id": "t1", "file": "src/core/engine.spec.ts", "assertions": [{ "kind": "equals", "target": "halted" }] }],
+      "coverage": { "files": {} },
+      "source": {
+        "node_modules/leftpad/index.js": { "lines": ["module.exports = function pad(input) {", "  return String(input)", "}"] },
+        "dist/bundle.js": { "lines": ["(function () {", "  boot()", "})()"] },
+        "build/cli.js": { "lines": ["const argv = process.argv.slice(2)", "if (argv.length === 0) {", "  console.error('usage')", "  process.exit(2)", "}"] },
+        ".git/hooks/pre-commit.js": { "lines": ["#!/usr/bin/env node", "require('../lint')()"] },
+        "generated/types.ts": { "lines": ["export type A = 1 | 2"] }
+      }
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": ["node_modules/leftpad/index.js", "dist/bundle.js", "build/cli.js", ".git/hooks/pre-commit.js", "generated/types.ts"],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "user-exclude": [".git/hooks/pre-commit.js", "build/cli.js", "dist/bundle.js", "generated/types.ts"],
+      "default-path": ["node_modules/leftpad/index.js"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的文件里，原文依然可以被逐字锚定；闸门与锚点是两层，不该互相冒充。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "build/cli.js",
+          "locator": {},
+          "excerpt": "console.error('usage')"
+        },
+        "subject": {
+          "path": "build/cli.js",
+          "content": "const argv = process.argv.slice(2)\nif (argv.length === 0) {\n  console.error('usage')\n  process.exit(2)\n}",
+          "coverage": { "files": { "build/cli.js": { "lines": { "1": 1, "5": 1 } } } }
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 3
+      }
+    ],
+    "negative": [
+      {
+        "note": "抄写的那一行若在覆盖报告里已有命中，「未执行」的主张就被数据正面否定，必须判未锚定而不是交给复核者去争论。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": ".git/hooks/pre-commit.js",
+          "locator": {},
+          "excerpt": "require('../lint')()"
+        },
+        "subject": {
+          "path": ".git/hooks/pre-commit.js",
+          "content": "#!/usr/bin/env node\nrequire('../lint')()",
+          "coverage": { "files": { ".git/hooks/pre-commit.js": { "lines": { "1": 1, "2": 1 } } } }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

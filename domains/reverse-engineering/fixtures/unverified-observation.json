@@ -1,0 +1,361 @@
+{
+  "name": "unverified-observation",
+  "domain": "reverse-engineering",
+  "format": "artifact-and-observations",
+  "description": "边界三（本域特有）：一条线索下的两条陈述都没有可复现步骤 —— 一条自称「推断」（inference），一条自称「观察」但 steps 为空。P0 必须把两者的复现状态都写成 verified=false（steps=0 不是「不需要步骤」），并在 notes 里报告「N 条陈述缺少可复现步骤」与「自称是推断」；P5 必须拒绝任何把这两条写成已验证的锚点（verification-overclaim），同时允许它们以猜想身份被锚定（inference-labelled）。这条 fixture 就是「不可复现的推断必须标注为猜想」这条验收标准的可执行形式。",
+  "input": {
+    "format": "artifact-and-observations",
+    "payload": {
+      "artifact": {
+        "id": "bootrom-x",
+        "kind": "bootloader",
+        "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d",
+        "tool": {
+          "name": "ghidra",
+          "version": "11.1"
+        },
+        "environment": "windows-x86_64"
+      },
+      "observations": [
+        {
+          "id": "o-guess",
+          "kind": "inference",
+          "lead": "boot-loader",
+          "statement": "The bootloader probably checks a CRC32 before jumping to the application.",
+          "reproducibility": {
+            "steps": []
+          }
+        },
+        {
+          "id": "o-crc-hint",
+          "kind": "observation",
+          "lead": "boot-loader",
+          "statement": "A CRC32 lookup table is referenced from the jump routine.",
+          "reproducibility": {
+            "steps": []
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "admitted": 5,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [
+      "re/bootrom-x/observations/boot-loader"
+    ],
+    "bundles": 1,
+    "bundleSizes": {
+      "re/bootrom-x/observations/boot-loader": 5
+    },
+    "sameBundle": [
+      [
+        "o-guess#statement",
+        "o-crc-hint#repro"
+      ],
+      [
+        "bootrom-x#artifact#boot-loader",
+        "o-guess#repro"
+      ]
+    ],
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界",
+      "缺少可复现步骤",
+      "自称是「推断」",
+      "全部没有可复现步骤"
+    ],
+    "verified": {
+      "o-guess": false,
+      "o-crc-hint": false
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "未复现的推断以「猜想」身份被锚定是允许的：代码是 inference-labelled，而不是把它当成观察。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/boot-loader.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "statement",
+            "observationId": "o-guess",
+            "verified": false
+          },
+          "excerpt": "statement o-guess :: The bootloader probably checks a CRC32 before jumping to the application."
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/boot-loader.md",
+              "content": "# lead boot-loader — artifact bootrom-x\nartifact.sha256 = 4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\n--- observations ---\nstatement o-guess :: The bootloader probably checks a CRC32 before jumping to the application.\nrepro o-guess :: steps=0 verified=false (推断，未复现)\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/bootrom-x/observations/boot-loader.md",
+        "expectStart": 4,
+        "expectCode": "inference-labelled"
+      },
+      {
+        "note": "复现状态行本身：steps=0 如实写进笔记，锚点确认的是「笔记确实这么写」。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/boot-loader.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "repro",
+            "observationId": "o-guess"
+          },
+          "excerpt": "repro o-guess :: steps=0 verified=false (推断，未复现)"
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/boot-loader.md",
+              "content": "# lead boot-loader — artifact bootrom-x\nartifact.sha256 = 4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\n--- observations ---\nstatement o-guess :: The bootloader probably checks a CRC32 before jumping to the application.\nrepro o-guess :: steps=0 verified=false (推断，未复现)\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/bootrom-x/observations/boot-loader.md",
+        "expectStart": 5,
+        "expectCode": "repro-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "把 steps=0 的推断写成已验证 -> verification-overclaim：这正是本域要抓的失败模式。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/boot-loader.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "statement",
+            "observationId": "o-guess",
+            "verified": true
+          },
+          "excerpt": "statement o-guess :: The bootloader probably checks a CRC32 before jumping to the application."
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/boot-loader.md",
+              "content": "# lead boot-loader — artifact bootrom-x\nartifact.sha256 = 4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\n--- observations ---\nstatement o-guess :: The bootloader probably checks a CRC32 before jumping to the application.\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "verification-overclaim"
+      },
+      {
+        "note": "自称「观察」但 steps 为空，同样不能被写成已验证（缺少可复现步骤 ≠ 已验证）。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/boot-loader.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "statement",
+            "observationId": "o-crc-hint",
+            "verified": true
+          },
+          "excerpt": "statement o-crc-hint :: A CRC32 lookup table is referenced from the jump routine."
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-crc-hint\",\"kind\":\"observation\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-crc-hint",
+              "kind": "observation",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/boot-loader.md",
+              "content": "# lead boot-loader — artifact bootrom-x\nartifact.sha256 = 4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\n--- observations ---\nstatement o-crc-hint :: A CRC32 lookup table is referenced from the jump routine.\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-crc-hint\",\"kind\":\"observation\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "verification-overclaim"
+      },
+      {
+        "note": "转述不锚定：把 CRC32 表格那句话改写得更肯定，也就更不是原文。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/boot-loader.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "statement",
+            "observationId": "o-crc-hint"
+          },
+          "excerpt": "statement o-crc-hint :: A CRC32 table is definitely used by the jump routine."
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-crc-hint\",\"kind\":\"observation\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-crc-hint",
+              "kind": "observation",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/boot-loader.md",
+              "content": "# lead boot-loader — artifact bootrom-x\nartifact.sha256 = 4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\n--- observations ---\nstatement o-crc-hint :: A CRC32 lookup table is referenced from the jump routine.\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-crc-hint\",\"kind\":\"observation\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行命中两份笔记 -> 拒绝猜测。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/bootrom-x/observations/a.md",
+          "locator": {
+            "artifactId": "bootrom-x",
+            "kind": "statement",
+            "observationId": "o-guess"
+          },
+          "excerpt": "statement o-guess :: The bootloader probably checks a CRC32 before jumping to the application."
+        },
+        "subject": {
+          "path": "re/bootrom-x.json",
+          "documents": [
+            {
+              "path": "re/bootrom-x/observations/a.md",
+              "content": "statement o-guess :: The bootloader probably checks a CRC32 before jumping to the application.\n"
+            },
+            {
+              "path": "re/bootrom-x/observations/b.md",
+              "content": "statement o-guess :: The bootloader probably checks a CRC32 before jumping to the application.\n"
+            },
+            {
+              "path": "re/bootrom-x.json",
+              "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "artifact": {
+            "id": "bootrom-x",
+            "sha256": "4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d"
+          },
+          "observations": [
+            {
+              "id": "o-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "content": "{\"artifact\":{\"id\":\"bootrom-x\",\"sha256\":\"4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d\"},\"observations\":[{\"id\":\"o-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "re/bootrom-x/observations/a.md:1",
+          "re/bootrom-x/observations/b.md:1"
+        ]
+      }
+    ]
+  }
+}

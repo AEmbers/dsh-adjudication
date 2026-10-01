@@ -1,0 +1,281 @@
+{
+  "name": "all-gated-out",
+  "domain": "reverse-engineering",
+  "format": "artifact-and-observations",
+  "description": "边界二：五条线索各 3 个候选（产物身份行 + 陈述行 + 复现状态行）全部枚举出来，但 P1 把它们**全部**排除，且每个排除原因都不同 —— deleted（笔记已撤回）、binary（内存转储无法当文本读）、extension（.zip 不在本域扩展名内）、user-exclude（pack 自己声明的 **/archive/**）、default-path（target 目录下的构建产物笔记）。全部排除理由都由 pack 自己的 gate 产生，fixture 不带任何 gate 块。注意每个 lead 的三个候选共享同一份笔记，因此文件级事实（bytes/deleted/binary）由整条线索共同承担：一条被标记为 deleted 的观察，不会留下一个活着的「产物身份行」。另有一条没有 statement 正文的观察进 excluded：它不是观察，只是占位。",
+  "input": {
+    "format": "artifact-and-observations",
+    "payload": {
+      "artifact": {
+        "id": "legacy-bin",
+        "kind": "firmware",
+        "sha256": "3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c",
+        "tool": {
+          "name": "objdump",
+          "version": "2.42"
+        }
+      },
+      "observations": [
+        {
+          "id": "o-drop",
+          "kind": "observation",
+          "lead": "deleted-lead",
+          "path": "re/legacy-bin/observations/retracted.md",
+          "deleted": true,
+          "statement": "The retracted note claimed a hardcoded key at offset 0x4010.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "read the retracted note"
+            ]
+          }
+        },
+        {
+          "id": "o-dump",
+          "kind": "observation",
+          "lead": "binary-lead",
+          "path": "re/legacy-bin/observations/core-dump.md",
+          "binary": true,
+          "statement": "The core dump contains the session key in plain text.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "open the dump in a hex editor"
+            ]
+          }
+        },
+        {
+          "id": "o-zip",
+          "kind": "observation",
+          "lead": "zip-lead",
+          "path": "re/legacy-bin/observations/raw.zip",
+          "statement": "The raw capture archive contains one session per file.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "unzip the archive"
+            ]
+          }
+        },
+        {
+          "id": "o-old",
+          "kind": "observation",
+          "lead": "archive-lead",
+          "path": "re/legacy-bin/observations/archive/old.md",
+          "statement": "An older note says the board boots from SPI flash.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "read the old note"
+            ]
+          }
+        },
+        {
+          "id": "o-huge",
+          "kind": "observation",
+          "lead": "target-lead",
+          "statement": "Verbatim capture: Segment 1 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 2 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 3 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 4 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 5 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 6 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 7 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 8 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 9 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 10 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 11 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 12 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 13 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 14 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 15 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 16 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 17 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 18 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 19 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 20 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 21 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 22 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 23 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 24 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 25 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 26 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 27 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 28 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 29 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 30 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 31 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 32 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 33 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 34 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 35 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 36 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 37 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 38 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 39 of the captured transcript repeats the same explanation about the target product and its behaviour under load Segment 40 of the captured transcript repeats the same explanation about the target product and its behaviour under load",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "capture the whole transcript"
+            ]
+          },
+          "path": "re/legacy-bin/observations/target/lead.md"
+        },
+        {
+          "id": "o-blank",
+          "lead": "deleted-lead",
+          "statement": "   "
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 15,
+    "admitted": 0,
+    "excludedByPredicate": {
+      "deleted": [
+        "re/legacy-bin/observations/retracted.md"
+      ],
+      "binary": [
+        "re/legacy-bin/observations/core-dump.md"
+      ],
+      "extension": [
+        "re/legacy-bin/observations/raw.zip"
+      ],
+      "user-exclude": [
+        "re/legacy-bin/observations/archive/old.md"
+      ],
+      "default-path": [
+        "re/legacy-bin/observations/target/lead.md"
+      ]
+    },
+    "sourceExcluded": 1,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [],
+    "bundles": 0,
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被排除的笔记在锚点层依然可验证：排除是 P1 的决定，不是「这条观察不存在」。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/legacy-bin/observations/retracted.md",
+          "locator": {
+            "artifactId": "legacy-bin",
+            "kind": "statement",
+            "observationId": "o-drop",
+            "verified": true
+          },
+          "excerpt": "statement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010."
+        },
+        "subject": {
+          "path": "re/legacy-bin.json",
+          "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}",
+          "artifact": {
+            "id": "legacy-bin",
+            "sha256": "3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c"
+          },
+          "observations": [
+            {
+              "id": "o-drop",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "read the retracted note"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/legacy-bin/observations/retracted.md",
+              "content": "# lead deleted-lead — artifact legacy-bin\nartifact.sha256 = 3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\n--- observations ---\nstatement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010.\nrepro o-drop :: steps=1 verified=true\n"
+            },
+            {
+              "path": "re/legacy-bin.json",
+              "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/legacy-bin/observations/retracted.md",
+        "expectStart": 4,
+        "expectCode": "statement-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "偏移写错一个字符就不是原文：0x4010 与 0x4001 是两回事，转述/笔误都不锚定。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/legacy-bin/observations/retracted.md",
+          "locator": {
+            "artifactId": "legacy-bin",
+            "kind": "statement",
+            "observationId": "o-drop"
+          },
+          "excerpt": "statement o-drop :: The retracted note claimed a hardcoded key at offset 0x4001."
+        },
+        "subject": {
+          "path": "re/legacy-bin.json",
+          "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}",
+          "artifact": {
+            "id": "legacy-bin",
+            "sha256": "3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c"
+          },
+          "observations": [
+            {
+              "id": "o-drop",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "read the retracted note"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/legacy-bin/observations/retracted.md",
+              "content": "# lead deleted-lead — artifact legacy-bin\nartifact.sha256 = 3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\n--- observations ---\nstatement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010.\n"
+            },
+            {
+              "path": "re/legacy-bin.json",
+              "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行命中两份笔记 -> 拒绝猜测（被排除的路径同样参与锚点层的歧义判定）。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/legacy-bin/observations/a.md",
+          "locator": {
+            "artifactId": "legacy-bin",
+            "kind": "statement",
+            "observationId": "o-drop"
+          },
+          "excerpt": "statement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010."
+        },
+        "subject": {
+          "path": "re/legacy-bin.json",
+          "documents": [
+            {
+              "path": "re/legacy-bin/observations/a.md",
+              "content": "statement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010.\n"
+            },
+            {
+              "path": "re/legacy-bin/observations/b.md",
+              "content": "statement o-drop :: The retracted note claimed a hardcoded key at offset 0x4010.\n"
+            },
+            {
+              "path": "re/legacy-bin.json",
+              "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}"
+            }
+          ],
+          "artifact": {
+            "id": "legacy-bin",
+            "sha256": "3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c"
+          },
+          "observations": [
+            {
+              "id": "o-drop",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "read the retracted note"
+                ]
+              }
+            }
+          ],
+          "content": "{\"artifact\":{\"id\":\"legacy-bin\",\"sha256\":\"3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c\"},\"observations\":[{\"id\":\"o-drop\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"read the retracted note\"]}}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "re/legacy-bin/observations/a.md:1",
+          "re/legacy-bin/observations/b.md:1"
+        ]
+      }
+    ]
+  }
+}

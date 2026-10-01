@@ -1,0 +1,220 @@
+{
+  "name": "dangling-ref",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/orders/trace.json",
+      "nodes": [
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s1/u2"
+        },
+        {
+          "id": "I1",
+          "type": "implementation",
+          "ref": "src/orders.ts#L1-L9"
+        }
+      ],
+      "edges": [
+        {
+          "from": "R1",
+          "to": "I1",
+          "kind": "implements"
+        },
+        {
+          "from": "I1",
+          "to": "MISSING-CASE",
+          "kind": "verifies"
+        }
+      ],
+      "idSpace": [],
+      "upstream": [
+        {
+          "domain": "sessions",
+          "ref": "sessions/s1/u2"
+        },
+        {
+          "domain": "src",
+          "ref": "src/orders.ts#L1-L9"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "admitted": 6,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "两端都被点名，其中一端在图上没有节点记录 —— declared-locator 的断链",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "dangling-ref",
+            "fromId": "I1",
+            "toId": "MISSING-CASE"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "I1",
+          "MISSING-CASE"
+        ],
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "只点名起点，缺的那一端由引擎在图上游走找出 —— recomputed-unique",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "dangling-ref",
+            "fromId": "I1"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectNodes": [
+          "I1",
+          "MISSING-CASE"
+        ],
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "trace-edge 确认的是「这条边在图上有」，与端点是否登记无关 —— 两件事必须分开报告",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "I1",
+            "toId": "MISSING-CASE",
+            "edgeKind": "verifies"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "I1",
+          "MISSING-CASE"
+        ],
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "R1 在图上是有记录的节点 —— 「端点没有记录」被图证伪",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "dangling-ref",
+            "fromId": "I1",
+            "toId": "R1"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "R1→MISSING-CASE 这条边根本不存在：断链是「有边、缺节点」，不是「无边」",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "dangling-ref",
+            "fromId": "R1",
+            "toId": "MISSING-CASE"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "R1 的每条出边端点都有记录 —— 对 R1 而言没有断链",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/orders/trace.json",
+          "locator": {
+            "kind": "dangling-ref",
+            "fromId": "R1"
+          }
+        },
+        "subjectPath": "chains/orders/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/orders/trace.json",
+          "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/orders/trace.json",
+              "content": "{\"graphPath\":\"chains/orders/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/orders.ts#L1-L9\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"MISSING-CASE\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/orders.ts#L1-L9\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

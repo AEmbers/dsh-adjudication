@@ -1,0 +1,2847 @@
+{
+  "name": "happy-path",
+  "domain": "user-feedback",
+  "format": "feedback-ledger",
+  "description": "主样本：三条主题（checkout / report / ui）共 7 条反馈与 5 个决策。刻意造成两个排序相互矛盾——`fb-1001`（阻断级、影响全量、只被报 2 次）与 `fb-1002`（严重级、影响多量、只被报 1 次）的损失排名最前、频次排名倒数；`fb-1005`（轻微、被报 40 次）恰好相反。这正是「低频高损不得被高频低损淹没」要检验的形态。同时含：一对双侧互证闭环、一条单边闭环、一条悬空闭环（closedBy 指向不存在的决策）、一个孤儿决策、一条失效引用（dec-24 指向不存在的 fb-9999）。",
+  "input": {
+    "format": "feedback-ledger",
+    "payload": {
+      "documents": [
+        {
+          "path": "feedback/ledger.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 6144
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-1001",
+                "quote": "结账时优惠券没有生效，钱白花了",
+                "source": "客服工单",
+                "severity": "blocker",
+                "reach": "all",
+                "frequency": 2,
+                "theme": "checkout",
+                "status": "closed",
+                "closedBy": "dec-20",
+                "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+              },
+              {
+                "id": "fb-1002",
+                "quote": "结算页加载要等好几秒，购物车内容是空的",
+                "source": "应用商店",
+                "severity": "critical",
+                "reach": "many",
+                "frequency": 1,
+                "theme": "checkout",
+                "status": "open"
+              },
+              {
+                "id": "fb-1003",
+                "quote": "导出报表会丢掉最后一行数据",
+                "source": "客服工单",
+                "severity": "high",
+                "reach": "some",
+                "frequency": 3,
+                "theme": "report",
+                "status": "open",
+                "closedBy": "dec-77"
+              },
+              {
+                "id": "fb-1004",
+                "quote": "首页推荐位重复出现了两次",
+                "source": "应用商店",
+                "severity": "low",
+                "reach": "few",
+                "frequency": 30,
+                "theme": "ui",
+                "status": "open",
+                "closedBy": "dec-22"
+              },
+              {
+                "id": "fb-1005",
+                "quote": "图标颜色不太对，和设计稿不一致",
+                "source": "应用商店",
+                "severity": "low",
+                "reach": "some",
+                "frequency": 40,
+                "theme": "ui",
+                "status": "open"
+              },
+              {
+                "id": "fb-1006",
+                "quote": "设置页的开关点了没有反应",
+                "source": "客服工单",
+                "severity": "medium",
+                "reach": "few",
+                "frequency": 12,
+                "theme": "ui",
+                "status": "open"
+              },
+              {
+                "id": "fb-1007",
+                "quote": "历史订单里有一条记录金额显示为负数",
+                "source": "客服工单",
+                "severity": "critical",
+                "reach": "few",
+                "frequency": 1,
+                "theme": "report",
+                "status": "open"
+              }
+            ],
+            "decisions": [
+              {
+                "id": "dec-20",
+                "title": "结算页优惠券校验修复",
+                "rationale": "优惠券在并发场景下被重复消费",
+                "addresses": [
+                  "fb-1001"
+                ],
+                "status": "shipped",
+                "owner": "alice"
+              },
+              {
+                "id": "dec-21",
+                "title": "结算页性能优化",
+                "rationale": "首屏数据串行加载",
+                "addresses": [
+                  "fb-1002"
+                ],
+                "status": "shipped",
+                "owner": "bob"
+              },
+              {
+                "id": "dec-22",
+                "title": "推荐位去重",
+                "rationale": "推荐流未去重",
+                "addresses": [],
+                "status": "planned",
+                "owner": "carol"
+              },
+              {
+                "id": "dec-23",
+                "title": "内部工具重构",
+                "rationale": "与用户反馈无关的工程改造",
+                "addresses": [],
+                "status": "shipped",
+                "owner": "dave"
+              },
+              {
+                "id": "dec-24",
+                "title": "批量问题归集",
+                "rationale": "把若干条反馈归到一起处理",
+                "addresses": [
+                  "fb-9999"
+                ],
+                "status": "planned",
+                "owner": "alice"
+              }
+            ],
+            "themes": [
+              {
+                "id": "checkout",
+                "name": "结算流程",
+                "members": [
+                  "fb-1001"
+                ]
+              },
+              {
+                "id": "report",
+                "name": "报表导出",
+                "members": []
+              },
+              {
+                "id": "ui",
+                "name": "界面细节",
+                "members": [
+                  "fb-1005",
+                  "fb-1006"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 20,
+    "paths": [
+      "feedback/ledger-fb-1001-dec-20.json",
+      "feedback/ledger-fb-1002-dec-21.json",
+      "feedback/ledger-fb-1004-dec-22.json",
+      "feedback/ledger-fb-1003-dec-77.json",
+      "feedback/ledger-fb-9999-dec-24.json",
+      "feedback/ledger-fb-1001.json",
+      "feedback/ledger-fb-1002.json",
+      "feedback/ledger-fb-1003.json",
+      "feedback/ledger-fb-1004.json",
+      "feedback/ledger-fb-1005.json",
+      "feedback/ledger-fb-1006.json",
+      "feedback/ledger-fb-1007.json",
+      "feedback/ledger-dec-20.json",
+      "feedback/ledger-dec-21.json",
+      "feedback/ledger-dec-22.json",
+      "feedback/ledger-dec-23.json",
+      "feedback/ledger-dec-24.json",
+      "feedback/ledger-theme-checkout.json",
+      "feedback/ledger-theme-report.json",
+      "feedback/ledger-theme-ui.json"
+    ],
+    "admitted": 20,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "双侧互证：决策的 addresses 与反馈的 closedBy 都指向对方——这是唯一算数的闭环形态。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "fb-1001",
+            "decisionId": "dec-20"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "无人处理的反馈：fb-1005 没有 closedBy，也没有任何决策在 addresses 里提到它。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-1005"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "孤儿决策：dec-23 不声明处理任何反馈，也没有任何反馈指向它。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "orphan-decision",
+            "decisionId": "dec-23"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "逐字引文成立：这段文字与记录的原话完全一致。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "feedbackId": "fb-1003",
+            "quote": "导出报表会丢掉最后一行数据"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "locator 只给引文、不给 feedbackId：引擎从引文重算出唯一包含它的那条记录，tier 是 recomputed-unique。这条用例是 recomputed-unique 在本域真实可达的证明。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "quote": "导出报表会丢掉最后一行数据"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "主题双侧一致：fb-1005 的 theme 是 ui，主题 ui 的 members 里也有它。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "theme-membership",
+            "themeId": "ui",
+            "feedbackId": "fb-1005"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      },
+      {
+        "note": "失效链接：dec-24 在 addresses 里引用了 fb-9999，而台账的任何 population 里都没有这个 ID。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "unregistered-reference",
+            "referencedId": "fb-9999",
+            "referrerId": "dec-24"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/ledger.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "单边闭环不算闭环：dec-21 声明处理了 fb-1002，但 fb-1002 没有 closedBy。这条正是本域最典型的缺陷，必须判未锚定。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "fb-1002",
+            "decisionId": "dec-21"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "悬空闭环：fb-1003 的 closedBy 指向 dec-77，而 dec-77 在 decisions 里不存在——两侧都不到位。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "fb-1003",
+            "decisionId": "dec-77"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "转述不锚定：这句话说的是同一件事，但改写了措辞——引文一旦被改写就不再是证据。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "feedbackId": "fb-1003",
+            "quote": "导出报表时最后一行数据会丢失"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "角色错位：dec-20 是决策 ID，不能当作反馈 ID 来验证闭环。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "dec-20",
+            "decisionId": "dec-20"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "主题只有单边：fb-1007 的 theme 是 report，但主题 report 的 members 是空的。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "theme-membership",
+            "themeId": "report",
+            "feedbackId": "fb-1007"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "fb-1001 是有闭环的，声称它无人处理与台账矛盾。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-1001"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "fb-1001 在台账里是有记录的，声称它是失效链接与事实相反。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/ledger.json",
+          "locator": {
+            "kind": "unregistered-reference",
+            "referencedId": "fb-1001",
+            "referrerId": "dec-20"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "声明的台账不在语料里，而这条声明在语料里的那份台账上也不成立（这个 ID 根本不存在）——既不搬迁也不矛盾。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/other.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-8888"
+          }
+        },
+        "subject": {
+          "path": "feedback/ledger.json",
+          "documents": [
+            {
+              "path": "feedback/ledger.json",
+              "type": "feedback-ledger",
+              "meta": {
+                "bytes": 6144
+              },
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-1001",
+                    "quote": "结账时优惠券没有生效，钱白花了",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "all",
+                    "frequency": 2,
+                    "theme": "checkout",
+                    "status": "closed",
+                    "closedBy": "dec-20",
+                    "closeReason": "优惠券校验逻辑已修复并在 2.4 发版"
+                  },
+                  {
+                    "id": "fb-1002",
+                    "quote": "结算页加载要等好几秒，购物车内容是空的",
+                    "source": "应用商店",
+                    "severity": "critical",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "checkout",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1003",
+                    "quote": "导出报表会丢掉最后一行数据",
+                    "source": "客服工单",
+                    "severity": "high",
+                    "reach": "some",
+                    "frequency": 3,
+                    "theme": "report",
+                    "status": "open",
+                    "closedBy": "dec-77"
+                  },
+                  {
+                    "id": "fb-1004",
+                    "quote": "首页推荐位重复出现了两次",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 30,
+                    "theme": "ui",
+                    "status": "open",
+                    "closedBy": "dec-22"
+                  },
+                  {
+                    "id": "fb-1005",
+                    "quote": "图标颜色不太对，和设计稿不一致",
+                    "source": "应用商店",
+                    "severity": "low",
+                    "reach": "some",
+                    "frequency": 40,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1006",
+                    "quote": "设置页的开关点了没有反应",
+                    "source": "客服工单",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 12,
+                    "theme": "ui",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-1007",
+                    "quote": "历史订单里有一条记录金额显示为负数",
+                    "source": "客服工单",
+                    "severity": "critical",
+                    "reach": "few",
+                    "frequency": 1,
+                    "theme": "report",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "dec-20",
+                    "title": "结算页优惠券校验修复",
+                    "rationale": "优惠券在并发场景下被重复消费",
+                    "addresses": [
+                      "fb-1001"
+                    ],
+                    "status": "shipped",
+                    "owner": "alice"
+                  },
+                  {
+                    "id": "dec-21",
+                    "title": "结算页性能优化",
+                    "rationale": "首屏数据串行加载",
+                    "addresses": [
+                      "fb-1002"
+                    ],
+                    "status": "shipped",
+                    "owner": "bob"
+                  },
+                  {
+                    "id": "dec-22",
+                    "title": "推荐位去重",
+                    "rationale": "推荐流未去重",
+                    "addresses": [],
+                    "status": "planned",
+                    "owner": "carol"
+                  },
+                  {
+                    "id": "dec-23",
+                    "title": "内部工具重构",
+                    "rationale": "与用户反馈无关的工程改造",
+                    "addresses": [],
+                    "status": "shipped",
+                    "owner": "dave"
+                  },
+                  {
+                    "id": "dec-24",
+                    "title": "批量问题归集",
+                    "rationale": "把若干条反馈归到一起处理",
+                    "addresses": [
+                      "fb-9999"
+                    ],
+                    "status": "planned",
+                    "owner": "alice"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "checkout",
+                    "name": "结算流程",
+                    "members": [
+                      "fb-1001"
+                    ]
+                  },
+                  {
+                    "id": "report",
+                    "name": "报表导出",
+                    "members": []
+                  },
+                  {
+                    "id": "ui",
+                    "name": "界面细节",
+                    "members": [
+                      "fb-1005",
+                      "fb-1006"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  },
+  "observations": {
+    "bundleKeys": [
+      "doc/feedback/ledger.json",
+      "theme/checkout",
+      "theme/report",
+      "theme/ui"
+    ],
+    "rankChecks": {
+      "byLoss": [
+        "fb-1001",
+        "fb-1002",
+        "fb-1003",
+        "fb-1007",
+        "fb-1005",
+        "fb-1006",
+        "fb-1004"
+      ],
+      "byFrequency": [
+        "fb-1005",
+        "fb-1004",
+        "fb-1006",
+        "fb-1003",
+        "fb-1001",
+        "fb-1002",
+        "fb-1007"
+      ],
+      "drownRisk": [
+        "fb-1001",
+        "fb-1002"
+      ]
+    }
+  }
+}

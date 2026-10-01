@@ -1,0 +1,222 @@
+{
+  "name": "all-gated-out",
+  "domain": "algo-model",
+  "format": "experiment-record",
+  "description": "四条实验记录都有指标（P0 确实枚举出 4 个候选），但每一个都被 P1 的某个谓词排除：cancelled 的实验（deleted）、只有权重产物的指标（extension，.bin 不是可评审文本）、pack 自己声明的 **/legacy/** 下的旧记录（user-exclude）、vendor 目录下的第三方基线（default-path）。全部排除理由都由 pack 自己的 gate 产生，fixture 不带任何 gate 块。",
+  "input": {
+    "format": "experiment-record",
+    "payload": {
+      "experiments": [
+        {
+          "id": "vision/cancelled-run",
+          "name": "cancelled sweep",
+          "seed": 1,
+          "dataset": {
+            "train": 1000,
+            "valid": 100,
+            "test": 100,
+            "splitsHash": "sha256:eee"
+          },
+          "metrics": [
+            {
+              "name": "accuracy",
+              "value": 0.5,
+              "definition": "top-1 accuracy on the test split"
+            }
+          ],
+          "budget": {
+            "steps": 0,
+            "gpuHours": 0
+          },
+          "status": "cancelled"
+        },
+        {
+          "id": "vision/weights-only",
+          "name": "checkpoint export",
+          "seed": 2,
+          "dataset": {
+            "train": 1000,
+            "valid": 100,
+            "test": 100,
+            "splitsHash": "sha256:fff"
+          },
+          "metrics": [
+            {
+              "name": "weights",
+              "value": "sha256:deadbeef",
+              "kind": "artifact"
+            }
+          ],
+          "budget": {
+            "steps": 10,
+            "gpuHours": 0.1
+          }
+        },
+        {
+          "id": "legacy/model-v1",
+          "name": "legacy run",
+          "seed": 3,
+          "dataset": {
+            "train": 1000,
+            "valid": 100,
+            "test": 100,
+            "splitsHash": "sha256:ggg"
+          },
+          "metrics": [
+            {
+              "name": "accuracy",
+              "value": 0.6,
+              "definition": "top-1 accuracy on the test split"
+            }
+          ],
+          "budget": {
+            "steps": 100,
+            "gpuHours": 1
+          }
+        },
+        {
+          "id": "vendor/long-report",
+          "name": "per class report",
+          "seed": 4,
+          "dataset": {
+            "train": 1000,
+            "valid": 100,
+            "test": 100,
+            "splitsHash": "sha256:hhh"
+          },
+          "metrics": [
+            {
+              "name": "per_class_report",
+              "value": "{\"class-0001\": 0.912, \"class-0002\": 0.881, \"class-0003\": 0.923, \"class-0004\": 0.870, \"class-0005\": 0.901, \"class-0006\": 0.915, \"class-0007\": 0.889, \"class-0008\": 0.933, \"class-0009\": 0.877, \"class-0010\": 0.905, \"class-0011\": 0.918, \"class-0012\": 0.884, \"class-0013\": 0.926, \"class-0014\": 0.872, \"class-0015\": 0.908}",
+              "definition": "per-class precision dumped as JSON"
+            }
+          ],
+          "budget": {
+            "steps": 100,
+            "gpuHours": 1
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "experiments/legacy/model-v1/metrics.json",
+      "experiments/vendor/long-report/metrics.json",
+      "experiments/vision/cancelled-run/metrics.json",
+      "experiments/vision/weights-only/weights.bin"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "deleted": [
+        "experiments/vision/cancelled-run/metrics.json"
+      ],
+      "extension": [
+        "experiments/vision/weights-only/weights.bin"
+      ],
+      "user-exclude": [
+        "experiments/legacy/model-v1/metrics.json"
+      ],
+      "default-path": [
+        "experiments/vendor/long-report/metrics.json"
+      ]
+    },
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": []
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "即使整个候选集被闸门排除，锚点本身仍可重算：被排除的是「是否值得评审」，不是「这句话在不在记录里」。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vendor/long-report/metrics.json",
+          "locator": {
+            "experimentId": "vendor/long-report",
+            "metricName": "per_class_report",
+            "startLine": 4
+          },
+          "excerpt": "metric per_class_report = {\"class-0001\": 0.912, \"class-0002\": 0.881, \"class-0003\": 0.923, \"class-0004\": 0.870, \"class-0005\": 0.901, \"class-0006\": 0.915, \"class-0007\": 0.889, \"class-0008\": 0.933, \"class-0009\": 0.877, \"class-0010\": 0.905, \"class-0011\": 0.918, \"class-0012\": 0.884, \"class-0013\": 0.926, \"class-0014\": 0.872, \"class-0015\": 0.908}"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vendor/long-report/metrics.json",
+              "content": "# experiment vendor/long-report (per class report)\nseed = 4\ndataset = train:1000 valid:100 test:100 splits:sha256:hhh\nmetric per_class_report = {\"class-0001\": 0.912, \"class-0002\": 0.881, \"class-0003\": 0.923, \"class-0004\": 0.870, \"class-0005\": 0.901, \"class-0006\": 0.915, \"class-0007\": 0.889, \"class-0008\": 0.933, \"class-0009\": 0.877, \"class-0010\": 0.905, \"class-0011\": 0.918, \"class-0012\": 0.884, \"class-0013\": 0.926, \"class-0014\": 0.872, \"class-0015\": 0.908}\nmetric per_class_report.definition = per-class precision dumped as JSON\nbaseline = (none)"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vendor/long-report\",\"metrics\":[{\"name\":\"per_class_report\",\"value\":\"{\\\"class-0001\\\": 0.912, \\\"class-0002\\\": 0.881, \\\"class-0003\\\": 0.923, \\\"class-0004\\\": 0.870, \\\"class-0005\\\": 0.901, \\\"class-0006\\\": 0.915, \\\"class-0007\\\": 0.889, \\\"class-0008\\\": 0.933, \\\"class-0009\\\": 0.877, \\\"class-0010\\\": 0.905, \\\"class-0011\\\": 0.918, \\\"class-0012\\\": 0.884, \\\"class-0013\\\": 0.926, \\\"class-0014\\\": 0.872, \\\"class-0015\\\": 0.908}\"}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vendor/long-report",
+              "metrics": [
+                {
+                  "name": "per_class_report",
+                  "value": "{\"class-0001\": 0.912, \"class-0002\": 0.881, \"class-0003\": 0.923, \"class-0004\": 0.870, \"class-0005\": 0.901, \"class-0006\": 0.915, \"class-0007\": 0.889, \"class-0008\": 0.933, \"class-0009\": 0.877, \"class-0010\": 0.905, \"class-0011\": 0.918, \"class-0012\": 0.884, \"class-0013\": 0.926, \"class-0014\": 0.872, \"class-0015\": 0.908}"
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vendor/long-report\",\"metrics\":[{\"name\":\"per_class_report\",\"value\":\"{\\\"class-0001\\\": 0.912, \\\"class-0002\\\": 0.881, \\\"class-0003\\\": 0.923, \\\"class-0004\\\": 0.870, \\\"class-0005\\\": 0.901, \\\"class-0006\\\": 0.915, \\\"class-0007\\\": 0.889, \\\"class-0008\\\": 0.933, \\\"class-0009\\\": 0.877, \\\"class-0010\\\": 0.905, \\\"class-0011\\\": 0.918, \\\"class-0012\\\": 0.884, \\\"class-0013\\\": 0.926, \\\"class-0014\\\": 0.872, \\\"class-0015\\\": 0.908}\"}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "experiments/vendor/long-report/metrics.json",
+        "expectStart": 4,
+        "expectCode": "metric-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "被 cancelled 的实验指标：锚点本身仍然可重算（值确实存在），被判未锚定的是「把它当成结论」这件事。这里用数值不符来证明结构检查先于文本检查。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/cancelled-run/metrics.json",
+          "locator": {
+            "experimentId": "vision/cancelled-run",
+            "metricName": "accuracy",
+            "value": 0.9
+          },
+          "excerpt": "metric accuracy = 0.5"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/cancelled-run/metrics.json",
+              "content": "# experiment vision/cancelled-run (cancelled sweep)\nmetric accuracy = 0.5\nbaseline = (none)"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/cancelled-run\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.5}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/cancelled-run",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.5
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/cancelled-run\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.5}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "value-mismatch"
+      }
+    ]
+  }
+}

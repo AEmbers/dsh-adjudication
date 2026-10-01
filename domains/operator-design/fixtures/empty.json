@@ -1,0 +1,54 @@
+{
+  "name": "empty",
+  "domain": "operator-design",
+  "format": "operator-registry-and-tests",
+  "description": "空集边界：注册表与测试清单都是空的。合法结果是 0 个候选而不是抛错——「没有算子可审」与「输入坏了」必须能被区分开。",
+  "input": {
+    "format": "operator-registry-and-tests",
+    "payload": { "operators": [], "tests": [] }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "P0 空集不影响 P5：锚点层面对的是原文与清单，与候选集是否为空无关。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/op.cu", "operator": "op", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void op(const Tensor& x) {"
+        },
+        "subject": {
+          "path": "src/ops/op.cu",
+          "content": "void op(const Tensor& x) {\n}\n",
+          "operators": [{ "name": "op", "signature": "void op(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"] }],
+          "tests": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "没有任何可比对实现时必须判未锚定（no-documents），绝不当作「锚点成立但无法核验」。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/op.cu", "operator": "op", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void op(const Tensor& x) {"
+        },
+        "subject": { "path": "src/ops/op.cu", "documents": [] },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents"
+      }
+    ]
+  }
+}

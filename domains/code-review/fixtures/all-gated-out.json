@@ -1,0 +1,62 @@
+{
+  "name": "all-gated-out",
+  "domain": "code-review",
+  "format": "unified-diff",
+  "description": "P0 枚举出候选，但 P1 把它们全部排除：二进制、删除、凭据路径、供应商目录、不支持的后缀、以及 pack 自己声明的 `**/generated/**` 规则命中的文件。这是「源头有东西、闸门后为空」的边界——必须能被区分于 empty。CHANGED (t36)：本 fixture 不再带自己的 gate——它证明的是「pack 自己能排干」，而不是「pack ∪ fixture 能排干」。",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/assets/logo.png b/assets/logo.png\nindex 1111111..2222222 100644\nBinary files a/assets/logo.png and b/assets/logo.png differ\ndiff --git a/config/.env b/config/.env\nindex 4444444..5555555 100644\n--- a/config/.env\n+++ b/config/.env\n@@ -1,1 +1,1 @@\n-API_TOKEN=old_value\n+API_TOKEN=new_value\ndiff --git a/generated/types.ts b/generated/types.ts\nindex 1212121..1313131 100644\n--- a/generated/types.ts\n+++ b/generated/types.ts\n@@ -1,1 +1,1 @@\n-export type A = 1\n+export type A = 2\ndiff --git a/legacy/old.go b/legacy/old.go\ndeleted file mode 100644\nindex 3333333..0000000\n--- a/legacy/old.go\n+++ /dev/null\n@@ -1,2 +0,0 @@\n-package legacy\n-func Old() {}\ndiff --git a/node_modules/leftpad/index.js b/node_modules/leftpad/index.js\nindex 6666666..7777777 100644\n--- a/node_modules/leftpad/index.js\n+++ b/node_modules/leftpad/index.js\n@@ -1,1 +1,1 @@\n-module.exports = () => ''\n+module.exports = () => ' '\ndiff --git a/README.md b/README.md\nindex 8888888..9999999 100644\n--- a/README.md\n+++ b/README.md\n@@ -1,1 +1,1 @@\n-old docs\n+new docs\n",
+      "files": [
+        { "path": "assets/logo.png", "bytes": 20480, "binary": true, "status": "binary" },
+        { "path": "config/.env", "bytes": 64, "status": "modified" },
+        { "path": "generated/types.ts", "bytes": 4096, "status": "modified" },
+        { "path": "legacy/old.go", "deleted": true, "status": "deleted" },        { "path": "node_modules/leftpad/index.js", "bytes": 128, "status": "modified" },
+        { "path": "README.md", "bytes": 512, "status": "modified" }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": ["assets/logo.png", "config/.env", "generated/types.ts", "legacy/old.go", "node_modules/leftpad/index.js", "README.md"],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": ["assets/logo.png"],
+      "secret": ["config/.env"],
+      "deleted": ["legacy/old.go"],
+      "user-exclude": ["generated/types.ts"],
+      "extension": ["README.md"],
+      "default-path": ["node_modules/leftpad/index.js"],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的文件里，原文依然可以被逐字锚定；闸门与锚点是两层，不该互相冒充。",
+        "claim": { "kind": "diff-line", "path": "legacy/old.go", "locator": { "side": "new" }, "excerpt": "func Old() {}" },
+        "subject": {
+          "path": "legacy/old.go",
+          "documents": [{ "path": "legacy/old.go", "content": "package legacy\nfunc Old() {}" }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "二进制候选没有可抄写的原文：抄什么都是转述，必须判未锚定。",
+        "claim": { "kind": "diff-line", "path": "assets/logo.png", "locator": {}, "excerpt": "Binary files differ" },
+        "subject": {
+          "path": "assets/logo.png",
+          "documents": [{ "path": "assets/logo.png", "content": "\u0000\u0001\u0002 binary" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

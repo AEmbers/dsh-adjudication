@@ -1,0 +1,192 @@
+{
+  "name": "uncovered",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/gap/trace.json",
+      "nodes": [
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s3/u1"
+        },
+        {
+          "id": "R2",
+          "type": "requirement",
+          "ref": "sessions/s3/u4"
+        },
+        {
+          "id": "I1",
+          "type": "implementation",
+          "ref": "src/gap.ts#L1-L6"
+        }
+      ],
+      "edges": [
+        {
+          "from": "R2",
+          "to": "I1",
+          "kind": "implements"
+        }
+      ],
+      "idSpace": [],
+      "upstream": [
+        {
+          "domain": "sessions",
+          "ref": "sessions/s3/u1"
+        },
+        {
+          "domain": "sessions",
+          "ref": "sessions/s3/u4"
+        },
+        {
+          "domain": "src",
+          "ref": "src/gap.ts#L1-L6"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 7,
+    "admitted": 7,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "只点名需求，它到不了哪些实现由引擎在图上游走判定 —— recomputed-unique",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/gap/trace.json",
+          "locator": {
+            "kind": "uncovered-requirement",
+            "fromId": "R1"
+          }
+        },
+        "subjectPath": "chains/gap/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectNodes": [
+          "R1"
+        ],
+        "subject": {
+          "path": "chains/gap/trace.json",
+          "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}",
+          "documents": [
+            {
+              "path": "chains/gap/trace.json",
+              "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "把「到不了谁」也点名了 —— declared-locator",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/gap/trace.json",
+          "locator": {
+            "kind": "uncovered-requirement",
+            "fromId": "R1",
+            "toId": "I1"
+          }
+        },
+        "subjectPath": "chains/gap/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1",
+          "I1"
+        ],
+        "subject": {
+          "path": "chains/gap/trace.json",
+          "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}",
+          "documents": [
+            {
+              "path": "chains/gap/trace.json",
+              "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "R2 能走到 I1 —— 「未被实现」被图证伪",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/gap/trace.json",
+          "locator": {
+            "kind": "uncovered-requirement",
+            "fromId": "R2"
+          }
+        },
+        "subjectPath": "chains/gap/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/gap/trace.json",
+          "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}",
+          "documents": [
+            {
+              "path": "chains/gap/trace.json",
+              "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "点名了 toId 也一样：路径存在就是存在",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/gap/trace.json",
+          "locator": {
+            "kind": "uncovered-requirement",
+            "fromId": "R2",
+            "toId": "I1"
+          }
+        },
+        "subjectPath": "chains/gap/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/gap/trace.json",
+          "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}",
+          "documents": [
+            {
+              "path": "chains/gap/trace.json",
+              "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "I1 是 implementation，不是 requirement —— 这句话对它不成立",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/gap/trace.json",
+          "locator": {
+            "kind": "uncovered-requirement",
+            "fromId": "I1"
+          }
+        },
+        "subjectPath": "chains/gap/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/gap/trace.json",
+          "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}",
+          "documents": [
+            {
+              "path": "chains/gap/trace.json",
+              "content": "{\"graphPath\":\"chains/gap/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u1\"},{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s3/u4\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/gap.ts#L1-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s3/u4\"},{\"domain\":\"src\",\"ref\":\"src/gap.ts#L1-L6\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

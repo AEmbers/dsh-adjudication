@@ -1,0 +1,133 @@
+{
+  "name": "id-collision",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/dup/trace.json",
+      "nodes": [
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s4/u1"
+        },
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s4/u2"
+        },
+        {
+          "id": "I1",
+          "type": "implementation",
+          "ref": "src/dup.ts#L1-L4"
+        },
+        {
+          "id": "C1",
+          "type": "case",
+          "ref": "tests/dup.spec.ts#L1-L3"
+        }
+      ],
+      "edges": [
+        {
+          "from": "R1",
+          "to": "I1",
+          "kind": "implements"
+        },
+        {
+          "from": "I1",
+          "to": "C1",
+          "kind": "verifies"
+        }
+      ],
+      "idSpace": [],
+      "upstream": [
+        {
+          "domain": "sessions",
+          "ref": "sessions/s4/u1"
+        },
+        {
+          "domain": "src",
+          "ref": "src/dup.ts#L1-L4"
+        },
+        {
+          "domain": "tests",
+          "ref": "tests/dup.spec.ts#L1-L3"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "admitted": 8,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "不涉及冲突 ID 的声明照常确认 —— 一个 ID 冲突不该让整张图失效",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/dup/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "I1",
+            "toId": "C1",
+            "edgeKind": "verifies"
+          }
+        },
+        "subjectPath": "chains/dup/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "I1",
+          "C1"
+        ],
+        "subject": {
+          "path": "chains/dup/trace.json",
+          "content": "{\"graphPath\":\"chains/dup/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dup.ts#L1-L4\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s4/u1\"},{\"domain\":\"src\",\"ref\":\"src/dup.ts#L1-L4\"},{\"domain\":\"tests\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}]}",
+          "documents": [
+            {
+              "path": "chains/dup/trace.json",
+              "content": "{\"graphPath\":\"chains/dup/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dup.ts#L1-L4\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s4/u1\"},{\"domain\":\"src\",\"ref\":\"src/dup.ts#L1-L4\"},{\"domain\":\"tests\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "R1 指向两个对象时，「R1→I1」既不是真也不是假 —— 拒绝猜测",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/dup/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/dup/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectScope": "id-ambiguous",
+        "expectAmbiguousIn": [
+          "chains/dup/trace.json#R1"
+        ],
+        "subject": {
+          "path": "chains/dup/trace.json",
+          "content": "{\"graphPath\":\"chains/dup/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dup.ts#L1-L4\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s4/u1\"},{\"domain\":\"src\",\"ref\":\"src/dup.ts#L1-L4\"},{\"domain\":\"tests\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}]}",
+          "documents": [
+            {
+              "path": "chains/dup/trace.json",
+              "content": "{\"graphPath\":\"chains/dup/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s4/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/dup.ts#L1-L4\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s4/u1\"},{\"domain\":\"src\",\"ref\":\"src/dup.ts#L1-L4\"},{\"domain\":\"tests\",\"ref\":\"tests/dup.spec.ts#L1-L3\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

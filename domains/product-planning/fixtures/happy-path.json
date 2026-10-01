@@ -1,0 +1,376 @@
+{
+  "name": "happy-path",
+  "domain": "product-planning",
+  "format": "requirement-registry-and-plan",
+  "input": {
+    "format": "requirement-registry-and-plan",
+    "payload": {
+      "requirements": [
+        {
+          "id": "req-ledger",
+          "title": "月度对账需要两天人工，期望自动比对",
+          "status": "confirmed",
+          "sourceQuoteId": "sessions/s1/u2"
+        },
+        {
+          "id": "req-diff-list",
+          "title": "希望直接看到差异清单，而不是再导出一遍",
+          "status": "confirmed",
+          "sourceQuoteId": "sessions/s2/u1"
+        },
+        {
+          "id": "req-audit-trail",
+          "title": "每次调整都要留下可追溯的操作记录",
+          "status": "confirmed"
+        }
+      ],
+      "plans": [
+        {
+          "id": "plan-recon",
+          "title": "自动对账引擎",
+          "serves": [
+            "req-ledger"
+          ],
+          "metric": {
+            "name": "对账时长",
+            "baseline": 2,
+            "target": 0.5,
+            "window": "2026 Q2"
+          },
+          "deps": [
+            "数据接入"
+          ],
+          "risks": [
+            "历史数据缺列"
+          ]
+        },
+        {
+          "id": "plan-diff",
+          "title": "差异清单视图",
+          "serves": [
+            "req-diff-list",
+            "req-ledger"
+          ],
+          "metric": {
+            "name": "差异定位时长",
+            "baseline": 30,
+            "target": 5,
+            "window": "2026 Q3"
+          }
+        },
+        {
+          "id": "plan-audit",
+          "title": "操作留痕",
+          "serves": [
+            "req-audit-trail"
+          ],
+          "metric": {
+            "name": "可追溯覆盖率",
+            "baseline": 0,
+            "target": 1,
+            "window": "2026 Q4"
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "admitted": 4,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "需求 ID 存在 + 原文逐字 + 行号正确 -> declared-locator",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {
+            "requirementId": "req-ledger",
+            "startLine": 1
+          },
+          "excerpt": "月度对账需要两天人工，期望自动比对"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 1
+      },
+      {
+        "note": "指标由承接它的方案声明 -> 两个条件都成立",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {
+            "requirementId": "req-ledger",
+            "metricName": "对账时长",
+            "planId": "plans/plan-recon"
+          },
+          "excerpt": "月度对账需要两天人工，期望自动比对"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      },
+      {
+        "note": "声明了别的文档路径，原文在唯一命中处 -> 搬迁",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-missing",
+          "locator": {},
+          "excerpt": "希望直接看到差异清单，而不是再导出一遍"
+        },
+        "subject": {
+          "path": "requirements/req-missing",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "requirements/req-diff-list",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述的需求 -> no-match：改过措辞的需求不是需求原文",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {},
+          "excerpt": "月度对账要花两天时间来人工处理"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "指标存在但由别的方案声明 -> 借来的指标不算这个方案的目标",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {
+            "metricName": "差异定位时长",
+            "planId": "plans/plan-recon"
+          },
+          "excerpt": "月度对账需要两天人工，期望自动比对"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-ledger",
+          "locator": {
+            "startLine": 7
+          },
+          "excerpt": "月度对账需要两天人工，期望自动比对"
+        },
+        "subject": {
+          "path": "requirements/req-ledger",
+          "documents": [
+            {
+              "path": "requirements/req-ledger",
+              "content": "月度对账需要两天人工，期望自动比对",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-diff-list",
+              "content": "希望直接看到差异清单，而不是再导出一遍",
+              "metrics": []
+            },
+            {
+              "path": "plans/plan-recon",
+              "content": "自动对账引擎",
+              "metrics": [
+                "对账时长"
+              ]
+            },
+            {
+              "path": "plans/plan-diff",
+              "content": "差异清单视图",
+              "metrics": [
+                "差异定位时长"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "两条需求的原文一模一样 -> 位置不唯一，拒绝猜测",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-dup",
+          "locator": {},
+          "excerpt": "导出的文件需要支持批量重跑"
+        },
+        "subject": {
+          "path": "requirements/req-dup",
+          "documents": [
+            {
+              "path": "requirements/req-a",
+              "content": "导出的文件需要支持批量重跑",
+              "metrics": []
+            },
+            {
+              "path": "requirements/req-b",
+              "content": "导出的文件需要支持批量重跑",
+              "metrics": []
+            }
+          ]
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "requirements/req-a:1",
+          "requirements/req-b:1"
+        ]
+      }
+    ]
+  }
+}

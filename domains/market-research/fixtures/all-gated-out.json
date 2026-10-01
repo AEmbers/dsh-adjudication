@@ -1,0 +1,234 @@
+{
+  "name": "all-gated-out",
+  "domain": "market-research",
+  "format": "research-seed",
+  "description": "边界二：五个来源全部枚举出候选（每个来源 1 条强度候选 + 1 条引文候选 = 10 个候选），但 P1 把它们**全部**排除，且每个排除原因都不同 —— binary（扫描件）、deleted（来源已撤回）、user-exclude（pack 自己声明的 **/archive/**）、extension（.zip 不在本域扩展名内）、default-path（vendor 目录下的厂商材料）。全部排除理由都由 pack 自己的 gate 产生，fixture 不带任何 gate 块。这条 fixture 要证明的是：空集与全被排除在报告里是可区分的，且召回优先域不会因为「来源看起来不重要」就静默丢掉它。",
+  "input": {
+    "format": "research-seed",
+    "payload": {
+      "question": "北美工业物联网平台市场",
+      "sources": [
+        {
+          "id": "archive-2020",
+          "path": "research/seed/sources/archive/2020-report.md",
+          "title": "2020 market report",
+          "url": "https://old.example.org/2020-report",
+          "strength": "secondary",
+          "quotes": [
+            "The market was worth 1.2 billion USD in 2020."
+          ]
+        },
+        {
+          "id": "raw-dataset",
+          "path": "research/seed/sources/raw/dataset.zip",
+          "title": "raw survey export",
+          "url": "https://data.example.org/dataset.zip",
+          "strength": "primary",
+          "quotes": [
+            "respondent_id,revenue_band,country"
+          ]
+        },
+        {
+          "id": "scan-report",
+          "path": "research/seed/sources/scan-report.md",
+          "title": "scanned vendor deck",
+          "url": "https://scan.example.org/deck",
+          "strength": "secondary",
+          "binary": true,
+          "quotes": [
+            "Scanned page image, no extractable text."
+          ]
+        },
+        {
+          "id": "retracted-post",
+          "path": "research/seed/sources/retracted.md",
+          "title": "retracted blog post",
+          "url": "https://retracted.example.org/post",
+          "strength": "speculation",
+          "deleted": true,
+          "quotes": [
+            "This post was retracted by its author."
+          ]
+        },
+        {
+          "id": "huge-transcript",
+          "path": "research/seed/sources/vendor/deck.md",
+          "title": "vendor product deck",
+          "url": "https://huge.example.org/transcript",
+          "strength": "speculation",
+          "quotes": [
+            "Full transcript excerpt: Speaker 1 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 2 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 3 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 4 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 5 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 6 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 7 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 8 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 9 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 10 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 11 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 12 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 13 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 14 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 15 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 16 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 17 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 18 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 19 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 20 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 21 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 22 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 23 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 24 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 25 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 26 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 27 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 28 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 29 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 30 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 31 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 32 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 33 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 34 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 35 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 36 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 37 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 38 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 39 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site. Speaker 40 said the industrial IoT platform market is consolidating quickly and buyers are standardising on a single vendor per site."
+          ]
+        }
+      ],
+      "claims": []
+    }
+  },
+  "expect": {
+    "candidates": 10,
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": [
+        "research/seed/sources/scan-report.md"
+      ],
+      "deleted": [
+        "research/seed/sources/retracted.md"
+      ],
+      "user-exclude": [
+        "research/seed/sources/archive/2020-report.md"
+      ],
+      "extension": [
+        "research/seed/sources/raw/dataset.zip"
+      ],
+      "default-path": [
+        "research/seed/sources/vendor/deck.md"
+      ]
+    },
+    "sourceExcluded": 0,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [],
+    "bundles": 0,
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界"
+    ],
+    "paths": [
+      "research/seed/sources/archive/2020-report.md",
+      "research/seed/sources/archive/2020-report.md",
+      "research/seed/sources/raw/dataset.zip",
+      "research/seed/sources/raw/dataset.zip",
+      "research/seed/sources/scan-report.md",
+      "research/seed/sources/scan-report.md",
+      "research/seed/sources/retracted.md",
+      "research/seed/sources/retracted.md",
+      "research/seed/sources/vendor/deck.md",
+      "research/seed/sources/vendor/deck.md"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被排除的来源在锚点层依然可验证：排除是 P1 的决定，不是「这条来源不存在」。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/seed/sources/archive/2020-report.md",
+          "locator": {
+            "sourceId": "archive-2020",
+            "kind": "quote",
+            "strength": "secondary"
+          },
+          "excerpt": "quote 1 :: The market was worth 1.2 billion USD in 2020."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\",\"url\":\"https://old.example.org/2020-report\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "archive-2020",
+              "strength": "secondary",
+              "url": "https://old.example.org/2020-report"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/seed/sources/archive/2020-report.md",
+              "content": "# source archive-2020 (2020 market report)\nstrength = secondary (二手)\nurl = https://old.example.org/2020-report\nretrieved = (unknown)\nquote 1 :: The market was worth 1.2 billion USD in 2020.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\",\"url\":\"https://old.example.org/2020-report\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "research/seed/sources/archive/2020-report.md",
+        "expectStart": 5,
+        "expectCode": "quote-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "把 2020 年的数字说成「2024 年的市场规模」不仅是转述问题：原文里根本没有这一行，未锚定。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/seed/sources/archive/2020-report.md",
+          "locator": {
+            "sourceId": "archive-2020",
+            "kind": "quote"
+          },
+          "excerpt": "The market is worth 1.2 billion USD in 2024."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\"}],\"claims\":[]}",
+          "sources": [
+            {
+              "id": "archive-2020",
+              "strength": "secondary"
+            }
+          ],
+          "documents": [
+            {
+              "path": "research/seed/sources/archive/2020-report.md",
+              "content": "# source archive-2020 (2020 market report)\nstrength = secondary (二手)\nurl = https://old.example.org/2020-report\nretrieved = (unknown)\nquote 1 :: The market was worth 1.2 billion USD in 2020.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行命中两份卡片 -> 拒绝猜测（这里的卡片都是被排除的路径，锚点层与闸门层互不影响）。",
+        "claim": {
+          "kind": "source-quote",
+          "path": "research/seed/sources/a.md",
+          "locator": {
+            "sourceId": "archive-2020",
+            "kind": "quote"
+          },
+          "excerpt": "quote 1 :: The market was worth 1.2 billion USD in 2020."
+        },
+        "subject": {
+          "path": "research/seed/sources.json",
+          "documents": [
+            {
+              "path": "research/seed/sources/a.md",
+              "content": "quote 1 :: The market was worth 1.2 billion USD in 2020.\n"
+            },
+            {
+              "path": "research/seed/sources/b.md",
+              "content": "quote 1 :: The market was worth 1.2 billion USD in 2020.\n"
+            },
+            {
+              "path": "research/seed/sources.json",
+              "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\"}],\"claims\":[]}"
+            }
+          ],
+          "sources": [
+            {
+              "id": "archive-2020",
+              "strength": "secondary"
+            }
+          ],
+          "content": "{\"question\":\"（用例未给出 question）\",\"sources\":[{\"id\":\"archive-2020\",\"strength\":\"secondary\"}],\"claims\":[]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "research/seed/sources/a.md:1",
+          "research/seed/sources/b.md:1"
+        ]
+      }
+    ]
+  }
+}

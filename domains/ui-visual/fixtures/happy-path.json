@@ -1,0 +1,302 @@
+{
+  "name": "happy-path",
+  "domain": "ui-visual",
+  "format": "design-tokens-and-layers",
+  "description": "四个组件、五个图层、八个偏离 token 的硬编码属性，全部准入；一个完全 token 化的图层产出零候选（期望状态）。分捆按「同一个组件」——3 捆，因为同一组件的属性对照的是同一张 token 表。",
+  "input": {
+    "format": "design-tokens-and-layers",
+    "payload": {
+      "tokens": {
+        "color": {
+          "brand-primary": { "value": "#2563eb" },
+          "surface": { "value": "#ffffff" },
+          "text-primary": { "value": "#111827" },
+          "text-muted": { "value": "#767676" }
+        },
+        "spacing": {
+          "sm": { "value": "8px" },
+          "md": { "value": "16px" },
+          "lg": { "value": "24px" }
+        },
+        "radius": {
+          "md": { "value": "8px" },
+          "full": { "value": "9999px" }
+        },
+        "font-size": {
+          "body": { "value": "14px" },
+          "heading": { "value": "20px" }
+        },
+        "shadow": {
+          "card": { "value": "0 1px 2px rgba(0,0,0,0.08)" }
+        }
+      },
+      "layers": [
+        {
+          "id": "btn-primary",
+          "name": "主按钮",
+          "type": "component",
+          "component": "atoms",
+          "props": { "bg-color": "#2563eb", "radius": "8px", "padding-x": "16px" }
+        },
+        {
+          "id": "card-header",
+          "name": "卡片标题",
+          "type": "text",
+          "component": "molecules",
+          "props": { "bg-color": "#ffffff", "font-size": "20px" }
+        },
+        {
+          "id": "card-body",
+          "name": "卡片正文",
+          "type": "text",
+          "component": "molecules",
+          "props": { "text-color": "#111827" }
+        },
+        {
+          "id": "modal-panel",
+          "name": "弹窗面板",
+          "type": "frame",
+          "component": "organisms",
+          "props": { "radius": "12px", "shadow": "0 1px 2px rgba(0,0,0,0.08)" }
+        },
+        {
+          "id": "page-shell",
+          "name": "页面外壳",
+          "type": "frame",
+          "component": "layouts",
+          "props": { "bg-color": "#ffffff" },
+          "tokenRefs": { "bg-color": "surface" }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [],
+    "admitted": 8,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "componentCounts": { "atoms": 3, "molecules": 3, "organisms": 2 },
+    "bundleKeys": ["atoms", "molecules", "organisms"],
+    "fullyTokenisedLayer": "page-shell"
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "三件事同时成立（图层存在、属性存在且未声明 tokenRef、token 名存在于 token 表）+ 逐字抄写与声明行号一致 -> declared-locator。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn-primary/bg-color",
+          "locator": { "layerId": "btn-primary", "prop": "bg-color", "tokenName": "brand-primary", "startLine": 3 },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/btn-primary/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" }, "surface": { "value": "#ffffff" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            {
+              "path": "atoms/btn-primary/bg-color",
+              "content": "图层 btn-primary「主按钮」类型 component\n组件 atoms\n属性 bg-color = #2563eb\n\n当前声明：\n  tokenRefs[bg-color] = (未声明 —— 这是一个硬编码值)\n\ntoken 表对照：\n  color.brand-primary = #2563eb\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "atoms/btn-primary/bg-color",
+        "expectStart": 3,
+        "expectToken": "brand-primary"
+      },
+      {
+        "note": "不给行号，靠唯一命中重算 -> recomputed-unique。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "molecules/card-header/font-size",
+          "locator": { "layerId": "card-header", "prop": "font-size", "tokenName": "heading" },
+          "excerpt": "font-size.heading = 20px"
+        },
+        "subject": {
+          "path": "molecules/card-header/font-size",
+          "tokens": { "font-size": { "heading": { "value": "20px" } } },
+          "layers": [{ "id": "card-header", "props": { "font-size": "20px" } }],
+          "documents": [
+            { "path": "molecules/card-header/font-size", "content": "属性 font-size = 20px\n\n token 表对照：\n  font-size.heading = 20px\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 4
+      },
+      {
+        "note": "声明的文档不在文档集中，但原文在唯一另一个文档里 -> relocated-unique，发现已搬迁。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "organisms/modal-panel/moved",
+          "locator": { "layerId": "modal-panel", "prop": "shadow", "tokenName": "card" },
+          "excerpt": "shadow.card = 0 1px 2px rgba(0,0,0,0.08)"
+        },
+        "subject": {
+          "path": "organisms/modal-panel/moved",
+          "tokens": { "shadow": { "card": { "value": "0 1px 2px rgba(0,0,0,0.08)" } } },
+          "layers": [{ "id": "modal-panel", "props": { "shadow": "0 1px 2px rgba(0,0,0,0.08)" } }],
+          "documents": [
+            { "path": "organisms/modal-panel/shadow", "content": "shadow.card = 0 1px 2px rgba(0,0,0,0.08)\n" },
+            { "path": "organisms/modal-panel/radius", "content": "无关内容\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "organisms/modal-panel/shadow",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "token 表上无法重算：引用的 token 名在 token 表里不存在 —— 这是本领域最关键的拒绝，否则「本应使用 token」永远不可证伪。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn-primary/bg-color",
+          "locator": { "layerId": "btn-primary", "prop": "bg-color", "tokenName": "brand-secondary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/btn-primary/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn-primary/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "与图层属性表正面矛盾：该属性已经声明了 tokenRef，却被断言为硬编码值 -> 未锚定，不做折中。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "layouts/page-shell/bg-color",
+          "locator": { "layerId": "page-shell", "prop": "bg-color", "tokenName": "surface" },
+          "excerpt": "属性 bg-color = #ffffff"
+        },
+        "subject": {
+          "path": "layouts/page-shell/bg-color",
+          "tokens": { "color": { "surface": { "value": "#ffffff" } } },
+          "layers": [{ "id": "page-shell", "props": { "bg-color": "#ffffff" }, "tokenRefs": { "bg-color": "surface" } }],
+          "documents": [
+            { "path": "layouts/page-shell/bg-color", "content": "属性 bg-color = #ffffff\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "转述不锚定：把属性行改写成语义相同但逐字不同的句子 -> no-match。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn-primary/bg-color",
+          "locator": { "layerId": "btn-primary", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "该图层的背景色写死成了 #2563eb"
+        },
+        "subject": {
+          "path": "atoms/btn-primary/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn-primary/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "图层不存在：拒绝把发现挂到一个查不到的图层上。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/ghost/bg-color",
+          "locator": { "layerId": "ghost", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/ghost/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/ghost/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：同一行在两个文档里逐字出现，声明的文档不在集合里 -> relocation-ambiguous，必须列出竞争位置。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/unknown/bg-color",
+          "locator": { "layerId": "btn-primary", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/unknown/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn-primary/bg-color", "content": "属性 bg-color = #2563eb\n" },
+            { "path": "atoms/btn-primary/radius", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["atoms/btn-primary/bg-color:1", "atoms/btn-primary/radius:1"]
+      },
+      {
+        "note": "行号与原文矛盾：声明第 1 行，但第 1 行不是这段原文 -> locator-mismatch，不是「就近取一个」。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn-primary/bg-color",
+          "locator": { "layerId": "btn-primary", "prop": "bg-color", "tokenName": "brand-primary", "startLine": 1 },
+          "excerpt": "token 表对照："
+        },
+        "subject": {
+          "path": "atoms/btn-primary/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn-primary", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn-primary/bg-color", "content": "属性 bg-color = #2563eb\n\ntoken 表对照：\n  color.brand-primary = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一文档内重复行：唯一命中在文档内也不成立，同样拒绝并列出竞争位置。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/dup/bg-color",
+          "locator": { "layerId": "dup", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/dup/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "dup", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/dup/bg-color", "content": "属性 bg-color = #2563eb\n分隔行\n属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["atoms/dup/bg-color:1", "atoms/dup/bg-color:3"]
+      }
+    ]
+  }
+}

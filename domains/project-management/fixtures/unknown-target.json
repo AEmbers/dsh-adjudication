@@ -1,0 +1,270 @@
+{
+  "name": "unknown-target",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "依赖目标未登记：T1 的 dependsOn 里有两个 ID 既不在 tasks[] 也不在 idSpace[]。一个是明显的笔误（T2X），一个是被删掉的前置（T2）。两种情况在计划里长得完全一样 —— 都写着「等它」，而没有任何记录说明它是什么。这就是 P0 必须把它们枚举成候选、而不是静默丢弃的原因。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "planPath": "project/plan.json",
+      "tasks": [
+        {
+          "id": "T1",
+          "title": "订单导出",
+          "owner": "alice",
+          "estimateDays": 3,
+          "status": "todo",
+          "team": "orders",
+          "dependsOn": [
+            "T2",
+            "T2X"
+          ]
+        },
+        {
+          "id": "T3",
+          "title": "导出结果下载",
+          "owner": "bob",
+          "estimateDays": 2,
+          "status": "todo",
+          "team": "orders",
+          "dependsOn": [
+            "T1"
+          ]
+        }
+      ],
+      "idSpace": [
+        "EXTERNAL-RELEASE"
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": [
+      "project/plan-t1-t2.json",
+      "project/plan-t1-t2x.json",
+      "project/plan-t3-t1.json",
+      "project/plan-task-t1.json",
+      "project/plan-task-t3.json"
+    ],
+    "admitted": 5,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "ws/orders"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "T3 依赖 T1 是登记完整的边，可以重算 —— 同一个图里既有能锚定的边，也有不能锚定的边，二者必须被区分。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T3",
+            "to": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T3",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "正面锚定「图里完全没出现过的目标」：NOT-REGISTERED-ANYWHERE 既没有自己的记录，也没有任何一条边引用它。它与 unregistered-target 的区别是图结构上的：unregistered-target 要求「有条边依赖它、但它没有记录」，hedged-target 要求「图里任何地方都没有它」。这条的 subject 特意给了 T1→T2 一条真实存在的边，用来证明 hedged-target 不会因为图里**有别的边**就误判成立。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "hedged-target",
+            "targetId": "NOT-REGISTERED-ANYWHERE",
+            "referrer": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  },
+                  {
+                    "id": "T2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "正面锚定「未登记的依赖目标」：T2X 出现在 T1 的 dependsOn 里（图上有条边依赖它），而 tasks[] 与 idSpace 都没有它 —— 计划在依赖一个没人登记过的东西。这是本域最要紧的失效链接形态。它必须能正面锚定，否则这类发现只能靠叙述。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "unregistered-target",
+            "targetId": "T2X",
+            "referrer": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "planPath": "project/plan.json",
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "title": "订单导出",
+                    "owner": "alice",
+                    "estimateDays": 3,
+                    "status": "todo",
+                    "team": "orders",
+                    "dependsOn": [
+                      "T2",
+                      "T2X"
+                    ]
+                  },
+                  {
+                    "id": "T3",
+                    "title": "导出结果下载",
+                    "owner": "bob",
+                    "estimateDays": 2,
+                    "status": "todo",
+                    "team": "orders",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ],
+                "idSpace": [
+                  "EXTERNAL-RELEASE"
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "「未登记依赖目标」是一个存在性声明，所以它必须能被图正面证伪：把目标 id 声明进 idSpace 之后，同一个声明就变成假的 —— 这正是把这类发现写成可重算声明（而不是一句「T2X 好像没定义」）的价值。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "unregistered-target",
+            "targetId": "T2X",
+            "referrer": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T2X"
+                    ]
+                  }
+                ],
+                "idSpace": [
+                  "T2X"
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "把 id 真的声明进 tasks[] 之后，同一个 hedged-target 声明就被图证伪 —— 这正是它可证伪的证据（而且此时它也不是 unregistered-target 的候选，因为记录存在）。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "hedged-target",
+            "targetId": "T2",
+            "referrer": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T9"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

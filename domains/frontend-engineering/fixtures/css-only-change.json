@@ -1,0 +1,67 @@
+{
+  "name": "css-only-change",
+  "domain": "frontend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/src/styles/theme.css b/src/styles/theme.css\nindex 1111111..2222222 100644\n--- a/src/styles/theme.css\n+++ b/src/styles/theme.css\n@@ -1,3 +1,4 @@\n :root {\n+  outline-offset: 2px;\n }\n",
+      "bundleReport": {
+        "src": 120000
+      }
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "admitted": 1,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "CSS 变量声明可逐字锚定",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/styles/theme.css",
+          "locator": {},
+          "excerpt": "outline-offset: 2px;"
+        },
+        "subject": {
+          "path": "src/styles/theme.css",
+          "documents": [
+            {
+              "path": "src/styles/theme.css",
+              "content": ":root {\n  outline-offset: 2px;\n}"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "把 color-mix 写成「半透明色」-> no-match，转述不是原文",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/styles/theme.css",
+          "locator": {},
+          "excerpt": "outline-offset: 4px;"
+        },
+        "subject": {
+          "path": "src/styles/theme.css",
+          "documents": [
+            {
+              "path": "src/styles/theme.css",
+              "content": ":root {\n  outline-offset: 2px;\n}"
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

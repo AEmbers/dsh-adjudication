@@ -1,0 +1,421 @@
+{
+  "name": "cycle-and-orphan",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "任务图上同时存在一个三节点依赖环（T1 → T2 → T3 → T1）和一个孤儿任务（T9，没有任何上下游）。这是 D 关系型的核心场景：环上的每个任务单独看都完好，孤儿任务的描述也可以写得很清楚，缺陷只存在于图的关系里。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "project/deps.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 3072,
+            "workstream": "platform"
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T1",
+                "title": "网关路由表落地",
+                "owner": "alice",
+                "estimateDays": 3,
+                "status": "todo",
+                "team": "platform",
+                "dependsOn": [
+                  "T3"
+                ]
+              },
+              {
+                "id": "T2",
+                "title": "路由灰度开关",
+                "owner": "alice",
+                "estimateDays": 2,
+                "status": "todo",
+                "team": "platform",
+                "dependsOn": [
+                  "T1"
+                ]
+              },
+              {
+                "id": "T3",
+                "title": "灰度监控看板",
+                "owner": "bob",
+                "estimateDays": 4,
+                "status": "todo",
+                "team": "platform",
+                "dependsOn": [
+                  "T2"
+                ]
+              },
+              {
+                "id": "T9",
+                "title": "网关压测脚本整理",
+                "owner": "carol",
+                "estimateDays": 1,
+                "status": "todo",
+                "team": "platform"
+              }
+            ],
+            "risks": [
+              {
+                "id": "RC",
+                "trigger": "灰度期间错误率超过 1%",
+                "impact": "必须回滚，路由表变更作废",
+                "mitigation": "预置回滚脚本并在预发演练一次",
+                "owners": [
+                  "alice"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "project/deps-t1-t3.json",
+      "project/deps-t2-t1.json",
+      "project/deps-t3-t2.json",
+      "project/deps-task-t1.json",
+      "project/deps-task-t2.json",
+      "project/deps-task-t3.json",
+      "project/deps-task-t9.json",
+      "project/deps-risk-rc.json"
+    ],
+    "admitted": 8,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "doc/project/deps.json",
+      "ws/platform"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "环 T1 → T3 → T2 → T1 的每条边都在图上，且从 T1 出发回到 T1 只有这一条简单回路 —— 环被唯一确定，路径由引擎重算，模型自述的路径不被采信。 （tier 判据已对齐其余 9 域：locator 自带本域所需字段且图核验通过 -> declared-locator。）",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/deps.json",
+          "locator": {
+            "kind": "cycle-path",
+            "cycle": [
+              "T1",
+              "T3",
+              "T2"
+            ]
+          }
+        },
+        "subject": {
+          "path": "project/deps.json",
+          "documents": [
+            {
+              "path": "project/deps.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T3"
+                    ]
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  },
+                  {
+                    "id": "T3",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/deps.json"
+      },
+      {
+        "note": "T9 确实没有入边也没有出边 —— 孤儿是图上的事实，可以重算。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/deps.json",
+          "locator": {
+            "kind": "orphan-task",
+            "taskId": "T9"
+          }
+        },
+        "subject": {
+          "path": "project/deps.json",
+          "documents": [
+            {
+              "path": "project/deps.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T9"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/deps.json"
+      },
+      {
+        "note": "locator 只声明了 claim kind、没给 ID 对，另附一段摘录 —— 引擎从摘录重算出唯一成立的那条边，tier 是 recomputed-unique。这条用例是 recomputed-unique 在本域真实可达的证明，不是为对称性保留的标签。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/recompute.json",
+          "locator": {
+            "kind": "task-edge"
+          },
+          "excerpt": "T1 依赖 T3 —— 只有这一条边在摘录里被完整提到。"
+        },
+        "subject": {
+          "path": "project/recompute.json",
+          "documents": [
+            {
+              "path": "project/recompute.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T3"
+                    ]
+                  },
+                  {
+                    "id": "T3",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  },
+                  {
+                    "id": "T2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "project/recompute.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "环未闭合：声明的 T1 → T2 → T3 → T1 里缺少 T3 → T1，图上是 T3 → T4。图与声明矛盾，拒绝按「大概就是这个环」补全。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/open.json",
+          "locator": {
+            "kind": "cycle-path",
+            "cycle": [
+              "T1",
+              "T2",
+              "T3"
+            ]
+          }
+        },
+        "subject": {
+          "path": "project/open.json",
+          "documents": [
+            {
+              "path": "project/open.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T3"
+                    ]
+                  },
+                  {
+                    "id": "T3",
+                    "dependsOn": [
+                      "T4"
+                    ]
+                  },
+                  {
+                    "id": "T4"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "孤儿声明被图证伪：T5 有一条入边，它不是孤儿。这类误报正是 precision-first 最该挡住的。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/deps.json",
+          "locator": {
+            "kind": "orphan-task",
+            "taskId": "T5"
+          }
+        },
+        "subject": {
+          "path": "project/deps.json",
+          "documents": [
+            {
+              "path": "project/deps.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T4"
+                  },
+                  {
+                    "id": "T5",
+                    "dependsOn": [
+                      "T4"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一组节点之间存在两条不同的回路（T1→T2→T3→T1 与 T1→T2→T4→T3→T1），声明没有唯一确定是哪一条 —— 必须拒绝并列参赛路径，而不是挑一条。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/ambiguous.json",
+          "locator": {
+            "kind": "cycle-path",
+            "cycle": [
+              "T1",
+              "T3",
+              "T2"
+            ]
+          }
+        },
+        "subject": {
+          "path": "project/ambiguous.json",
+          "documents": [
+            {
+              "path": "project/ambiguous.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "dependsOn": [
+                      "T3",
+                      "T4"
+                    ],
+                    "id": "T1"
+                  },
+                  {
+                    "dependsOn": [
+                      "T1"
+                    ],
+                    "id": "T2"
+                  },
+                  {
+                    "dependsOn": [
+                      "T2"
+                    ],
+                    "id": "T3"
+                  },
+                  {
+                    "dependsOn": [
+                      "T2"
+                    ],
+                    "id": "T4"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "project/ambiguous.json#cycle:T1→T3→T2→T1",
+          "project/ambiguous.json#cycle:T1→T4→T2→T1"
+        ]
+      },
+      {
+        "note": "同一条摘录里提到了 T1/T2/T3，而图上 T1→T3 与 T3→T2 两条边都成立 —— 摘录没有唯一确定说的是哪一条，引擎拒绝猜测并列竞争位置。这正是「把整条环用散文描述一遍」不能锚定的原因。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/recompute.json",
+          "locator": {
+            "kind": "task-edge"
+          },
+          "excerpt": "T1 依赖 T3，T3 又依赖 T2 —— 整条链路都堵着。"
+        },
+        "subject": {
+          "path": "project/recompute.json",
+          "documents": [
+            {
+              "path": "project/recompute.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1",
+                    "dependsOn": [
+                      "T3"
+                    ]
+                  },
+                  {
+                    "id": "T3",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  },
+                  {
+                    "id": "T2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "project/recompute.json#task-edge:T1->T3",
+          "project/recompute.json#task-edge:T3->T2"
+        ]
+      }
+    ]
+  }
+}

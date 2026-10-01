@@ -1,0 +1,271 @@
+{
+  "name": "happy-path",
+  "domain": "requirement-research",
+  "format": "interview-corpus",
+  "input": {
+    "format": "interview-corpus",
+    "payload": {
+      "sessions": [
+        {
+          "id": "s1",
+          "participant": {
+            "id": "p1",
+            "role": "ops-lead"
+          },
+          "startedAt": "2026-01-05T09:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-01-05T09:00:00Z",
+              "speaker": "interviewer",
+              "text": "请说说你们现在怎么做月度对账？"
+            },
+            {
+              "t": "2026-01-05T09:00:30Z",
+              "speaker": "participant",
+              "text": "每个月要花两天手工核对，最怕的是漏掉一笔。"
+            },
+            {
+              "t": "2026-01-05T09:01:10Z",
+              "speaker": "participant",
+              "text": "对不上就只能一笔一笔翻，没人知道是哪天错的。"
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "participant": {
+            "id": "p2",
+            "role": "finance-analyst"
+          },
+          "startedAt": "2026-01-05T10:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-01-05T10:00:00Z",
+              "speaker": "participant",
+              "text": "我们希望能直接看到差异清单，而不是再导出一遍。"
+            },
+            {
+              "t": "2026-01-05T10:02:00Z",
+              "speaker": "interviewer",
+              "text": "导出之后你还会做什么？"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "admitted": 5,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字 + 正确句号 + 正确时间戳 -> declared-locator",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {
+            "utteranceIndex": 2,
+            "t": "2026-01-05T09:00:30Z"
+          },
+          "excerpt": "每个月要花两天手工核对，最怕的是漏掉一笔。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 2
+      },
+      {
+        "note": "不给句号时引擎自行重算，唯一命中才采信",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s2",
+          "locator": {},
+          "excerpt": "我们希望能直接看到差异清单，而不是再导出一遍。"
+        },
+        "subject": {
+          "path": "sessions/s2",
+          "content": "我们希望能直接看到差异清单，而不是再导出一遍。\n导出之后你还会做什么？",
+          "times": [
+            "2026-01-05T10:00:00Z",
+            "2026-01-05T10:02:00Z"
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      },
+      {
+        "note": "声明了别的场次，但原话在另一场唯一命中 -> 搬迁",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s9",
+          "locator": {},
+          "excerpt": "导出之后你还会做什么？"
+        },
+        "subject": {
+          "path": "sessions/s9",
+          "documents": [
+            {
+              "path": "sessions/s1",
+              "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+              "times": [
+                "2026-01-05T09:00:00Z",
+                "2026-01-05T09:00:30Z",
+                "2026-01-05T09:01:10Z"
+              ]
+            },
+            {
+              "path": "sessions/s2",
+              "content": "我们希望能直接看到差异清单，而不是再导出一遍。\n导出之后你还会做什么？",
+              "times": [
+                "2026-01-05T10:00:00Z",
+                "2026-01-05T10:02:00Z"
+              ]
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "sessions/s2",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述 -> no-match：把口语整理成书面语就是另一句话",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {},
+          "excerpt": "每个月都要花两天手工对账，担心漏掉记录。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "原话对得上但句号错 -> locator-mismatch，拒绝替模型修正",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {
+            "utteranceIndex": 1
+          },
+          "excerpt": "每个月要花两天手工核对，最怕的是漏掉一笔。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "时间戳与语料矛盾 -> locator-mismatch：时间戳也是可核验的声明",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {
+            "utteranceIndex": 2,
+            "t": "2026-01-05T09:59:00Z"
+          },
+          "excerpt": "每个月要花两天手工核对，最怕的是漏掉一笔。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一场访谈里同样的话说了两次 -> 位置不唯一，拒绝猜测",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s3",
+          "locator": {},
+          "excerpt": "这个问题我们每周都要遇到一次。"
+        },
+        "subject": {
+          "path": "sessions/s3",
+          "content": "这个问题我们每周都要遇到一次。\n中间还说了别的。\n这个问题我们每周都要遇到一次。",
+          "times": [
+            "t1",
+            "t2",
+            "t3"
+          ]
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "sessions/s3:1",
+          "sessions/s3:3"
+        ]
+      },
+      {
+        "note": "同一句话出现在两场访谈 -> 跨场次搬迁不唯一，拒绝猜测",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s9",
+          "locator": {},
+          "excerpt": "我们每周还要看一次日报。"
+        },
+        "subject": {
+          "path": "sessions/s9",
+          "documents": [
+            {
+              "path": "sessions/s1",
+              "content": "我们每周还要看一次日报。",
+              "times": [
+                "t1"
+              ]
+            },
+            {
+              "path": "sessions/s2",
+              "content": "我们每周还要看一次日报。",
+              "times": [
+                "t1"
+              ]
+            }
+          ]
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "sessions/s1:1",
+          "sessions/s2:1"
+        ]
+      }
+    ]
+  }
+}

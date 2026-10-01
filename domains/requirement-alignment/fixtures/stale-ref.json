@@ -1,0 +1,157 @@
+{
+  "name": "stale-ref",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "graphPath": "chains/legacy/trace.json",
+      "nodes": [
+        {
+          "id": "R1",
+          "type": "requirement",
+          "ref": "sessions/s9/u1"
+        },
+        {
+          "id": "I1",
+          "type": "implementation",
+          "ref": "src/legacy.ts#L1-L5"
+        }
+      ],
+      "edges": [
+        {
+          "from": "R1",
+          "to": "I1",
+          "kind": "implements"
+        }
+      ],
+      "idSpace": [],
+      "upstream": [
+        {
+          "domain": "src",
+          "ref": "src/legacy.ts#L1-L5"
+        },
+        {
+          "domain": "sessions",
+          "ref": "sessions/s1/u2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "admitted": 5,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "ref 从图上读出来，它不在 upstream[] 里 —— 失效链接，recomputed",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/legacy/trace.json",
+          "locator": {
+            "kind": "stale-ref",
+            "fromId": "R1"
+          }
+        },
+        "subjectPath": "chains/legacy/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectNodes": [
+          "R1"
+        ],
+        "subject": {
+          "path": "chains/legacy/trace.json",
+          "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}",
+          "documents": [
+            {
+              "path": "chains/legacy/trace.json",
+              "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "ref 被 locator 点名，且上游确实不再产出它 —— declared-locator",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/legacy/trace.json",
+          "locator": {
+            "kind": "stale-ref",
+            "fromId": "R1",
+            "ref": "sessions/s9/u1"
+          }
+        },
+        "subjectPath": "chains/legacy/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1"
+        ],
+        "subject": {
+          "path": "chains/legacy/trace.json",
+          "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}",
+          "documents": [
+            {
+              "path": "chains/legacy/trace.json",
+              "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "I1 的 ref 仍在 upstream[] 里 —— 它不是失效链接",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/legacy/trace.json",
+          "locator": {
+            "kind": "stale-ref",
+            "fromId": "I1"
+          }
+        },
+        "subjectPath": "chains/legacy/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/legacy/trace.json",
+          "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}",
+          "documents": [
+            {
+              "path": "chains/legacy/trace.json",
+              "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "同一件事的镜像声明：cross-domain-ref 在这里必须失败，因为上游已经不产出它了",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/legacy/trace.json",
+          "locator": {
+            "kind": "cross-domain-ref",
+            "fromId": "R1"
+          }
+        },
+        "subjectPath": "chains/legacy/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/legacy/trace.json",
+          "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}",
+          "documents": [
+            {
+              "path": "chains/legacy/trace.json",
+              "content": "{\"graphPath\":\"chains/legacy/trace.json\",\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s9/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/legacy.ts#L1-L5\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"idSpace\":[],\"upstream\":[{\"domain\":\"src\",\"ref\":\"src/legacy.ts#L1-L5\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

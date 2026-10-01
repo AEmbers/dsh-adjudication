@@ -1,0 +1,80 @@
+{
+  "name": "empty",
+  "domain": "risk-compliance",
+  "format": "clause-and-surface",
+  "description": "条款清单与受监管面清单都是空的：P0 产出空集，P1 也无从排除。空集本身就是结论——没有任何条款管辖任何面，此时不应凭空审核。",
+  "input": {
+    "format": "clause-and-surface",
+    "payload": { "clauses": [], "surface": [] }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "即使条款与面都为空，只要给出条款清单与文档，双锚点仍可重算：条款 DP-01 在清单里、原文逐字命中 -> recomputed-unique。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "data/archive/policy.ts",
+          "locator": { "clauseId": "DP-01" },
+          "excerpt": "export const RETENTION_DAYS = 0"
+        },
+        "subject": {
+          "path": "data/archive/policy.ts",
+          "clauses": [{ "id": "DP-01", "title": "数据最小化", "text": "超出必要范围的处理即为问题。" }],
+          "documents": [
+            { "path": "data/archive/policy.ts", "content": "// 保留期限未实现\nexport const RETENTION_DAYS = 0\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "双锚点缺「证据原文」一半：只有条款 ID，没有可核验的原文 -> empty-excerpt，未锚定。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "data/archive/policy.ts",
+          "locator": { "clauseId": "DP-01" },
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "data/archive/policy.ts",
+          "clauses": [{ "id": "DP-01", "title": "数据最小化", "text": "超出必要范围的处理即为问题。" }],
+          "documents": [
+            { "path": "data/archive/policy.ts", "content": "export const RETENTION_DAYS = 0\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      },
+      {
+        "note": "双锚点缺「条款 ID」一半：证据抄写完全正确，但规则侧为空 -> 未锚定，且不得因此把原文当成合规发现。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "data/archive/policy.ts",
+          "locator": {},
+          "excerpt": "export const RETENTION_DAYS = 0"
+        },
+        "subject": {
+          "path": "data/archive/policy.ts",
+          "clauses": [{ "id": "DP-01", "title": "数据最小化", "text": "超出必要范围的处理即为问题。" }],
+          "documents": [
+            { "path": "data/archive/policy.ts", "content": "export const RETENTION_DAYS = 0\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": []
+  }
+}

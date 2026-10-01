@@ -1,0 +1,194 @@
+{
+  "name": "cross-file",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "chains/alpha/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s5/u1"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/alpha.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s5/u1"
+              },
+              {
+                "domain": "src",
+                "ref": "src/alpha.ts#L1-L4"
+              }
+            ]
+          }
+        },
+        {
+          "path": "chains/beta/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s5/u1"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/beta.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s5/u1"
+              },
+              {
+                "domain": "src",
+                "ref": "src/beta.ts#L1-L4"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 10,
+    "admitted": 10,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "声明点名的那张图就在语料里 —— 直接确认，不走搬迁",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/alpha/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/alpha/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1",
+          "I1"
+        ],
+        "subject": {
+          "path": "chains/alpha/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/alpha.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/alpha.ts#L1-L4\"}]}",
+          "documents": [
+            {
+              "path": "chains/alpha/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/alpha.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/alpha.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "chains/beta/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/beta.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/beta.ts#L1-L4\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "声明点名的图不在语料里，而两张图都**否定**这条边（方向相反）—— 取更可执行的那个答案",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/missing/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "I1",
+            "toId": "R1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/missing/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/missing/trace.json",
+          "content": null,
+          "documents": [
+            {
+              "path": "chains/alpha/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/alpha.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/alpha.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "chains/beta/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/beta.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/beta.ts#L1-L4\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "声明点名的图不在语料里，而这条声明在两张图里同样成立 —— 跨文件歧义，拒绝猜测",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/missing/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/missing/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "chains/alpha/trace.json#trace-edge",
+          "chains/beta/trace.json#trace-edge"
+        ],
+        "subject": {
+          "path": "chains/missing/trace.json",
+          "content": null,
+          "documents": [
+            {
+              "path": "chains/alpha/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/alpha.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/alpha.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "chains/beta/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s5/u1\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/beta.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s5/u1\"},{\"domain\":\"src\",\"ref\":\"src/beta.ts#L1-L4\"}]}"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

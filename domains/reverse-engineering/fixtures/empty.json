@@ -1,0 +1,146 @@
+{
+  "name": "empty",
+  "domain": "reverse-engineering",
+  "format": "artifact-and-observations",
+  "description": "边界一：目标产物登记了、但一条观察都没有。P0 必须返回空候选集，且**必须**在 notes 里保留「候选集不可先验枚举、成本无上界」与「空集本身不是通过」两句 —— 一个 C 探索域的空集如果读起来像「这个产物没问题」，它就是在骗人。P1 既没有准入也没有排除（区别于 all-gated-out）。",
+  "input": {
+    "format": "artifact-and-observations",
+    "payload": {
+      "artifact": {
+        "id": "sample-unopened",
+        "kind": "firmware",
+        "sha256": "2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b",
+        "tool": {
+          "name": "objdump",
+          "version": "2.42"
+        },
+        "environment": "linux-x86_64"
+      },
+      "observations": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [],
+    "bundles": 0,
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界",
+      "空集本身不是通过"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空集 fixture 里的锚点仍然必须成立：没有 locator 的链级确认只确认「这一行逐字存在于某份线索笔记」。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/sample-unopened/observations/general.md",
+          "locator": {},
+          "excerpt": "artifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b"
+        },
+        "subject": {
+          "path": "re/sample-unopened/observations/general.md",
+          "documents": [
+            {
+              "path": "re/sample-unopened.json",
+              "content": "{\"artifact\":{\"id\":\"sample-unopened\",\"sha256\":\"2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\"},\"observations\":[]}"
+            },
+            {
+              "path": "re/sample-unopened/observations/general.md",
+              "content": "# lead general — artifact sample-unopened\nartifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\n--- observations ---\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/sample-unopened/observations/general.md",
+        "expectStart": 2,
+        "expectCode": "artifact-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把产物身份行改写成自己的话，即使哈希一致也不构成锚点。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/sample-unopened/observations/general.md",
+          "locator": {
+            "artifactId": "sample-unopened",
+            "kind": "artifact"
+          },
+          "excerpt": "样本哈希是 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b"
+        },
+        "subject": {
+          "path": "re/sample-unopened.json",
+          "content": "{\"artifact\":{\"id\":\"sample-unopened\",\"sha256\":\"2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\"},\"observations\":[]}",
+          "artifact": {
+            "id": "sample-unopened",
+            "sha256": "2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b"
+          },
+          "documents": [
+            {
+              "path": "re/sample-unopened/observations/general.md",
+              "content": "# lead general — artifact sample-unopened\nartifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\n--- observations ---\n"
+            },
+            {
+              "path": "re/sample-unopened.json",
+              "content": "{\"artifact\":{\"id\":\"sample-unopened\",\"sha256\":\"2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\"},\"observations\":[]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行命中两份笔记 -> 拒绝猜测。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/sample-unopened/observations/a.md",
+          "locator": {
+            "artifactId": "sample-unopened",
+            "kind": "artifact"
+          },
+          "excerpt": "artifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b"
+        },
+        "subject": {
+          "path": "re/sample-unopened.json",
+          "documents": [
+            {
+              "path": "re/sample-unopened/observations/a.md",
+              "content": "artifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\n"
+            },
+            {
+              "path": "re/sample-unopened/observations/b.md",
+              "content": "artifact.sha256 = 2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\n"
+            },
+            {
+              "path": "re/sample-unopened.json",
+              "content": "{\"artifact\":{\"id\":\"sample-unopened\",\"sha256\":\"2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\"},\"observations\":[]}"
+            }
+          ],
+          "artifact": {
+            "id": "sample-unopened",
+            "sha256": "2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b"
+          },
+          "content": "{\"artifact\":{\"id\":\"sample-unopened\",\"sha256\":\"2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b\"},\"observations\":[]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "re/sample-unopened/observations/a.md:1",
+          "re/sample-unopened/observations/b.md:1"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,333 @@
+{
+  "name": "dangling-and-collision",
+  "domain": "user-feedback",
+  "format": "feedback-ledger",
+  "description": "两个歧义源：其一，fb-3001 与 fb-3002 记录了逐字相同的原话，所以「引文」本身不能确定说的是哪一条——裸引文必须判 relocation-ambiguous 并列出竞争位置；其二，决策 ID `fb-3004` 与反馈 ID 前缀相同、且它不指向任何东西，用于检验角色判定与「与台账无关的决策」。",
+  "input": {
+    "format": "feedback-ledger",
+    "payload": {
+      "documents": [
+        {
+          "path": "feedback/billing.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 2048
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-3001",
+                "quote": "导出账单里多出一笔重复扣款",
+                "source": "客服工单",
+                "severity": "blocker",
+                "reach": "many",
+                "frequency": 1,
+                "theme": "billing",
+                "status": "open"
+              },
+              {
+                "id": "fb-3002",
+                "quote": "导出账单里多出一笔重复扣款",
+                "source": "应用商店",
+                "severity": "medium",
+                "reach": "few",
+                "frequency": 4,
+                "theme": "billing",
+                "status": "open"
+              },
+              {
+                "id": "fb-3003",
+                "quote": "发票抬头无法修改",
+                "source": "客服工单",
+                "severity": "low",
+                "reach": "few",
+                "frequency": 9,
+                "theme": "billing",
+                "status": "open"
+              }
+            ],
+            "decisions": [
+              {
+                "id": "fb-3004",
+                "title": "账单重复扣款排查",
+                "rationale": "两条同样的原话来自两个渠道",
+                "addresses": [
+                  "fb-3003"
+                ],
+                "status": "planned",
+                "owner": "erin"
+              }
+            ],
+            "themes": [
+              {
+                "id": "billing",
+                "name": "账单",
+                "members": [
+                  "fb-3001"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "feedback/billing-fb-3003-fb-3004.json",
+      "feedback/billing-fb-3001.json",
+      "feedback/billing-fb-3002.json",
+      "feedback/billing-fb-3003.json",
+      "feedback/billing-dec-fb-3004.json",
+      "feedback/billing-theme-billing.json"
+    ],
+    "admitted": 6,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "引文出现在两条记录里，但声明同时给了 feedbackId——身份是确定的，逐字也成立。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/billing.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "feedbackId": "fb-3002",
+            "quote": "导出账单里多出一笔重复扣款"
+          }
+        },
+        "subject": {
+          "path": "feedback/billing.json",
+          "documents": [
+            {
+              "path": "feedback/billing.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-3001",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3002",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 4,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3003",
+                    "quote": "发票抬头无法修改",
+                    "source": "客服工单",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 9,
+                    "theme": "billing",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "fb-3004",
+                    "title": "账单重复扣款排查",
+                    "rationale": "两条同样的原话来自两个渠道",
+                    "addresses": [
+                      "fb-3003"
+                    ],
+                    "status": "planned",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "billing",
+                    "name": "账单",
+                    "members": [
+                      "fb-3001"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "feedback/billing.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "决策 fb-3004 声明处理 fb-3003，而 fb-3003 没有 closedBy——单边闭环。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/billing.json",
+          "locator": {
+            "kind": "closure-link",
+            "feedbackId": "fb-3003",
+            "decisionId": "fb-3004"
+          }
+        },
+        "subject": {
+          "path": "feedback/billing.json",
+          "documents": [
+            {
+              "path": "feedback/billing.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-3001",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3002",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 4,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3003",
+                    "quote": "发票抬头无法修改",
+                    "source": "客服工单",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 9,
+                    "theme": "billing",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "fb-3004",
+                    "title": "账单重复扣款排查",
+                    "rationale": "两条同样的原话来自两个渠道",
+                    "addresses": [
+                      "fb-3003"
+                    ],
+                    "status": "planned",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "billing",
+                    "name": "账单",
+                    "members": [
+                      "fb-3001"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一段原话出现在两条反馈里，而声明只给了引文、没给 feedbackId——引文不能确定身份，引擎拒绝挑一条。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/billing.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "quote": "导出账单里多出一笔重复扣款"
+          }
+        },
+        "subject": {
+          "path": "feedback/billing.json",
+          "documents": [
+            {
+              "path": "feedback/billing.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-3001",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "客服工单",
+                    "severity": "blocker",
+                    "reach": "many",
+                    "frequency": 1,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3002",
+                    "quote": "导出账单里多出一笔重复扣款",
+                    "source": "应用商店",
+                    "severity": "medium",
+                    "reach": "few",
+                    "frequency": 4,
+                    "theme": "billing",
+                    "status": "open"
+                  },
+                  {
+                    "id": "fb-3003",
+                    "quote": "发票抬头无法修改",
+                    "source": "客服工单",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 9,
+                    "theme": "billing",
+                    "status": "open"
+                  }
+                ],
+                "decisions": [
+                  {
+                    "id": "fb-3004",
+                    "title": "账单重复扣款排查",
+                    "rationale": "两条同样的原话来自两个渠道",
+                    "addresses": [
+                      "fb-3003"
+                    ],
+                    "status": "planned",
+                    "owner": "erin"
+                  }
+                ],
+                "themes": [
+                  {
+                    "id": "billing",
+                    "name": "账单",
+                    "members": [
+                      "fb-3001"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "feedback/billing.json#feedback:fb-3001",
+          "feedback/billing.json#feedback:fb-3002"
+        ]
+      }
+    ]
+  }
+}

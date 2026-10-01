@@ -1,0 +1,83 @@
+{
+  "name": "empty",
+  "domain": "ui-visual",
+  "format": "design-tokens-and-layers",
+  "description": "token 表为空、图层表为空：P0 产出空集，P1 也无从排除。空集本身就是结论——没有可对照的图层属性。",
+  "input": {
+    "format": "design-tokens-and-layers",
+    "payload": { "tokens": {}, "layers": [] }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空输入不影响锚点重算：只要给出 token 表与图层表，三件事仍可核对，证据侧仍可滑窗定位。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn/bg-color",
+          "locator": { "layerId": "btn", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/btn/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1,
+        "expectToken": "brand-primary"
+      }
+    ],
+    "negative": [
+      {
+        "note": "缺 token 表：token 侧无法重算 -> 未锚定。锚点要求 token 表与图层表同时在。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn/bg-color",
+          "locator": { "layerId": "btn", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/btn/bg-color",
+          "layers": [{ "id": "btn", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents"
+      },
+      {
+        "note": "证据侧缺一半：原文为空 -> 未锚定。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/btn/bg-color",
+          "locator": { "layerId": "btn", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "  "
+        },
+        "subject": {
+          "path": "atoms/btn/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "btn", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/btn/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ],
+    "ambiguous": []
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "name": "all-gated-out",
+  "domain": "ui-visual",
+  "format": "design-tokens-and-layers",
+  "description": "P0 枚举出 4 个硬编码属性候选，P1 闸门把每一个都排除，且各因不同谓词：user-exclude（已废弃组件的图层不在本次对齐范围内）/ deleted（已归档图层）/ binary（仅位图图层）/ too-large（超大导出）。这证明「P0 有产出」与「P1 全排除」在计划里是可区分的。",
+  "input": {
+    "format": "design-tokens-and-layers",
+    "payload": {
+      "tokens": {
+        "color": { "brand-primary": { "value": "#2563eb" }, "surface": { "value": "#ffffff" } },
+        "radius": { "md": { "value": "8px" } }
+      },
+      "layers": [
+        {
+          "id": "legacy-button",
+          "name": "旧按钮",
+          "type": "component",
+          "component": "deprecated",
+          "props": { "bg-color": "#2563eb" }
+        },
+        {
+          "id": "old-card",
+          "name": "归档卡片",
+          "type": "frame",
+          "component": "atoms",
+          "props": { "bg-color": "#ffffff" },
+          "archived": true
+        },
+        {
+          "id": "raster-hero",
+          "name": "位图头图",
+          "type": "image",
+          "component": "atoms",
+          "props": { "bg-color": "#ffffff" },
+          "imageOnly": true
+        },
+        {
+          "id": "huge-export",
+          "name": "全量导出层",
+          "type": "frame",
+          "component": "atoms",
+          "props": { "radius": "8px" },
+          "bytes": 2097152
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "atoms/huge-export/radius",
+      "atoms/old-card/bg-color",
+      "atoms/raster-hero/bg-color",
+      "deprecated/legacy-button/bg-color"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": ["atoms/raster-hero/bg-color"],
+      "deleted": ["atoms/old-card/bg-color"],
+      "user-exclude": ["deprecated/legacy-button/bg-color"],
+      "too-large": ["atoms/huge-export/radius"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的候选，它的三件事仍然可以重算 —— 闸门决定「本领域是否审它」，锚点决定「这条结论能不能在 token 表上成立」。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "deprecated/legacy-button/bg-color",
+          "locator": { "layerId": "legacy-button", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "deprecated/legacy-button/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "legacy-button", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "deprecated/legacy-button/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "属性不存在：图层有，但它没有这个属性 -> 未锚定。拒绝把发现挂到一个不存在的属性上。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/huge-export/shadow",
+          "locator": { "layerId": "huge-export", "prop": "shadow", "tokenName": "card" },
+          "excerpt": "属性 shadow = 0 1px 2px"
+        },
+        "subject": {
+          "path": "atoms/huge-export/shadow",
+          "tokens": { "shadow": { "card": { "value": "0 1px 2px" } } },
+          "layers": [{ "id": "huge-export", "props": { "radius": "8px" } }],
+          "documents": [
+            { "path": "atoms/huge-export/shadow", "content": "属性 shadow = 0 1px 2px\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "锚点种类不符：本领域只验证 layer-and-token，收到别的 kind 一律 kind-mismatch。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "atoms/old-card/bg-color",
+          "locator": { "layerId": "old-card", "prop": "bg-color", "tokenName": "surface" },
+          "excerpt": "属性 bg-color = #ffffff"
+        },
+        "subject": {
+          "path": "atoms/old-card/bg-color",
+          "tokens": { "color": { "surface": { "value": "#ffffff" } } },
+          "layers": [{ "id": "old-card", "props": { "bg-color": "#ffffff" } }],
+          "documents": [
+            { "path": "atoms/old-card/bg-color", "content": "属性 bg-color = #ffffff\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch"
+      }
+    ],
+    "ambiguous": []
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "name": "all-gated-out",
+  "domain": "data-engineering",
+  "format": "lineage-and-schema",
+  "description": "四个节点都有边（P0 确实枚举出 8 个候选），但每一个都被 P1 的某个谓词排除：被 drop 的链（deleted）、非 SQL 快照（extension）、node_modules 下的链（default-path）、pack 自己声明的 **/backfill/** 下的回填链（user-exclude）。全部排除理由都由 pack 自己的 gate 产生，fixture 不带任何 gate 块 —— 这是 t33/t24 修掉的缺陷：旧版本靠 fixture 自己塞的 maxFileBytes 达到 admitted 0，而 pack 的 gate 根本没有这个字段。",
+  "input": {
+    "format": "lineage-and-schema",
+    "payload": {
+      "nodes": [
+        {
+          "id": "legacy_export",
+          "type": "transform",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "legacy.orders_export"
+          ],
+          "path": "dags/legacy_export.sql",
+          "sql": "insert into legacy.orders_export\nselect order_id from raw.orders"
+        },
+        {
+          "id": "archived_blob",
+          "type": "snapshot",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "snapshots.orders_blob"
+          ],
+          "path": "snapshots/blob.parquet",
+          "sql": "insert into snapshots.orders_blob\nselect order_id from raw.orders"
+        },
+        {
+          "id": "vendored_node",
+          "type": "transform",
+          "inputs": [
+            "raw.orders"
+          ],
+          "outputs": [
+            "vendor.leftpad"
+          ],
+          "path": "dags/node_modules/leftpad.sql",
+          "sql": "insert into vendor.leftpad\nselect order_id from raw.orders"
+        },
+        {
+          "id": "wide_orders",
+          "type": "transform",
+          "inputs": [
+            "raw.incoming"
+          ],
+          "outputs": [
+            "backfill.wide_orders"
+          ],
+          "path": "dags/wide_orders.sql",
+          "sql": "select order_id, amount, created_at, updated_at, channel, currency, discount_code, coupon_id, payment_method, shipping_method, billing_country, shipping_country, tax_rate, tax_amount, gross_amount, net_amount, refund_amount, settled_amount from raw.incoming left join backfill.wide_orders on raw.incoming.order_id = backfill.wide_orders.order_id"
+        }
+      ],
+      "runs": [
+        {
+          "nodeId": "legacy_export",
+          "status": "ok",
+          "at": "2026-09-01T00:00:00Z"
+        },
+        {
+          "nodeId": "legacy_export",
+          "status": "dropped",
+          "at": "2026-09-30T00:00:00Z"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "models/backfill/wide_orders.sql",
+      "models/backfill/wide_orders.sql",
+      "models/legacy/orders_export.sql",
+      "models/legacy/orders_export.sql",
+      "models/snapshots/orders_blob.parquet",
+      "models/snapshots/orders_blob.parquet",
+      "models/vendor/leftpad.sql",
+      "models/vendor/leftpad.sql"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "deleted": [
+        "models/legacy/orders_export.sql",
+        "models/legacy/orders_export.sql"
+      ],
+      "extension": [
+        "models/snapshots/orders_blob.parquet",
+        "models/snapshots/orders_blob.parquet"
+      ],
+      "default-path": [
+        "models/vendor/leftpad.sql",
+        "models/vendor/leftpad.sql"
+      ],
+      "user-exclude": [
+        "models/backfill/wide_orders.sql",
+        "models/backfill/wide_orders.sql"
+      ]
+    },
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": []
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "即使整个候选集被闸门排除，锚点本身仍可重算：被排除的是「是否值得评审」，不是「这句话在不在原文里」。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/backfill/wide_orders.sql",
+          "locator": {
+            "nodeId": "wide_orders",
+            "from": "raw.incoming",
+            "to": "wide_orders"
+          },
+          "excerpt": "select order_id, amount, created_at, updated_at, channel, currency, discount_code, coupon_id, payment_method, shipping_method, billing_country, shipping_country, tax_rate, tax_amount, gross_amount, net_amount, refund_amount, settled_amount from raw.incoming left join backfill.wide_orders on raw.incoming.order_id = backfill.wide_orders.order_id"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/backfill/wide_orders.sql",
+              "content": "select order_id, amount, created_at, updated_at, channel, currency, discount_code, coupon_id, payment_method, shipping_method, billing_country, shipping_country, tax_rate, tax_amount, gross_amount, net_amount, refund_amount, settled_amount from raw.incoming left join backfill.wide_orders on raw.incoming.order_id = backfill.wide_orders.order_id"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"wide_orders\",\"inputs\":[\"raw.incoming\"],\"outputs\":[\"backfill.wide_orders\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "wide_orders",
+                "inputs": [
+                  "raw.incoming"
+                ],
+                "outputs": [
+                  "backfill.wide_orders"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"wide_orders\",\"inputs\":[\"raw.incoming\"],\"outputs\":[\"backfill.wide_orders\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "models/backfill/wide_orders.sql",
+        "expectStart": 1,
+        "expectCode": "edge-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "节点存在，但它没有这条边 —— 原文再像也不能证明图上不存在的边。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/legacy/orders_export.sql",
+          "locator": {
+            "nodeId": "legacy_export",
+            "from": "legacy.orders_export",
+            "to": "raw.orders"
+          },
+          "excerpt": "select order_id from raw.orders"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/legacy/orders_export.sql",
+              "content": "insert into legacy.orders_export\nselect order_id from raw.orders"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"legacy_export\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"legacy.orders_export\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "legacy_export",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": [
+                  "legacy.orders_export"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"legacy_export\",\"inputs\":[\"raw.orders\"],\"outputs\":[\"legacy.orders_export\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "edge-unconfirmed"
+      }
+    ]
+  }
+}

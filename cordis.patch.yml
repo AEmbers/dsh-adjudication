@@ -34,3 +34,28 @@
           maxSearchHits: 100
         # Loss orientation applied when a domain pack does not declare one.
         lossOrientation: precision-first
+        # ---------------------------------------------------------------------
+        # Contract v2 runtime. All of it is optional and all of it degrades.
+        # ---------------------------------------------------------------------
+        # Where `domains/<id>/` directories are discovered. Discovery is lazy
+        # (first tool call) and total: a missing directory yields zero packs and
+        # never a failure, so the nineteen built-in packs keep working until
+        # their owners migrate one at a time.
+        domainRoot: domains
+        # `bundleKey` becomes an actual grouping decision. The built-in packs
+        # declare `'directory'`; `trustDeclaredStrategies: true` activates every
+        # declared name that has a generic implementation, and anything without
+        # one falls back to per-path grouping and says so in the plan.
+        # Set to false to restore v1 grouping byte-for-byte.
+        bundleKey:
+          trustDeclaredStrategies: true
+        # P4 bounded inference loop. The executor only runs when this host
+        # actually mounts `ctx.subagents` or `ctx.llm`; with neither, the P4
+        # tool is not registered and the loop stays with the caller.
+        # `provider`/`model` are required only for the `ctx.llm` fallback.
+        reasoner:
+          provider: null
+          model: null
+          maxRounds: 8
+          maxPromptChars: 24000
+          maxFindings: 200

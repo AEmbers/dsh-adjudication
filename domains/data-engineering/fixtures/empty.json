@@ -1,0 +1,85 @@
+{
+  "name": "empty",
+  "domain": "data-engineering",
+  "format": "lineage-and-schema",
+  "description": "空血缘图：没有任何节点。P0 必须产出空集（合法结论），P1 全空，工作单必须说「这本身就是结论」，而不是让模型凭空评审。",
+  "input": {
+    "format": "lineage-and-schema",
+    "payload": {
+      "nodes": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": []
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空输入下唯一成立的锚点是「拒绝」：没有血缘图，就无法确认任何一条边 —— 本领域不用 SQL 文本代替图结构。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "dags/clean_orders.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          },
+          "excerpt": "from raw.orders"
+        },
+        "subject": {
+          "path": "dags/clean_orders.sql",
+          "content": "from raw.orders\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-lineage"
+      }
+    ],
+    "negative": [
+      {
+        "note": "空 excerpt 永远不是锚点 —— 规范化后为空即没有可核验的内容。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "dags/clean_orders.sql",
+          "locator": {
+            "nodeId": "clean_orders",
+            "from": "raw.orders",
+            "to": "clean_orders"
+          }
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[]}]}",
+          "lineage": {
+            "nodes": [
+              {
+                "id": "clean_orders",
+                "inputs": [
+                  "raw.orders"
+                ],
+                "outputs": []
+              }
+            ]
+          },
+          "documents": [
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"clean_orders\",\"inputs\":[\"raw.orders\"],\"outputs\":[]}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt",
+        "expectCode": "empty-excerpt"
+      }
+    ]
+  }
+}

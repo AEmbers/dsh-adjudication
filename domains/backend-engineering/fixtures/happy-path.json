@@ -1,0 +1,173 @@
+{
+  "name": "happy-path",
+  "domain": "backend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/api/handler.go b/api/handler.go\nindex 1111111..2222222 100644\n--- a/api/handler.go\n+++ b/api/handler.go\n@@ -10,6 +10,9 @@ func (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n \tctx := r.Context()\n \torders, err := s.store.ListOrders(ctx)\n \tif err != nil {\n \t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n \t\treturn\n \t}\n+\tif len(orders) == 0 {\n+\t\twriteJSON(w, http.StatusOK, []Order{})\n+\t\treturn\n+\t}\n \twriteJSON(w, http.StatusOK, orders)\n }\ndiff --git a/api/store.go b/api/store.go\nindex 3333333..4444444 100644\n--- a/api/store.go\n+++ b/api/store.go\n@@ -20,6 +20,10 @@ func (s *Store) ListOrders(ctx context.Context) ([]Order, error) {\n+\trows, err := s.db.QueryContext(ctx, listOrdersSQL)\n+\tif err != nil {\n+\t\treturn nil, fmt.Errorf(\"list orders: %w\", err)\n+\t}\n+\tdefer rows.Close()\n \treturn scanOrders(rows)\n }\ndiff --git a/db/migrations/2026_add_index.sql b/db/migrations/2026_add_index.sql\nindex 5555555..6666666 100644\n--- a/db/migrations/2026_add_index.sql\n+++ b/db/migrations/2026_add_index.sql\n@@ -1,2 +1,3 @@\n -- 订单列表按创建时间排序\n+CREATE INDEX idx_orders_created ON orders (created_at)\n -- 完毕\ndiff --git a/worker/consumer.go b/worker/consumer.go\nindex 7777777..8888888 100644\n--- a/worker/consumer.go\n+++ b/worker/consumer.go\n@@ -30,4 +30,9 @@ func (c *Consumer) Run(ctx context.Context) error {\n-\treturn c.loop()\n+\tselect {\n+\tcase <-ctx.Done():\n+\t\treturn ctx.Err()\n+\tcase job := <-c.jobs:\n+\t\tc.handle(job)\n+\t}\n+\treturn nil\n }\n",
+      "serviceMap": {
+        "api/handler.go": "order-api",
+        "api/store.go": "order-api",
+        "db/migrations/2026_add_index.sql": "order-db",
+        "worker/consumer.go": "order-worker"
+      }
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "admitted": 4,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "api",
+      "db",
+      "worker"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写新增行 + 正确行号 -> declared-locator",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/handler.go",
+          "locator": {
+            "side": "new",
+            "startLine": 4
+          },
+          "excerpt": "if len(orders) == 0 {"
+        },
+        "subject": {
+          "path": "api/handler.go",
+          "content": "package api\n\nfunc (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n\tif len(orders) == 0 {\n\t\twriteJSON(w, http.StatusOK, []Order{})\n\t\treturn\n\t}\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 4
+      },
+      {
+        "note": "不给行号时引擎自行重算，唯一命中才采信",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/store.go",
+          "locator": {
+            "side": "new"
+          },
+          "excerpt": "rows, err := s.db.QueryContext(ctx, listOrdersSQL)"
+        },
+        "subject": {
+          "path": "api/store.go",
+          "content": "package api\n\nfunc (s *Store) ListOrders(ctx context.Context) ([]Order, error) {\n\trows, err := s.db.QueryContext(ctx, listOrdersSQL)\n\tdefer rows.Close()\n\treturn scanOrders(rows)\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 4
+      },
+      {
+        "note": "声明了别的文件，但原文在另一文件唯一命中 -> 搬迁",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/moved.go",
+          "locator": {},
+          "excerpt": "defer rows.Close()"
+        },
+        "subject": {
+          "path": "api/moved.go",
+          "documents": [
+            {
+              "path": "api/handler.go",
+              "content": "package api\n\nfunc (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n\tif len(orders) == 0 {\n\t\twriteJSON(w, http.StatusOK, []Order{})\n\t\treturn\n\t}\n}"
+            },
+            {
+              "path": "api/store.go",
+              "content": "package api\n\nfunc (s *Store) ListOrders(ctx context.Context) ([]Order, error) {\n\trows, err := s.db.QueryContext(ctx, listOrdersSQL)\n\tdefer rows.Close()\n\treturn scanOrders(rows)\n}"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "api/store.go",
+        "expectStart": 5
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述（改了标识符）-> no-match：换个名字就是另一行",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/store.go",
+          "locator": {},
+          "excerpt": "rows, err := s.db.QueryContext(ctx, listOrderRows)"
+        },
+        "subject": {
+          "path": "api/store.go",
+          "content": "package api\n\nfunc (s *Store) ListOrders(ctx context.Context) ([]Order, error) {\n\trows, err := s.db.QueryContext(ctx, listOrdersSQL)\n\tdefer rows.Close()\n\treturn scanOrders(rows)\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch，拒绝替模型修正",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/handler.go",
+          "locator": {
+            "startLine": 1
+          },
+          "excerpt": "if len(orders) == 0 {"
+        },
+        "subject": {
+          "path": "api/handler.go",
+          "content": "package api\n\nfunc (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n\tif len(orders) == 0 {\n\t\twriteJSON(w, http.StatusOK, []Order{})\n\t\treturn\n\t}\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "SQL 末尾多一个分号就是另一行 -> no-match",
+        "claim": {
+          "kind": "diff-line",
+          "path": "db/migrations/2026_add_index.sql",
+          "locator": {},
+          "excerpt": "CREATE INDEX idx_orders_created ON orders (created_at);"
+        },
+        "subject": {
+          "path": "db/migrations/2026_add_index.sql",
+          "content": "-- 订单列表按创建时间排序\nCREATE INDEX idx_orders_created ON orders (created_at)\n-- 完毕"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一段新增行出现在两个文件 -> 跨文件搬迁不唯一，拒绝猜测",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/moved.go",
+          "locator": {},
+          "excerpt": "return nil"
+        },
+        "subject": {
+          "path": "api/moved.go",
+          "documents": [
+            {
+              "path": "api/a.go",
+              "content": "func A() error {\n\treturn nil\n}"
+            },
+            {
+              "path": "api/b.go",
+              "content": "func B() error {\n\treturn nil\n}"
+            }
+          ]
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "api/a.go:2",
+          "api/b.go:2"
+        ]
+      }
+    ]
+  }
+}

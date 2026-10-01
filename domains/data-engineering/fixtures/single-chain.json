@@ -1,0 +1,131 @@
+{
+  "name": "single-chain",
+  "domain": "data-engineering",
+  "format": "lineage-and-schema",
+  "description": "边界：一条只有一条边的链（一个 sink 节点，只声明 outputs，没有 schema）。P0 恰好产出 1 个候选、落在 1 条路径上 —— 这是本领域唯一能达成 100% 覆盖率的形状，用来证明 recall-first 的「不完整即未通过」是一个真实的判定而不是永远为真。",
+  "input": {
+    "format": "lineage-and-schema",
+    "payload": {
+      "nodes": [
+        {
+          "id": "events_sink",
+          "type": "sink",
+          "inputs": [],
+          "outputs": [
+            "raw.events"
+          ],
+          "path": "dags/events_sink.sql",
+          "sql": "insert into raw.events\nselect event_id, occurred_at\nfrom stream.events"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": [
+      "models/raw/events.sql"
+    ],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "raw.events"
+    ],
+    "bundles": 1
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 正确行号 -> declared-locator，且这条边在图上确实存在。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/raw/events.sql",
+          "locator": {
+            "nodeId": "events_sink",
+            "from": "events_sink",
+            "to": "raw.events",
+            "startLine": 1
+          },
+          "excerpt": "insert into raw.events"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/raw/events.sql",
+              "content": "insert into raw.events\nselect event_id, occurred_at\nfrom stream.events"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"events_sink\",\"inputs\":[],\"outputs\":[\"raw.events\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "events_sink",
+                "inputs": [],
+                "outputs": [
+                  "raw.events"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"events_sink\",\"inputs\":[],\"outputs\":[\"raw.events\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "models/raw/events.sql",
+        "expectStart": 1,
+        "expectCode": "edge-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "SQL 里提到了 stream.events，但节点没有声明这个输入 —— 图里没有这条边，文本不能替代图。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "models/raw/events.sql",
+          "locator": {
+            "nodeId": "events_sink",
+            "from": "stream.events",
+            "to": "events_sink"
+          },
+          "excerpt": "from stream.events"
+        },
+        "subject": {
+          "path": "lineage/graph.json",
+          "documents": [
+            {
+              "path": "models/raw/events.sql",
+              "content": "insert into raw.events\nselect event_id, occurred_at\nfrom stream.events"
+            },
+            {
+              "path": "lineage/graph.json",
+              "content": "{\"nodes\":[{\"id\":\"events_sink\",\"inputs\":[],\"outputs\":[\"raw.events\"]}]}"
+            }
+          ],
+          "lineage": {
+            "nodes": [
+              {
+                "id": "events_sink",
+                "inputs": [],
+                "outputs": [
+                  "raw.events"
+                ]
+              }
+            ]
+          },
+          "content": "{\"nodes\":[{\"id\":\"events_sink\",\"inputs\":[],\"outputs\":[\"raw.events\"]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "edge-unconfirmed"
+      }
+    ]
+  }
+}

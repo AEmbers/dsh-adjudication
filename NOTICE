@@ -50,7 +50,86 @@ description of the current code.
   coverage and report
       <- internal/delegate/* (the coverage self-proof field set)
 
-Everything else is original to this project and has no counterpart upstream:
-the domain registry (lib/registry.js), the nineteen domain packs
-(lib/domains.js), the on-demand tool activation lifecycle and the service
-facade (index.js), the recall-first loss orientation, and the test suites.
+The following parts of domains/code-review/ are likewise derived from
+open-code-review, and likewise MODIFIED.
+
+  anchor.js (normalizeLine, normalizeExcerpt, the sliding-window match and the
+  tier ladder)
+      <- internal/diff/resolver.go (normalizeLine, matchConsecutive,
+         RelocateAcrossFiles). Same deviation as lib/engine.js: the upstream
+         third tier re-locates with an LLM call; this port stops at
+         "unanchored" and adds two named terminal tiers of its own
+         (`locator-mismatch`, `relocation-ambiguous`) so a contradiction and an
+         ambiguity are distinguishable rather than both being "no match".
+
+  source.js (hunkHeaderRe and the file/hunk parse)
+      <- internal/diff/hunk.go (hunkHeaderRe) and internal/diff/parser.go.
+      Deviation: upstream emits one candidate per FILE; this domain emits one
+      per (file, hunk), which is the granularity lib/contracts.js §5 declares
+      for `code-review`.
+
+  index.js (gate.extensions, and the shape of gate.exclude)
+      <- internal/config/allowlist/supported_file_types.json and
+         internal/agent/selection.go (whyExcluded). Deviation: this pack ships
+         26 extensions where upstream ships 115, so its admitted set is a
+         strict subset. It is NOT a full port of the upstream allowlist, and
+         COMPARISON.md states the difference instead of implying parity.
+
+  rules/*.md
+      Original prose written for this project. It is NOT derived from
+      open-code-review's review prompts or rule text, and it is NOT
+      expert-validated: every document carries `needs-expert-review: true`.
+
+HOW THIS NOTICE STAYS ACCURATE
+------------------------------
+This notice is deliberately written so that it cannot go stale, because an
+enumeration that must be maintained by hand is the failure mode it would
+otherwise introduce: it would be "correct the day it was written" and silently
+wrong afterwards.
+
+The rule is a construction rule, not a list:
+
+  * An entry above is required **if and only if** a file contains logic derived
+    from open-code-review. The two lists above are therefore the COMPLETE set of
+    derived parts.
+  * Everything not listed there is original **by construction** — no further
+    enumeration is needed, and none is given.
+  * A file added later needs no edit to this notice unless it ports upstream
+    code. When it does, add the file, its upstream origin, and what was changed
+    (every derived part in this product is MODIFIED, never a verbatim copy).
+  * `domains/*/anchor.js` carries its OWN `PORTING:` annotation, and this notice
+    defers to it rather than enumerating those files. Concretely: every
+    domain-owner anchor verifier that reproduces the `normalizeLine` /
+    sliding-window primitives registered above for `lib/engine.js` REUSES those
+    already-registered entries — the upstream origin is named once, above, and a
+    reproduction of it creates no new derived part and needs no new entry here.
+    (At present the reuse is a literal reproduction of the expression rather
+    than an import; that duplication is recorded as debt in
+    docs/domain-contract-v2.md §1.2 "结构债" and does not change what is owed
+    upstream.) An `anchor.js` whose annotation reads "nothing in this file is
+    ported from open-code-review" is original by that declaration. Therefore a
+    newly migrated domain needs no edit to this notice unless its own `PORTING:`
+    line names an upstream file that is not already listed above.
+
+    One cross-reference to be precise about, because four `anchor.js` files cite
+    it: `domains/code-review/anchor.js` reproduces `normalizeLine`, the
+    sliding-window match and the degradation ladder — the same primitives
+    registered under `lib/engine.js` above (with the same deviation: the ladder
+    ends at "unanchored" and adds `locator-mismatch` / `relocation-ambiguous`).
+    The list above is headed "parts of lib/engine.js", so that file has no
+    separate entry of its own; those citations mean "the primitive named above",
+    which is the reading this rule intends. No part of this product is derived
+    from open-code-review other than what is named in the two lists above plus
+    the reproductions they cover.
+
+For the record, the following are original and have no upstream counterpart:
+the contract kernel and the v2 runtime (lib/contracts.js, lib/domain-loader.js,
+lib/reasoner.js), the domain registry (lib/registry.js), the nineteen built-in
+packs (lib/domains.js), the on-demand tool activation lifecycle and the service
+facade (index.js), the recall-first loss orientation, the anchor-recomputation
+policy added in t17 (the engine recomputes every anchor through the domain's
+verifier and never trusts a caller's self-report), and the test suites.
+
+That paragraph is informational only. The two lists above are the authoritative
+statement: they name everything derived, and the rule above says how to extend
+them.

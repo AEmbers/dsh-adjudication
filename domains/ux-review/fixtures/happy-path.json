@@ -1,0 +1,230 @@
+{
+  "name": "happy-path",
+  "domain": "ux-review",
+  "format": "flow-spec",
+  "description": "一个流程、三条分支（正常/错误/空态）、八个 (分支, 步骤) 候选，全部准入。分捆按「同一条分支」——3 捆，因为同一分支上的步骤共享同一组前置条件。",
+  "input": {
+    "format": "flow-spec",
+    "payload": {
+      "flow": {
+        "id": "checkout",
+        "name": "结算流程",
+        "steps": [
+          { "id": "s1", "name": "进入购物车", "type": "screen", "next": "s2", "onCancel": "exit" },
+          { "id": "s2", "name": "填写地址", "type": "form", "next": "s3", "onError": "s2", "onCancel": "s1" },
+          { "id": "s3", "name": "选择支付方式", "type": "choice", "next": "s6", "onError": "s4" },
+          { "id": "s4", "name": "支付失败提示", "type": "notice", "next": "s3", "onCancel": "s2" },
+          { "id": "s5", "name": "空购物车", "type": "empty-state" },
+          { "id": "s6", "name": "订单完成", "type": "terminal" }
+        ]
+      },
+      "branches": [
+        { "id": "happy", "kind": "happy", "steps": ["s1", "s2", "s3", "s6"] },
+        { "id": "error", "kind": "error", "steps": ["s1", "s2", "s4"] },
+        { "id": "empty", "kind": "empty", "steps": ["s5"] }
+      ],
+      "prototype": {
+        "nodes": [
+          { "id": "s1", "name": "购物车页", "screen": "screens/checkout/cart.png" },
+          { "id": "s2", "name": "地址表单", "screen": "screens/checkout/address.png" },
+          { "id": "s3", "name": "支付方式选择", "screen": "screens/checkout/pay.png" },
+          { "id": "s4", "name": "支付失败提示", "screen": "screens/checkout/pay-failed.png" },
+          { "id": "s6", "name": "订单完成", "screen": "screens/checkout/done.png" }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [],
+    "admitted": 8,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "branchCounts": { "happy": 4, "error": 3, "empty": 1 },
+    "bundleKeys": ["checkout/empty", "checkout/error", "checkout/happy"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 声明的行号正确 + 分支确实包含该步骤 -> declared-locator。步骤侧与证据侧同时成立才叫「确认」。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/happy/s2",
+          "locator": { "branchId": "happy", "stepId": "s2", "startLine": 3 },
+          "excerpt": "  onError = s2"
+        },
+        "subject": {
+          "path": "checkout/happy/s2",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }, { "id": "s2" }, { "id": "s3" }, { "id": "s6" }] },
+          "branches": [
+            { "id": "happy", "kind": "happy", "steps": ["s1", "s2", "s3", "s6"] },
+            { "id": "error", "kind": "error", "steps": ["s1", "s2", "s4"] }
+          ],
+          "documents": [
+            { "path": "checkout/happy/s2", "content": "步骤 s2 — 填写地址（类型 form）\n  next    = s3\n  onError = s2\n  onCancel= s1\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "checkout/happy/s2",
+        "expectStart": 3,
+        "expectStep": "happy/s2"
+      },
+      {
+        "note": "不给行号，靠唯一命中重算 -> recomputed-unique。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/empty/s5",
+          "locator": { "branchId": "empty", "stepId": "s5" },
+          "excerpt": "步骤 s5 — 空购物车（类型 empty-state）"
+        },
+        "subject": {
+          "path": "checkout/empty/s5",
+          "flow": { "id": "checkout", "steps": [{ "id": "s5" }] },
+          "branches": [{ "id": "empty", "kind": "empty", "steps": ["s5"] }],
+          "documents": [
+            { "path": "checkout/empty/s5", "content": "步骤 s5 — 空购物车（类型 empty-state）\n  next    = (未声明)\n  onError = (未声明)\n  onCancel= (未声明)\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      },
+      {
+        "note": "声明的文档不在文档集中，但原文在唯一另一个文档里 -> relocated-unique，发现已搬迁。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/happy/moved.ts",
+          "locator": { "branchId": "happy", "stepId": "s1" },
+          "excerpt": "next    = s2"
+        },
+        "subject": {
+          "path": "checkout/happy/moved.ts",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "checkout/happy/s1", "content": "步骤 s1 — 进入购物车（类型 screen）\n  next    = s2\n" },
+            { "path": "checkout/other/s9", "content": "无关内容\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "checkout/happy/s1",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把 onError 写成错误分支，语义相同但逐字不同 -> no-match。步骤侧成立也没用。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/happy/s2",
+          "locator": { "branchId": "happy", "stepId": "s2" },
+          "excerpt": "onError=错误分支"
+        },
+        "subject": {
+          "path": "checkout/happy/s2",
+          "flow": { "id": "checkout", "steps": [{ "id": "s2" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s2"] }],
+          "documents": [
+            { "path": "checkout/happy/s2", "content": "步骤 s2 — 填写地址（类型 form）\n  next    = s3\n  onError = s2\n  onCancel= s1\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "步骤不在该分支上：s1 存在于流程，但 empty 分支只到达 s5 -> 绑定不成立，未锚定。拒绝把发现挂到一条不经过它的分支上。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/empty/s1",
+          "locator": { "branchId": "empty", "stepId": "s1" },
+          "excerpt": "步骤 s1 — 进入购物车（类型 screen）"
+        },
+        "subject": {
+          "path": "checkout/empty/s1",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }, { "id": "s5" }] },
+          "branches": [
+            { "id": "empty", "kind": "empty", "steps": ["s5"] },
+            { "id": "happy", "kind": "happy", "steps": ["s1"] }
+          ],
+          "documents": [
+            { "path": "checkout/empty/s1", "content": "步骤 s1 — 进入购物车（类型 screen）\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：同一行在两个文档里逐字出现，声明的文档不在集合里 -> relocation-ambiguous，必须列出竞争位置。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/unknown/s7",
+          "locator": { "branchId": "happy", "stepId": "s1" },
+          "excerpt": "next    = s2"
+        },
+        "subject": {
+          "path": "checkout/unknown/s7",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }, { "id": "s7" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1", "s7"] }],
+          "documents": [
+            { "path": "checkout/happy/s1", "content": "next    = s2\n" },
+            { "path": "checkout/happy/s7", "content": "next    = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["checkout/happy/s1:1", "checkout/happy/s7:1"]
+      },
+      {
+        "note": "行号与原文矛盾：声明第 1 行，但第 1 行不是这段原文 -> locator-mismatch，不是「就近取一个」。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/happy/s1",
+          "locator": { "branchId": "happy", "stepId": "s1", "startLine": 1 },
+          "excerpt": "下一站 = s2"
+        },
+        "subject": {
+          "path": "checkout/happy/s1",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "checkout/happy/s1", "content": "步骤 s1 — 进入购物车（类型 screen）\n  next    = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一文档内重复行：唯一命中在文档内也不成立，同样拒绝并列出竞争位置。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "checkout/dup/s1",
+          "locator": { "branchId": "happy", "stepId": "s1" },
+          "excerpt": "next = s2"
+        },
+        "subject": {
+          "path": "checkout/dup/s1",
+          "flow": { "id": "checkout", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "checkout/dup/s1", "content": "next = s2\nother = 1\nnext = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["checkout/dup/s1:1", "checkout/dup/s1:3"]
+      }
+    ]
+  }
+}

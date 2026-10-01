@@ -1,0 +1,261 @@
+{
+  "name": "happy-path",
+  "domain": "architecture",
+  "format": "module-graph-and-adr",
+  "description": "六个模块、六条依赖边、两条 ADR —— 产出 8 个候选（6 条边 + 2 个 (ADR, 模块) 组合），按模块分捆后是 3 捆，其中 src/api/handler.ts 一捆 4 条（3 条出边 + 1 条 ADR 组合）——用于证明 P2 真的按模块分捆而不是给每条候选单开一捆。图里刻意不含环（环由 cycle fixture 单独覆盖），但含一条真正的反向边（legacy: infrastructure → api: application）。",
+  "input": {
+    "format": "module-graph-and-adr",
+    "payload": {
+      "modules": [
+        { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core", "util", "logging"], "layer": "application" },
+        { "id": "core", "path": "src/core/engine.ts", "dependsOn": ["util", "errors"], "layer": "domain" },
+        { "id": "util", "path": "src/util/strings.ts", "dependsOn": [], "layer": "infrastructure" },
+        { "id": "errors", "path": "src/util/errors.ts", "dependsOn": [], "layer": "infrastructure" },
+        { "id": "logging", "path": "src/infra/logging.ts", "dependsOn": [], "layer": "infrastructure" },
+        { "id": "legacy", "path": "src/legacy/bridge.ts", "dependsOn": ["api"], "layer": "infrastructure" }
+      ],
+      "adrs": [
+        { "id": "ADR-0001", "title": "Layered dependencies", "status": "accepted", "decision": "依赖只允许由外层指向内层。", "affects": ["core"] },
+        { "id": "ADR-0007", "title": "Drop the legacy cache", "status": "superseded", "decision": "旧缓存层已移除，新的读路径不再经过它。", "affects": ["api"] }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 8,
+    "paths": [
+      "src/api/handler.ts",
+      "src/api/handler.ts",
+      "src/api/handler.ts",
+      "src/core/engine.ts",
+      "src/core/engine.ts",
+      "src/legacy/bridge.ts",
+      "src/core/engine.ts",
+      "src/api/handler.ts"
+    ],
+    "admitted": 8,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["src/api/handler.ts", "src/core/engine.ts", "src/legacy/bridge.ts"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "依赖边：引擎从模块清单重算规范形式，并确认这条边真的在 dependsOn 里。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "api", "targetId": "core", "findingKind": "edge" },
+          "excerpt": "api -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core", "util"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": ["util"], "layer": "domain" },
+            { "id": "util", "path": "src/util/strings.ts", "dependsOn": [], "layer": "infrastructure" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      },
+      {
+        "note": "反向依赖：这条边在图上存在，且 layers 声明显示它由内层指向外层 —— 图正面支持这一条。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/legacy/bridge.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/legacy/bridge.ts", "moduleId": "legacy", "targetId": "api", "findingKind": "reverse-layer" },
+          "excerpt": "legacy -> api"
+        },
+        "subject": {
+          "modules": [
+            { "id": "legacy", "path": "src/legacy/bridge.ts", "dependsOn": ["api"], "layer": "infrastructure" },
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "layers": ["application", "domain", "infrastructure"],
+          "adrs": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      },
+      {
+        "note": "决策类锚点：(ADR, 模块) 组合必须真的在 ADR 的 affects 里，规范形式必须与重算一致。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/core/engine.ts",
+          "locator": { "kind": "adr-decision", "path": "src/core/engine.ts", "moduleId": "core", "adrId": "ADR-0001", "findingKind": "edge" },
+          "excerpt": "ADR-0001 -> core"
+        },
+        "subject": {
+          "modules": [{ "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }],
+          "adrs": [{ "id": "ADR-0001", "title": "Layered dependencies", "status": "accepted", "decision": "依赖只允许由外层指向内层。", "affects": ["core"] }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      },
+      {
+        "note": "决策已作废：ADR 状态确实是 superseded，归档正面支持这一条。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "adr-decision", "path": "src/api/handler.ts", "moduleId": "api", "adrId": "ADR-0007", "findingKind": "adr-superseded" },
+          "excerpt": "ADR-0007 -> api"
+        },
+        "subject": {
+          "modules": [{ "id": "api", "path": "src/api/handler.ts", "dependsOn": [], "layer": "application" }],
+          "adrs": [{ "id": "ADR-0007", "title": "Drop the legacy cache", "status": "superseded", "decision": "旧缓存层已移除。", "affects": ["api"] }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      }
+    ],
+    "negative": [
+      {
+        "note": "依赖图正面否定：规范形式对得上，但 util 的 dependsOn 是空的 —— 这条边不存在，判未锚定。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/util/strings.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/util/strings.ts", "moduleId": "util", "targetId": "api", "findingKind": "edge" },
+          "excerpt": "util -> api"
+        },
+        "subject": {
+          "modules": [
+            { "id": "util", "path": "src/util/strings.ts", "dependsOn": [], "layer": "infrastructure" },
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["util"], "layer": "application" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "转述不锚定：把模块 id 写成了文件路径。图里的 id 是 `api` / `core`，写路径就与重算出的规范形式不一致。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "api", "targetId": "core", "findingKind": "edge" },
+          "excerpt": "src/api/handler.ts -> src/core/engine.ts"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "环依赖的主张在图上不成立：这条边存在，但不存在经过 api 的环 —— 必须判未锚定，而不是当作一般性的边放行。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "api", "targetId": "core", "findingKind": "cycle" },
+          "excerpt": "api -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": ["util"], "layer": "domain" },
+            { "id": "util", "path": "src/util/strings.ts", "dependsOn": [], "layer": "infrastructure" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "反向依赖的主张在没有 layers 声明时无法重算：「无法核验」不是「成立」，判未锚定。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/legacy/bridge.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/legacy/bridge.ts", "moduleId": "legacy", "targetId": "api", "findingKind": "reverse-layer" },
+          "excerpt": "legacy -> api"
+        },
+        "subject": {
+          "modules": [
+            { "id": "legacy", "path": "src/legacy/bridge.ts", "dependsOn": ["api"], "layer": "infrastructure" },
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": [], "layer": "application" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "方向其实合法：同一模块对之间由函数式层次声明判定为允许方向，主张被正面否定。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "api", "targetId": "core", "findingKind": "reverse-layer" },
+          "excerpt": "api -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "layers": ["application", "domain", "infrastructure"],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "决策作废的主张与归档矛盾：ADR-0001 的状态是 accepted，不是被取代的状态。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/core/engine.ts",
+          "locator": { "kind": "adr-decision", "path": "src/core/engine.ts", "moduleId": "core", "adrId": "ADR-0001", "findingKind": "adr-superseded" },
+          "excerpt": "ADR-0001 -> core"
+        },
+        "subject": {
+          "modules": [{ "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }],
+          "adrs": [{ "id": "ADR-0001", "title": "Layered dependencies", "status": "accepted", "decision": "依赖只允许由外层指向内层。", "affects": ["core"] }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "id 解析失败时拒绝猜测：`src` 不在模块清单里。本领域的歧义面不是文本位置而是 id 解析，规则一样 —— 列出现有 id，不猜。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "src", "targetId": "core", "findingKind": "edge" },
+          "excerpt": "src -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "跨文件歧义：清单里有两个模块都叫 api，分别指向不同文件。同一个 id 对应多个实现时「api -> core」不再唯一，必须拒绝而不是取第一个 —— 猜出来的锚点不是锚点。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/api/handler.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/api/handler.ts", "moduleId": "api", "targetId": "core", "findingKind": "edge" },
+          "excerpt": "api -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "api", "path": "src/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "api", "path": "legacy/api/handler.ts", "dependsOn": ["core"], "layer": "application" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/api/handler.ts", "legacy/api/handler.ts"]
+      }
+    ]
+  }
+}

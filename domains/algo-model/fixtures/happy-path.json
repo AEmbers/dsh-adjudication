@@ -1,0 +1,778 @@
+{
+  "name": "happy-path",
+  "domain": "algo-model",
+  "format": "experiment-record",
+  "description": "三条实验记录：P0 枚举出 5 个 (实验, 指标)，P1 全部准入，P2 按实验分成 3 捆。语料本身就是本领域的核心风险 —— model-v2 的 accuracy 从 0.912 升到 0.925，但同一实验的 f1 从 0.881 掉到 0.879，而它的 f1 定义还换成了 micro-F1（口径不一致）。单看那个上升的数字就会得出「整体好转」的错误结论。锚点样例覆盖 正例（declared-locator / recomputed-unique / 实验级确认 / 记录以约定文档交回）、反例（转述不锚定、该实验没有这个指标、数值不符、口径不符、未知实验、无记录、kind 不符、行号矛盾）与歧义。",
+  "input": {
+    "format": "experiment-record",
+    "payload": {
+      "experiments": [
+        {
+          "id": "vision/model-v1",
+          "name": "resnet50 baseline run",
+          "seed": 42,
+          "dataset": {
+            "train": 50000,
+            "valid": 10000,
+            "test": 10000,
+            "splitsHash": "sha256:aaa"
+          },
+          "metrics": [
+            {
+              "name": "accuracy",
+              "value": 0.912,
+              "definition": "top-1 accuracy on the test split"
+            },
+            {
+              "name": "f1",
+              "value": 0.881,
+              "definition": "macro-F1 over the 10 classes"
+            }
+          ],
+          "baseline": {
+            "id": "vision/model-v0",
+            "metrics": [
+              {
+                "name": "accuracy",
+                "value": 0.901
+              },
+              {
+                "name": "f1",
+                "value": 0.87
+              }
+            ]
+          },
+          "hyperparams": {
+            "lr": 0.001,
+            "batch": 128
+          },
+          "budget": {
+            "steps": 100000,
+            "gpuHours": 12
+          }
+        },
+        {
+          "id": "vision/model-v2",
+          "name": "resnet50 with mixup",
+          "seed": 43,
+          "dataset": {
+            "train": 50000,
+            "valid": 10000,
+            "test": 10000,
+            "splitsHash": "sha256:bbb"
+          },
+          "metrics": [
+            {
+              "name": "accuracy",
+              "value": 0.925,
+              "definition": "top-1 accuracy on the test split"
+            },
+            {
+              "name": "f1",
+              "value": 0.879,
+              "definition": "micro-F1 over all classes"
+            }
+          ],
+          "baseline": {
+            "id": "vision/model-v1",
+            "metrics": [
+              {
+                "name": "accuracy",
+                "value": 0.912
+              },
+              {
+                "name": "f1",
+                "value": 0.881
+              }
+            ]
+          },
+          "hyperparams": {
+            "lr": 0.001,
+            "batch": 128,
+            "mixup": 0.2
+          },
+          "budget": {
+            "steps": 120000,
+            "gpuHours": 16
+          }
+        },
+        {
+          "id": "vision/model-v3",
+          "name": "auc probe",
+          "seed": 44,
+          "dataset": {
+            "train": 50000,
+            "valid": 10000,
+            "test": 10000,
+            "splitsHash": "sha256:ccc"
+          },
+          "metrics": [
+            {
+              "name": "auc",
+              "value": 0.71,
+              "definition": "ROC-AUC on the test split"
+            }
+          ],
+          "baseline": {
+            "id": "vision/model-v0",
+            "metrics": [
+              {
+                "name": "accuracy",
+                "value": 0.901
+              }
+            ]
+          },
+          "hyperparams": {
+            "lr": 0.0005,
+            "batch": 64
+          },
+          "budget": {
+            "steps": 60000,
+            "gpuHours": 7
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": [
+      "experiments/vision/model-v1/metrics.json",
+      "experiments/vision/model-v1/metrics.json",
+      "experiments/vision/model-v2/metrics.json",
+      "experiments/vision/model-v2/metrics.json",
+      "experiments/vision/model-v3/metrics.json"
+    ],
+    "admitted": 5,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "vision/model-v1",
+      "vision/model-v2",
+      "vision/model-v3"
+    ],
+    "bundles": 3,
+    "bundleSizes": {
+      "vision/model-v1": 2,
+      "vision/model-v2": 2,
+      "vision/model-v3": 1
+    },
+    "sameBundle": [
+      [
+        "vision/model-v2#metric#accuracy",
+        "vision/model-v2#metric#f1"
+      ]
+    ],
+    "noteFragments": [
+      "口径不一致",
+      "单题分数高不等于整体好转"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 正确行号 + 值也对得上 -> declared-locator：引擎确认了实验、指标、数值与行号，而不是采信模型。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy",
+            "value": 0.912,
+            "startLine": 4
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nseed = 42\ndataset = train:50000 valid:10000 test:10000 splits:sha256:aaa\nmetric accuracy = 0.912\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.881\nmetric f1.definition = macro-F1 over the 10 classes\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912,\"definition\":\"top-1 accuracy on the test split\"},{\"name\":\"f1\",\"value\":0.881,\"definition\":\"macro-F1 over the 10 classes\"}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912,
+                  "definition": "top-1 accuracy on the test split"
+                },
+                {
+                  "name": "f1",
+                  "value": 0.881,
+                  "definition": "macro-F1 over the 10 classes"
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912,\"definition\":\"top-1 accuracy on the test split\"},{\"name\":\"f1\",\"value\":0.881,\"definition\":\"macro-F1 over the 10 classes\"}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "experiments/vision/model-v1/metrics.json",
+        "expectStart": 4,
+        "expectCode": "metric-confirmed"
+      },
+      {
+        "note": "不给行号，原文在指名文档里唯一命中 -> recomputed-unique；记录以约定文档 experiments/records.json 随发现交回时，结构检查照样成立。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v2/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v2",
+            "metricName": "f1",
+            "value": 0.879
+          },
+          "excerpt": "metric f1 = 0.879"
+        },
+        "subject": {
+          "path": "experiments/vision/model-v2/metrics.json",
+          "documents": [
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v2\",\"metrics\":[{\"name\":\"f1\",\"value\":0.879,\"definition\":\"micro-F1 over all classes\"}]}]}"
+            },
+            {
+              "path": "experiments/vision/model-v2/metrics.json",
+              "content": "# experiment vision/model-v2 (resnet50 with mixup)\nseed = 43\ndataset = train:50000 valid:10000 test:10000 splits:sha256:bbb\nmetric accuracy = 0.925\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.879\nmetric f1.definition = micro-F1 over all classes\nbaseline = vision/model-v1"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "experiments/vision/model-v2/metrics.json",
+        "expectStart": 6,
+        "expectCode": "metric-confirmed"
+      },
+      {
+        "note": "指标级发现必须声明 experimentId 与 metricName；声明的口径也与记录一致 -> 通过。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v2/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v2",
+            "metricName": "f1",
+            "definition": "micro-F1 over all classes"
+          },
+          "excerpt": "metric f1.definition = micro-F1 over all classes"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v2/metrics.json",
+              "content": "# experiment vision/model-v2 (resnet50 with mixup)\nseed = 43\ndataset = train:50000 valid:10000 test:10000 splits:sha256:bbb\nmetric accuracy = 0.925\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.879\nmetric f1.definition = micro-F1 over all classes\nbaseline = vision/model-v1"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v2\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.925},{\"name\":\"f1\",\"value\":0.879,\"definition\":\"micro-F1 over all classes\"}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v2",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.925
+                },
+                {
+                  "name": "f1",
+                  "value": 0.879,
+                  "definition": "micro-F1 over all classes"
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v2\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.925},{\"name\":\"f1\",\"value\":0.879,\"definition\":\"micro-F1 over all classes\"}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "experiments/vision/model-v2/metrics.json",
+        "expectStart": 7,
+        "expectCode": "metric-confirmed"
+      },
+      {
+        "note": "实验级确认：没有 locator（adjudication_anchor 的参数里没有领域 locator），原文逐字存在且实验在记录里 —— 结论写明「指标未确认」。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v3/metrics.json",
+          "locator": {},
+          "excerpt": "metric auc = 0.71"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v3/metrics.json",
+              "content": "# experiment vision/model-v3 (auc probe)\nseed = 44\ndataset = train:50000 valid:10000 test:10000 splits:sha256:ccc\nmetric auc = 0.71\nmetric auc.definition = ROC-AUC on the test split\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v3\",\"metrics\":[{\"name\":\"auc\",\"value\":0.71}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v3",
+              "metrics": [
+                {
+                  "name": "auc",
+                  "value": 0.71
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v3\",\"metrics\":[{\"name\":\"auc\",\"value\":0.71}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "experiments/vision/model-v3/metrics.json",
+        "expectStart": 4,
+        "expectCode": "experiment-confirmed"
+      },
+      {
+        "note": "缩进与 diff 标记被容忍（只吞空白与前导 +/-），标点不吞。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "+\tmetric   accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nseed = 42\ndataset = train:50000 valid:10000 test:10000 splits:sha256:aaa\nmetric accuracy = 0.912\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.881\nmetric f1.definition = macro-F1 over the 10 classes\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "experiments/vision/model-v1/metrics.json",
+        "expectStart": 4,
+        "expectCode": "metric-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：意思一样、措辞是自己写的，就不是抄写。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "accuracy on the test split is 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nseed = 42\ndataset = train:50000 valid:10000 test:10000 splits:sha256:aaa\nmetric accuracy = 0.912\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.881\nmetric f1.definition = macro-F1 over the 10 classes\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      },
+      {
+        "note": "该实验没有这个指标（别的实验有同名指标也不算）-> metric-unconfirmed，并列出真实指标。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "recall"
+          },
+          "excerpt": "metric f1 = 0.881"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nseed = 42\ndataset = train:50000 valid:10000 test:10000 splits:sha256:aaa\nmetric accuracy = 0.912\nmetric accuracy.definition = top-1 accuracy on the test split\nmetric f1 = 0.881\nmetric f1.definition = macro-F1 over the 10 classes\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912},{\"name\":\"f1\",\"value\":0.881}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                },
+                {
+                  "name": "f1",
+                  "value": 0.881
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912},{\"name\":\"f1\",\"value\":0.881}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "metric-unconfirmed",
+        "expectKnownMetrics": [
+          "accuracy",
+          "f1"
+        ]
+      },
+      {
+        "note": "数值被四舍五入过（0.91 vs 0.912）-> value-mismatch：数字必须逐字对齐。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy",
+            "value": 0.91
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nmetric accuracy = 0.912\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "value-mismatch"
+      },
+      {
+        "note": "口径不符：声称 macro-F1，记录里 model-v1 的 f1 是 macro，但这条声明给的是 micro -> definition-mismatch。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "f1",
+            "definition": "micro-F1 over all classes"
+          },
+          "excerpt": "metric f1 = 0.881"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nmetric f1 = 0.881\nmetric f1.definition = macro-F1 over the 10 classes"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"f1\",\"value\":0.881,\"definition\":\"macro-F1 over the 10 classes\"}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "f1",
+                  "value": 0.881,
+                  "definition": "macro-F1 over the 10 classes"
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"f1\",\"value\":0.881,\"definition\":\"macro-F1 over the 10 classes\"}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "definition-mismatch"
+      },
+      {
+        "note": "记录里没有这个实验 -> unknown-experiment。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v9/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v9",
+            "metricName": "accuracy"
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v9/metrics.json",
+              "content": "metric accuracy = 0.912"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "unknown-experiment"
+      },
+      {
+        "note": "没有实验记录 -> 拒绝：指标锚点必须与 tracker 导出比对。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/vision/model-v1/metrics.json",
+          "content": "metric accuracy = 0.912\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-records"
+      },
+      {
+        "note": "锚点 kind 不符 -> kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "lineage-ref",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {},
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/vision/model-v1/metrics.json",
+          "content": "metric accuracy = 0.912\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch",
+        "expectCode": "kind-mismatch"
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch：不修补、不裁剪。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy",
+            "startLine": 99
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/model-v1/metrics.json",
+              "content": "# experiment vision/model-v1 (resnet50 baseline run)\nseed = 42\nmetric accuracy = 0.912\nbaseline = vision/model-v0"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一份记录卡里出现两次同一行 -> 位置不唯一，拒绝猜测。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/model-v1/metrics.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/vision/dup.json",
+              "content": "metric accuracy = 0.912\nmetric accuracy = 0.912"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "experiments/vision/dup.json:1",
+          "experiments/vision/dup.json:2"
+        ]
+      },
+      {
+        "note": "跨文档两处命中 -> 搬迁不唯一，拒绝猜测。",
+        "claim": {
+          "kind": "experiment-metric",
+          "path": "experiments/vision/moved.json",
+          "locator": {
+            "experimentId": "vision/model-v1",
+            "metricName": "accuracy"
+          },
+          "excerpt": "metric accuracy = 0.912"
+        },
+        "subject": {
+          "path": "experiments/records.json",
+          "documents": [
+            {
+              "path": "experiments/a.json",
+              "content": "metric accuracy = 0.912\n"
+            },
+            {
+              "path": "experiments/b.json",
+              "content": "metric accuracy = 0.912\n"
+            },
+            {
+              "path": "experiments/records.json",
+              "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}"
+            }
+          ],
+          "experiments": [
+            {
+              "id": "vision/model-v1",
+              "metrics": [
+                {
+                  "name": "accuracy",
+                  "value": 0.912
+                }
+              ]
+            }
+          ],
+          "content": "{\"experiments\":[{\"id\":\"vision/model-v1\",\"metrics\":[{\"name\":\"accuracy\",\"value\":0.912}]}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "experiments/a.json:1",
+          "experiments/b.json:1"
+        ]
+      }
+    ]
+  }
+}

@@ -78,7 +78,7 @@ dsh web --patch ./scratch.cordis.patch.yml
 | `adjudication_deactivate` | — | 卸载领域，注销其全部工具。用完就该卸载 |
 | `adjudication_plan` | P0–P3 | 确定性产出有界工作单：闸门准入/排除明细、分捆结果、逐捆注入的规则、预算边界 |
 | `adjudication_anchor` | P5 | 把模型抄写的原文定位到具体文档与行号 |
-| `adjudication_submit` | P6–P7 | 交回判定，独立复核并出覆盖度证明 |
+| `adjudication_submit` | P6–P7 | 交回判定：引擎重算锚点 → **P6 独立复核**（渲染并执行本领域的 `reviewPrompts.verify`，结果在 `review.verify`）→ 按损失取向取舍 → 出覆盖度证明 |
 
 ### 领域工具（激活后才存在）
 
@@ -135,6 +135,23 @@ dsh web --patch ./scratch.cordis.patch.yml
 还有一层保护：`security` / `privacy` / `safety` / `data-loss` / `legal` 这类**受保护主题在两种取向下都先于正确性判断被保留**，先否决再谈对错。
 
 > 一个 recall-first 领域的覆盖率若不完整，`adjudication_submit` 会把它标成**未通过**，而不是一个可以忽略的百分比。
+
+### P6 独立复核：跑在哪、看得到什么、看不到什么（t41 起）
+
+`adjudication_submit` 的阶段顺序是固定的：
+
+```
+P5 锚点重算 → P6 独立复核（渲染并执行本领域的 reviewPrompts.verify）→ 损失策略取舍（保留/删除）→ P7 覆盖度
+```
+
+- **P6 只产出裁决，不决定准入**：保留/删除仍然由上面那个「最危险的旋钮」`lossOrientation` 与受保护主题决定。P6 的裁决报在 `review.verify.verdicts` 里，供人看、供断言。
+- **P6 只能看到发现清单**：上下文逐键构造，只含契约声明的 `{domain, pack, target, orientation, findings}`——没有规则原文、没有本轮工作单、没有 P4 的推理过程。
+- **P6 拿不到领域取证工具**：子代理请求显式带 `toolFilter: { allow: [] }`。独立复核不该用被复核的那套工具再查一遍。
+- **降级不静默**：宿主没有 `ctx.subagents`/`ctx.llm` 时 `review.verify.ran === false` 并给出原因（报告里仍打出 P6 段——「没跑」与「跑过且通过」在文本上必须可区分）；预算耗尽、取消、子代理未 `completed` 各有稳定 code，**绝不当成「没有被推翻的发现」**。
+- **折 verdict 到 finding 有白名单**：`path/start/end/anchored/anchorTier/anchorVia/anchorLocator` 加上域自己的元数据 `code/detail/tier/locator/scope/stale/staleCheck/ambiguousIn/ref/refDomain/refForm/refBasis/refBasisDetail`。白名单而非展开，是为了让 P4 的材料从 finding 上**不可达**。
+- **跑没跑，读机器可读字段**：`adjudication_submit` 返回 `review.verify`（`ran / mode / degraded / code / rounds / contextFields / prompt.source / toolFilter / verdicts / errors / reason`），不要解析 summary 文本。
+
+> 这一节之所以存在：在 t41 之前，`reviewPrompts.verify` **全仓没有任何运行期渲染者**——声明、契约校验、装载都在，运行期没人渲染；名为「P6」的那段代码是确定性损失策略，一个字都不读提示词。于是 19 个域里那条「P6 文本 ≠ P4 文本」的自断言在生产路径上永远无法触发。契约 §1.4 记录了修法与断言。
 
 ---
 

@@ -1,0 +1,358 @@
+{
+  "name": "happy-path",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "两条工作流（cart / search）的任务图：边与节点都齐全，无环、无孤儿、无未登记依赖目标。purpose 是给分捆与规则注入一个真实的多工作流样本 —— 同一条依赖链上的任务必须落在同一捆，否则跨任务的环无法被看见。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "project/plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 4096,
+            "workstream": "cart"
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "T1",
+                "title": "购物车数据模型",
+                "owner": "alice",
+                "estimateDays": 3,
+                "status": "done",
+                "team": "cart"
+              },
+              {
+                "id": "T2",
+                "title": "购物车合并逻辑",
+                "owner": "alice",
+                "estimateDays": 5,
+                "status": "doing",
+                "team": "cart",
+                "dependsOn": [
+                  "T1"
+                ]
+              },
+              {
+                "id": "T3",
+                "title": "结算页对接",
+                "owner": "bob",
+                "estimateDays": 4,
+                "status": "todo",
+                "team": "cart",
+                "dependsOn": [
+                  "T2"
+                ]
+              },
+              {
+                "id": "T7",
+                "title": "搜索索引重建",
+                "owner": "carol",
+                "estimateDays": 6,
+                "status": "todo",
+                "team": "search",
+                "dependsOn": [
+                  "T1"
+                ]
+              },
+              {
+                "id": "T8",
+                "title": "搜索排序调优",
+                "owner": "carol",
+                "estimateDays": 3,
+                "status": "todo",
+                "team": "search",
+                "dependsOn": [
+                  "T7",
+                  "T1"
+                ]
+              }
+            ],
+            "milestones": [
+              {
+                "id": "M1",
+                "title": "购物车上线",
+                "due": "2026-11-30",
+                "tasks": [
+                  "T3"
+                ]
+              },
+              {
+                "id": "M2",
+                "title": "搜索改版",
+                "due": "2026-12-15",
+                "tasks": [
+                  "T8"
+                ]
+              }
+            ],
+            "risks": [
+              {
+                "id": "R1",
+                "trigger": "合作方结算接口延期交付",
+                "impact": "结算页无法联调，T3 阻塞",
+                "mitigation": "10-15 前索取接口契约，否则切到降级方案",
+                "owners": [
+                  "bob"
+                ]
+              },
+              {
+                "id": "R2",
+                "trigger": "索引重建耗时超过 6 小时窗口",
+                "impact": "搜索改版上线时间顺延",
+                "mitigation": "先在预发环境实测重建耗时，超出则拆窗",
+                "owners": [
+                  "carol"
+                ]
+              }
+            ],
+            "owners": [
+              {
+                "id": "alice",
+                "name": "Alice",
+                "teams": [
+                  "cart"
+                ]
+              },
+              {
+                "id": "bob",
+                "name": "Bob",
+                "teams": [
+                  "cart"
+                ]
+              },
+              {
+                "id": "carol",
+                "name": "Carol",
+                "teams": [
+                  "search"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 14,
+    "paths": [
+      "project/plan-t2-t1.json",
+      "project/plan-t3-t2.json",
+      "project/plan-t7-t1.json",
+      "project/plan-t8-t7.json",
+      "project/plan-t8-t1.json",
+      "project/plan-task-t1.json",
+      "project/plan-task-t2.json",
+      "project/plan-task-t3.json",
+      "project/plan-task-t7.json",
+      "project/plan-task-t8.json",
+      "project/plan-risk-r1.json",
+      "project/plan-risk-r2.json",
+      "project/plan-milestone-m1.json",
+      "project/plan-milestone-m2.json"
+    ],
+    "admitted": 14,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "doc/project/plan.json",
+      "ws/cart",
+      "ws/search"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "T2 依赖 T1 —— 这条边在图上存在且方向一致，逐字核对 ID 后确认。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T2",
+            "to": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "T8 依赖 T7 —— 同一条工作流内的普通边，也必须能重算。 （tier 判据已对齐其余 9 域：locator 自带本域所需字段且图核验通过 -> declared-locator。）",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T8",
+            "to": "T7"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T7"
+                  },
+                  {
+                    "id": "T8",
+                    "dependsOn": [
+                      "T7",
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：模型写的是一句听起来正确的话，没有声明 claim kind，因此引擎无法确认任何东西。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "prose",
+            "text": "T4 与 T2 之间存在阻塞关系"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T2"
+                  },
+                  {
+                    "id": "T4",
+                    "dependsOn": [
+                      "T2"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch"
+      },
+      {
+        "note": "方向相反：图上存在的是 T1 → T2（T2 依赖 T1），声明写成 T1 依赖 T2。方向是这条边的一半，不接受「反正它们有关系」。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T1",
+            "to": "T2"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "ID 逐字：模型把 T1 写成 t1。图是小写不敏感的数据库不会发生这种事，但导出/粘贴会 —— 逐字比较必须拒绝，而不是大小写折叠后放行。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T2",
+            "to": "t1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

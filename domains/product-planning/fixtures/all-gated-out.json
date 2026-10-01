@@ -1,0 +1,124 @@
+{
+  "name": "all-gated-out",
+  "domain": "product-planning",
+  "format": "requirement-registry-and-plan",
+  "input": {
+    "format": "requirement-registry-and-plan",
+    "payload": {
+      "requirements": [
+        {
+          "id": "req-draft",
+          "title": "这条需求还没确认",
+          "status": "proposed"
+        },
+        {
+          "id": "req-unserved",
+          "title": "这条需求没确认也没人承接",
+          "status": "proposed"
+        },
+        {
+          "id": "req-shadow",
+          "title": "这条需求已作废",
+          "status": "rejected"
+        }
+      ],
+      "plans": [
+        {
+          "id": "plan-draft",
+          "title": "承接未确认需求的方案",
+          "serves": [
+            "req-draft"
+          ],
+          "metric": {
+            "name": "未确认指标",
+            "baseline": 1,
+            "target": 2,
+            "window": "2026 Q1"
+          }
+        },
+        {
+          "id": "plan-attach",
+          "title": "只有附件的方案",
+          "serves": [],
+          "attachments": [
+            {
+              "name": "spec.pdf",
+              "bytes": 2048
+            }
+          ]
+        },
+        {
+          "id": "plan-shadow",
+          "title": "承接作废需求的方案",
+          "serves": [
+            "req-shadow"
+          ],
+          "metric": null
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": [
+      "plans/plan-attach/orphan",
+      "plans/plan-draft/serves/req-draft",
+      "plans/plan-shadow/serves/req-shadow",
+      "requirements/req-unserved/orphan"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "deleted": [
+        "plans/plan-draft/serves/req-draft",
+        "plans/plan-shadow/serves/req-shadow",
+        "requirements/req-unserved/orphan"
+      ],
+      "binary": [
+        "plans/plan-attach/orphan"
+      ]
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "闸门排除未确认需求，但需求原文本身仍可锚定",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-draft",
+          "locator": {
+            "startLine": 1
+          },
+          "excerpt": "这条需求还没确认"
+        },
+        "subject": {
+          "path": "requirements/req-draft",
+          "content": "这条需求还没确认",
+          "metrics": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "指标没有人在方案里声明 -> 未锚定（「提升 X%」型目标不成立）",
+        "claim": {
+          "kind": "requirement-and-metric",
+          "path": "requirements/req-draft",
+          "locator": {
+            "metricName": "拍脑袋指标"
+          },
+          "excerpt": "这条需求还没确认"
+        },
+        "subject": {
+          "path": "requirements/req-draft",
+          "content": "这条需求还没确认",
+          "metrics": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

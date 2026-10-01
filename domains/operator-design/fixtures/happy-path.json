@@ -1,0 +1,235 @@
+{
+  "name": "happy-path",
+  "domain": "operator-design",
+  "format": "operator-registry-and-tests",
+  "description": "两个算子共 8 个形态，其中 5 个产出了候选：my_op 的 bf16 两个形态完全没有测试（uncovered-form），cuda/fp32/strided 有测试但没有可用容差（missing-tolerance）；fast_scan 的 cpu 后端两个 dtype 完全没有测试。按实现文件分捆后是 2 捆，my_op.cu 一捆 3 条 —— 用于证明 P2 真的按算子分捆。同时也证明「已覆盖」的形态不会产出候选：my_op 的 cuda/fp32/contiguous 和 fast_scan 的 cuda 两个 dtype 都有带容差的测试，一条都没提。",
+  "input": {
+    "format": "operator-registry-and-tests",
+    "payload": {
+      "operators": [
+        {
+          "name": "my_op",
+          "signature": "void my_op(const Tensor& x, int axis)",
+          "backends": ["cuda"],
+          "dtypes": ["fp32", "bf16"],
+          "shapeBranches": ["contiguous", "strided"],
+          "path": "src/ops/my_op.cu",
+          "source": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}"
+        },
+        {
+          "name": "fast_scan",
+          "signature": "void fast_scan(const Tensor& x)",
+          "backends": ["cuda", "cpu"],
+          "dtypes": ["fp32", "fp64"],
+          "shapeBranches": ["contiguous"],
+          "path": "src/ops/scan.cu",
+          "source": "// scan kernel\nvoid fast_scan(const Tensor& x) {\n}"
+        }
+      ],
+      "tests": [
+        { "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": { "atol": 1e-5, "rtol": 1e-4 }, "asserted": true },
+        { "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shape": "strided", "tolerance": null, "asserted": true },
+        { "operator": "fast_scan", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": { "atol": 1e-6 }, "asserted": true },
+        { "operator": "fast_scan", "backend": "cuda", "dtype": "fp64", "shape": "contiguous", "tolerance": { "rtol": 1e-9 }, "asserted": true }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": ["src/ops/my_op.cu", "src/ops/my_op.cu", "src/ops/my_op.cu", "src/ops/scan.cu", "src/ops/scan.cu"],
+    "admitted": 5,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["src/ops/my_op.cu", "src/ops/scan.cu"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "未覆盖形态：签名在实现里逐字锚定，且测试清单确实没有任何覆盖 cuda/bf16/contiguous 的条目 —— 缺口主张成立。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "bf16", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}",
+          "operators": [
+            {
+              "name": "my_op",
+              "signature": "void my_op(const Tensor& x, int axis)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32", "bf16"],
+              "shapeBranches": ["contiguous", "strided"]
+            }
+          ],
+          "tests": [
+            { "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": { "atol": 1e-5 }, "asserted": true }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      },
+      {
+        "note": "缺容差形态：有测试，但 tolerance 为 null —— 「没有容差断言」的主张由清单正面支持。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shapeBranch": "strided", "findingKind": "missing-tolerance" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}",
+          "operators": [
+            {
+              "name": "my_op",
+              "signature": "void my_op(const Tensor& x, int axis)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32", "bf16"],
+              "shapeBranches": ["contiguous", "strided"]
+            }
+          ],
+          "tests": [
+            { "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shape": "strided", "tolerance": null, "asserted": true }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "测试清单正面否定：该形态已有带可用容差的测试，「未覆盖」的主张与清单矛盾，必须判未锚定。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}",
+          "operators": [
+            {
+              "name": "my_op",
+              "signature": "void my_op(const Tensor& x, int axis)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32", "bf16"],
+              "shapeBranches": ["contiguous", "strided"]
+            }
+          ],
+          "tests": [
+            { "operator": "my_op", "backend": "cuda", "dtype": "fp32", "shape": "contiguous", "tolerance": { "atol": 1e-5 }, "asserted": true }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "注册表不声明这个后端：形态本身不存在，发现落在了一个注册表里没有的形态上，判未锚定。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "rocm", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}",
+          "operators": [
+            {
+              "name": "my_op",
+              "signature": "void my_op(const Tensor& x, int axis)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32", "bf16"],
+              "shapeBranches": ["contiguous", "strided"]
+            }
+          ],
+          "tests": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "没有测试清单：「未覆盖」这个主张没有可核验的基准。无法核验不是成立，必须判未锚定。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "bf16", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}",
+          "operators": [
+            {
+              "name": "my_op",
+              "signature": "void my_op(const Tensor& x, int axis)",
+              "backends": ["cuda"],
+              "dtypes": ["fp32", "bf16"],
+              "shapeBranches": ["contiguous", "strided"]
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "转述不锚定：把参数名 x 写成 input，逐字比对必然落空。锚点只承认抄写。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "bf16", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& input, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "// my_op kernel\nvoid my_op(const Tensor& x, int axis) {\n  // contiguous path\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一份实现里签名出现两次也不猜：位置不唯一一律未锚定，请复核者补足上下文。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/my_op.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/my_op.cu", "operator": "my_op", "backend": "cuda", "dtype": "bf16", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "path": "src/ops/my_op.cu",
+          "content": "void my_op(const Tensor& x, int axis) {\n}\nvoid my_op(const Tensor& x, int axis) {\n}\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/ops/my_op.cu:1", "src/ops/my_op.cu:3"]
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：声明路径不在可比对集合里，原文在另外两个文件里各命中一次。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "src/ops/gone.cu",
+          "locator": { "kind": "operator-form", "path": "src/ops/gone.cu", "operator": "my_op", "backend": "cuda", "dtype": "bf16", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void my_op(const Tensor& x, int axis) {"
+        },
+        "subject": {
+          "documents": [
+            { "path": "src/ops/a.cu", "content": "void my_op(const Tensor& x, int axis) {\n}\n" },
+            { "path": "src/ops/b.cu", "content": "void my_op(const Tensor& x, int axis) {\n}\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/ops/a.cu:1", "src/ops/b.cu:1"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "name": "all-gated-out",
+  "domain": "user-feedback",
+  "format": "feedback-ledger",
+  "description": "P0 枚举出候选、P1 把每一条都排除：五份台账分别命中 deleted / binary / extension / user-exclude 四个闸门谓词，准入 0。用来证明「枚举到空」与「被闸门清空」在 plan 里是两个可分辨的状态。",
+  "input": {
+    "format": "feedback-ledger",
+    "payload": {
+      "documents": [
+        {
+          "path": "feedback/legacy-ledger.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 2048,
+            "deleted": true
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-9001",
+                "quote": "旧版导入的一条反馈原话内容"
+              },
+              {
+                "id": "fb-9002",
+                "quote": "另一条来自旧版的数据记录"
+              }
+            ],
+            "decisions": []
+          }
+        },
+        {
+          "path": "feedback/attachments/screenshot-media.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 1024,
+            "binary": true
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-9003",
+                "quote": "截图附件的占位记录内容"
+              }
+            ],
+            "decisions": []
+          }
+        },
+        {
+          "path": "feedback/notes/raw-export.txt",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 512
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-9004",
+                "quote": "尚未结构化的一份导出内容"
+              }
+            ],
+            "decisions": []
+          }
+        },
+        {
+          "path": "node_modules/feedback-tool/export.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 8192
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-9005",
+                "quote": "第三方工具生成的缓存记录"
+              }
+            ],
+            "decisions": []
+          }
+        },
+        {
+          "path": "archived/2024-ledger.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 8192
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-9006",
+                "quote": "已归档年份的一条反馈"
+              }
+            ],
+            "decisions": []
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "feedback/legacy-ledger-fb-9001.json",
+      "feedback/legacy-ledger-fb-9002.json",
+      "feedback/attachments/screenshot-media-fb-9003.json",
+      "feedback/notes/raw-export-fb-9004.txt",
+      "node_modules/feedback-tool/export-fb-9005.json",
+      "archived/2024-ledger-fb-9006.json"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "deleted": [
+        "feedback/legacy-ledger-fb-9001.json",
+        "feedback/legacy-ledger-fb-9002.json"
+      ],
+      "binary": [
+        "feedback/attachments/screenshot-media-fb-9003.json"
+      ],
+      "extension": [
+        "feedback/notes/raw-export-fb-9004.txt"
+      ],
+      "user-exclude": [
+        "archived/2024-ledger-fb-9006.json",
+        "node_modules/feedback-tool/export-fb-9005.json"
+      ]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "闸门把这份文档排除了，但验证器只按台账事实裁决——被排除不等于不成立，这条确实是无人处理的。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/notes/raw-export.txt",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-9004"
+          }
+        },
+        "subject": {
+          "path": "feedback/notes/raw-export.txt",
+          "documents": [
+            {
+              "path": "feedback/notes/raw-export.txt",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-9004",
+                    "quote": "尚未结构化的一份导出内容"
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator"
+      }
+    ],
+    "negative": [
+      {
+        "note": "fb-9004 在台账里是有记录的，声称它是失效链接与事实相反。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/notes/raw-export.txt",
+          "locator": {
+            "kind": "unregistered-reference",
+            "referencedId": "fb-9004",
+            "referrerId": "fb-9004"
+          }
+        },
+        "subject": {
+          "path": "feedback/notes/raw-export.txt",
+          "documents": [
+            {
+              "path": "feedback/notes/raw-export.txt",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-9004",
+                    "quote": "尚未结构化的一份导出内容"
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "被闸门排除的候选照样可以问：这个 ID 不在这份台账里。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/legacy-ledger.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-9999"
+          }
+        },
+        "subject": {
+          "path": "feedback/legacy-ledger.json",
+          "documents": [
+            {
+              "path": "feedback/legacy-ledger.json",
+              "payload": {
+                "feedback": [],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

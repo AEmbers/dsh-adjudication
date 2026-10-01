@@ -1,0 +1,72 @@
+{
+  "name": "empty",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "空任务图：没有任何任务、依赖边、里程碑或风险。P0 必须产出空集（合法结论），P1 全空，工作单必须说「这本身就是结论」，而不是让模型凭空评审一张不存在的计划。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "planPath": "project/plan.json",
+      "tasks": [],
+      "milestones": [],
+      "risks": [],
+      "idSpace": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空语料下唯一成立的锚点是「拒绝」：没有图就没有可重算的边。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "T1",
+            "to": "T2"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents"
+      }
+    ],
+    "negative": [
+      {
+        "note": "ID 为空的声明永远不是锚点。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "",
+            "to": "T2"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ]
+  }
+}

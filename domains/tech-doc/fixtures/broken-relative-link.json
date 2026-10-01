@@ -1,0 +1,86 @@
+{
+  "name": "broken-relative-link",
+  "domain": "tech-doc",
+  "format": "doc-corpus-and-api-surface",
+  "description": "链接断言这一类候选的最小案例：一篇文档的两个段落各含一条相对链接，候选就是这两条链接本身——它们可机械核验（目标路径存在与否），因此能被提出来；同一段落里「Point the client at …」这类散文句子不会被变成候选。",
+  "input": {
+    "format": "doc-corpus-and-api-surface",
+    "payload": {
+      "documents": [
+        {
+          "path": "docs/guide/setup.md",
+          "title": "Setup",
+          "sections": [
+            { "anchor": "config", "text": "Point the client at your config with [config](../config.md)." },
+            { "anchor": "troubleshooting", "text": "If the client fails to start, see [the troubleshooting page](./troubleshooting.md)." }
+          ]
+        }
+      ],
+      "api": []
+    }
+  },
+  "expect": {
+    "candidates": 2,
+    "paths": ["docs/guide/setup.md", "docs/guide/setup.md"],
+    "admitted": 2,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "链接断言逐字锚定后，复核者才能对着它回答「这个目标文件存在吗」。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/guide/setup.md",
+          "locator": { "docPath": "docs/guide/setup.md", "anchor": "config", "claimKind": "link" },
+          "excerpt": "Point the client at your config with [config](../config.md)."
+        },
+        "subject": {
+          "path": "docs/guide/setup.md",
+          "content": "Point the client at your config with [config](../config.md).\nIf the client fails to start, see [the troubleshooting page](./troubleshooting.md).\n",
+          "sections": [{ "anchor": "config" }, { "anchor": "troubleshooting" }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把链接文字改掉（`[config]` → `[the config file]`），即使读者一看就懂指的是同一处，锚点也不认。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/guide/setup.md",
+          "locator": { "docPath": "docs/guide/setup.md", "anchor": "config", "claimKind": "link" },
+          "excerpt": "Point the client at your config with [the config file](../config.md)."
+        },
+        "subject": {
+          "path": "docs/guide/setup.md",
+          "content": "Point the client at your config with [config](../config.md).\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一条链接在同一篇文档里出现两次时不猜位置：交给复核者补足上下文。",
+        "claim": {
+          "kind": "section-and-signature",
+          "path": "docs/guide/setup.md",
+          "locator": { "docPath": "docs/guide/setup.md", "anchor": "config", "claimKind": "link" },
+          "excerpt": "See [config](../config.md)."
+        },
+        "subject": {
+          "path": "docs/guide/setup.md",
+          "content": "See [config](../config.md).\nSee [config](../config.md).\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["docs/guide/setup.md:1", "docs/guide/setup.md:2"]
+      }
+    ]
+  }
+}

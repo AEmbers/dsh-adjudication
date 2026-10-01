@@ -1,0 +1,222 @@
+{
+  "name": "all-gated-out",
+  "domain": "project-management",
+  "format": "task-graph",
+  "description": "每一类 P1 闸门至少命中一次，6 个候选里 5 个被排除，且各自由不同的谓词排除。用途是证明两件事：闸门谓词是文档级的（图域也必须能被文件级闸门治理），以及「P0 产出为空」与「P1 排除了几乎全部」在 plan 里是可区分的。注：`project/notes/untracked.txt` 的候选在被 extension 谓词排除之前，**还有一条被 P0 源头排除的边**（已下线计划里的 X1 → X2），因此这里同时验证了 source 级排除与 gate 级排除是两条可区分的路径。",
+  "input": {
+    "format": "task-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "project/legacy-plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 2048,
+            "deleted": true
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "X1",
+                "title": "已下线计划里的任务",
+                "owner": "alice",
+                "estimateDays": 2,
+                "status": "todo",
+                "dependsOn": [
+                  "X2"
+                ]
+              },
+              {
+                "id": "X2",
+                "title": "已下线计划里的上游",
+                "owner": "bob",
+                "estimateDays": 1,
+                "status": "todo"
+              }
+            ]
+          }
+        },
+        {
+          "path": "project/attachments/board-media.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 1024,
+            "binary": true
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "B1",
+                "title": "只登记在白板照片里的任务",
+                "owner": "carol",
+                "status": "todo",
+                "attachmentOnly": true
+              }
+            ]
+          }
+        },
+        {
+          "path": "project/notes/untracked.txt",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 512
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "N1",
+                "title": "写在记事本里的任务",
+                "owner": "dave",
+                "estimateDays": 1,
+                "status": "todo"
+              }
+            ]
+          }
+        },
+        {
+          "path": "node_modules/pm-tool/export.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 8192
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "Z1",
+                "title": "第三方工具自带的样例任务",
+                "owner": "tool",
+                "estimateDays": 1,
+                "status": "todo"
+              }
+            ]
+          }
+        },
+        {
+          "path": "archived/2025-plan.json",
+          "type": "task-graph",
+          "meta": {
+            "bytes": 8192
+          },
+          "payload": {
+            "tasks": [
+              {
+                "id": "A1",
+                "title": "上个季度归档的计划",
+                "owner": "erin",
+                "estimateDays": 1,
+                "status": "todo"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "project/legacy-plan-task-x1.json",
+      "project/legacy-plan-task-x2.json",
+      "project/attachments/board-media-task-b1.json",
+      "project/notes/untracked-task-n1.txt",
+      "node_modules/pm-tool/export-task-z1.json",
+      "archived/2025-plan-task-a1.json"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "extension": [
+        "project/notes/untracked-task-n1.txt"
+      ],
+      "binary": [
+        "project/attachments/board-media-task-b1.json"
+      ],
+      "deleted": [
+        "project/legacy-plan-task-x1.json",
+        "project/legacy-plan-task-x2.json"
+      ],
+      "user-exclude": [
+        "archived/2025-plan-task-a1.json",
+        "node_modules/pm-tool/export-task-z1.json"
+      ]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除不影响锚点重算 —— 锚点验证的是图上的事实，不是准入决定。这条边在图里真实存在。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/legacy-plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "X1",
+            "to": "X2"
+          }
+        },
+        "subject": {
+          "path": "project/legacy-plan.json",
+          "documents": [
+            {
+              "path": "project/legacy-plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "X1",
+                    "dependsOn": [
+                      "X2"
+                    ]
+                  },
+                  {
+                    "id": "X2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/legacy-plan.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "图上只有 X1 → X2，声明写成 X2 依赖 X1。反向边必须被判矛盾。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/legacy-plan.json",
+          "locator": {
+            "kind": "task-edge",
+            "from": "X2",
+            "to": "X1"
+          }
+        },
+        "subject": {
+          "path": "project/legacy-plan.json",
+          "documents": [
+            {
+              "path": "project/legacy-plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "X1",
+                    "dependsOn": [
+                      "X2"
+                    ]
+                  },
+                  {
+                    "id": "X2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "name": "all-gated-out",
+  "domain": "requirement-research",
+  "format": "interview-corpus",
+  "input": {
+    "format": "interview-corpus",
+    "payload": {
+      "sessions": [
+        {
+          "id": "s1",
+          "participant": {
+            "id": "p1",
+            "role": "ops-lead"
+          },
+          "startedAt": "2026-01-06T09:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-01-06T09:00:00Z",
+              "speaker": "participant",
+              "text": "这句已经脱敏，不能作为文本材料。",
+              "redacted": true
+            }
+          ]
+        },
+        {
+          "id": "s2",
+          "participant": {
+            "id": "p2",
+            "role": "ops-lead"
+          },
+          "startedAt": "2026-01-06T10:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-01-06T10:00:00Z",
+              "speaker": "participant",
+              "text": "这位受访者撤回了授权。",
+              "withdrawn": true
+            }
+          ]
+        },
+        {
+          "id": "retracted",
+          "participant": {
+            "id": "p3",
+            "role": "analyst"
+          },
+          "startedAt": "2026-01-06T11:00:00Z",
+          "utterances": [
+            {
+              "t": "2026-01-06T11:00:00Z",
+              "speaker": "participant",
+              "text": "这项研究后来被撤回了。"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 3,
+    "paths": [
+      "sessions/retracted/u1",
+      "sessions/s1/u1",
+      "sessions/s2/u1"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "binary": [
+        "sessions/s1/u1"
+      ],
+      "deleted": [
+        "sessions/s2/u1"
+      ],
+      "user-exclude": [
+        "sessions/retracted/u1"
+      ]
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "脱敏与否不影响锚点重算：锚点验证的是「这句话在不在语料里」",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {
+            "utteranceIndex": 1,
+            "t": "2026-01-06T09:00:00Z"
+          },
+          "excerpt": "这句已经脱敏，不能作为文本材料。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "这句已经脱敏，不能作为文本材料。",
+          "times": [
+            "2026-01-06T09:00:00Z"
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "已脱敏材料上的转述引用同样不锚定 —— 闸门排除与否不改变逐字规则",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {},
+          "excerpt": "这句话脱敏了，所以不能引用。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "这句已经脱敏，不能作为文本材料。",
+          "times": [
+            "2026-01-06T09:00:00Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

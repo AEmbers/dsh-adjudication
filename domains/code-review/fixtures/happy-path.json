@@ -1,0 +1,143 @@
+{
+  "name": "happy-path",
+  "domain": "code-review",
+  "format": "unified-diff",
+  "description": "多文件变更：5 个受支持的文件、6 个 hunk，跨 src/ 与 pkg/ 两个目录，用于触发 P2 分捆（不是一捆）。规则注入必须按 hunk 的路径选取。",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/src/app.ts b/src/app.ts\nindex 1111111..2222222 100644\n--- a/src/app.ts\n+++ b/src/app.ts\n@@ -1,4 +1,6 @@\n import { sum } from './util/format'\n \n-const total = sum(items)\n+const total = sum(items)\n+const average = total / Math.max(items.length, 1)\n console.log(total)\ndiff --git a/src/util/format.ts b/src/util/format.ts\nindex 3333333..4444444 100644\n--- a/src/util/format.ts\n+++ b/src/util/format.ts\n@@ -8,4 +8,6 @@ export function sum(values) {\n   let total = 0\n   for (const value of values) total += value\n-  return total\n+  if (!Number.isFinite(total)) return 0\n+  return total\n }\ndiff --git a/src/util/parse.ts b/src/util/parse.ts\nindex 5555555..6666666 100644\n--- a/src/util/parse.ts\n+++ b/src/util/parse.ts\n@@ -1,3 +1,4 @@\n export function parse(raw) {\n-  return JSON.parse(raw)\n+  try {\n+    return JSON.parse(raw)\n+  } catch {\n+    return null\n+  }\n }\ndiff --git a/pkg/queue/worker.go b/pkg/queue/worker.go\nindex 7777777..8888888 100644\n--- a/pkg/queue/worker.go\n+++ b/pkg/queue/worker.go\n@@ -12,4 +12,6 @@ func (w *Worker) Run(ctx context.Context) error {\n \tfor {\n \t\tjob, err := w.queue.Pop(ctx)\n+\t\tif err != nil {\n+\t\t\treturn err\n+\t\t}\n \t\tw.handle(job)\n \t}\n }\ndiff --git a/pkg/queue/retry.go b/pkg/queue/retry.go\nindex 9999999..aaaaaaa 100644\n--- a/pkg/queue/retry.go\n+++ b/pkg/queue/retry.go\n@@ -3,3 +3,4 @@ package queue\n \n func backoff(attempt int) time.Duration {\n \treturn time.Second * time.Duration(attempt)\n }\n+\n",
+      "files": [
+        { "path": "src/app.ts", "bytes": 320, "status": "modified", "additions": 2, "deletions": 1 },
+        { "path": "src/util/format.ts", "bytes": 410, "status": "modified", "additions": 2, "deletions": 1 },
+        { "path": "src/util/parse.ts", "bytes": 260, "status": "modified", "additions": 4, "deletions": 1 },
+        { "path": "pkg/queue/worker.go", "bytes": 380, "status": "modified", "additions": 3, "deletions": 0 },
+        { "path": "pkg/queue/retry.go", "bytes": 190, "status": "modified", "additions": 1, "deletions": 0 }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": ["pkg/queue/retry.go", "pkg/queue/worker.go", "src/app.ts", "src/util/format.ts", "src/util/parse.ts"],
+    "admitted": 5,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["pkg", "src"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 声明的文件行号正确 -> declared-locator。行号必须与抄写内容同时成立，才叫「确认」。",
+        "claim": { "kind": "diff-line", "path": "src/util/format.ts", "locator": { "hunkIndex": 0, "startLine": 4, "side": "new" }, "excerpt": "  if (!Number.isFinite(total)) return 0" },
+        "subject": {
+          "path": "src/util/format.ts",
+          "documents": [
+            {
+              "path": "src/util/format.ts",
+              "content": "export function sum(values) {\n  let total = 0\n  for (const value of values) total += value\n  if (!Number.isFinite(total)) return 0\n  return total\n}\n"
+            },
+            {
+              "path": "src/app.ts",
+              "content": "import { sum } from './util/format'\n\nconst total = sum(items)\nconst average = total / Math.max(items.length, 1)\nconsole.log(total)\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 4
+      },
+      {
+        "note": "不给行号，靠唯一命中重算 -> recomputed-unique。",
+        "claim": { "kind": "diff-line", "path": "pkg/queue/worker.go", "locator": { "side": "new" }, "excerpt": "\t\tif err != nil {\n\t\t\treturn err\n\t\t}" },
+        "subject": {
+          "path": "pkg/queue/worker.go",
+          "documents": [
+            {
+              "path": "pkg/queue/worker.go",
+              "content": "package queue\n\nfunc (w *Worker) Run(ctx context.Context) error {\n\tfor {\n\t\tjob, err := w.queue.Pop(ctx)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tw.handle(job)\n\t}\n}\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 6
+      },
+      {
+        "note": "声明的文件不在文档集中，但原文在唯一的另一个文件里 -> relocated-unique。",
+        "claim": { "kind": "diff-line", "path": "src/moved-here.ts", "locator": {}, "excerpt": "const average = total / Math.max(items.length, 1)" },
+        "subject": {
+          "path": "src/moved-here.ts",
+          "documents": [
+            { "path": "src/app.ts", "content": "const total = sum(items)\nconst average = total / Math.max(items.length, 1)\n" },
+            { "path": "src/other.ts", "content": "const unrelated = 1\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "src/app.ts",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述：把 sum 写成 add、去掉分号后的空格差别之外还改了标识符 —— 逐字不匹配，必须未锚定，不许模糊匹配救它。",
+        "claim": { "kind": "diff-line", "path": "src/app.ts", "locator": { "startLine": 3, "side": "new" }, "excerpt": "const total = add(items)" },
+        "subject": {
+          "path": "src/app.ts",
+          "documents": [
+            { "path": "src/app.ts", "content": "import { sum } from './util/format'\n\nconst total = sum(items)\nconst average = total / Math.max(items.length, 1)\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "跨文件歧义：同一行在多个文件里逐字出现，且声明的文件不在文档集中 —— 唯一命中才有资格搬迁，必须拒绝猜测。",
+        "claim": { "kind": "diff-line", "path": "src/unknown.ts", "locator": {}, "excerpt": "  return total" },
+        "subject": {
+          "path": "src/unknown.ts",
+          "documents": [
+            { "path": "src/util/format.ts", "content": "  return total\n" },
+            { "path": "src/util/stats.ts", "content": "  return total\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["src/util/format.ts:1", "src/util/stats.ts:1"]
+      },
+      {
+        "note": "行号与原文矛盾：声明第 1 行，但第 1 行不是这段原文 —— locator-mismatch，不是「就近取一个」。",
+        "claim": { "kind": "diff-line", "path": "src/util/format.ts", "locator": { "startLine": 1, "side": "new" }, "excerpt": "  return total" },
+        "subject": {
+          "path": "src/util/format.ts",
+          "documents": [
+            { "path": "src/util/format.ts", "content": "export function sum(values) {\n  let total = 0\n  return total\n}\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一文件内重复行：唯一命中在文件内也不成立，同样拒绝。",
+        "claim": { "kind": "diff-line", "path": "src/dup.ts", "locator": {}, "excerpt": "x = 1" },
+        "subject": {
+          "path": "src/dup.ts",
+          "documents": [{ "path": "src/dup.ts", "content": "x = 1\ny = 2\nx = 1\n" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
+      }
+    ]
+  }
+}

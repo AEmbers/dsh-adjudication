@@ -1,0 +1,170 @@
+{
+  "name": "happy-path",
+  "domain": "frontend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/src/components/cart.tsx b/src/components/cart.tsx\nindex 1111111..2222222 100644\n--- a/src/components/cart.tsx\n+++ b/src/components/cart.tsx\n@@ -12,6 +12,10 @@ export function Cart({ cart }: { cart: CartModel }) {\n-\tconst items = cart.items\n+\tconst items = useMemo(() => cart.items.filter(Boolean), [cart.items])\n+\tconst total = items.reduce((sum, item) => sum + item.price, 0)\n \treturn (\n-\t\t<ul>{items.map((item) => <li>{item.name}</li>)}</ul>\n+\t\t<ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>\n \t)\n }\ndiff --git a/src/hooks/use-cart.ts b/src/hooks/use-cart.ts\nindex 3333333..4444444 100644\n--- a/src/hooks/use-cart.ts\n+++ b/src/hooks/use-cart.ts\n@@ -20,5 +20,8 @@ export function useCart(id: string) {\n \tuseEffect(() => {\n+\t\tconst controller = new AbortController()\n \t\tvoid load(id)\n-\t}, [])\n+\t\treturn () => controller.abort()\n+\t}, [id])\n }\ndiff --git a/src/styles/cart.css b/src/styles/cart.css\nindex 5555555..6666666 100644\n--- a/src/styles/cart.css\n+++ b/src/styles/cart.css\n@@ -3,4 +3,5 @@\n .cart {\n   display: flex;\n+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));\n }\ndiff --git a/packages/ui/button.tsx b/packages/ui/button.tsx\nindex 7777777..8888888 100644\n--- a/packages/ui/button.tsx\n+++ b/packages/ui/button.tsx\n@@ -6,4 +6,5 @@ export function Button({ onPress, pressed, children }: ButtonProps) {\n \treturn (\n-\t\t<div onClick={onPress}>{children}</div>\n+\t\t<button type=\"button\" onClick={onPress} aria-pressed={pressed}>{children}</button>\n \t)\n }\n",
+      "bundleReport": {
+        "src": 120000,
+        "packages": 40000
+      }
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "admitted": 4,
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": [
+      "packages",
+      "src"
+    ]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 JSX 行 + 正确行号 -> declared-locator",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/components/cart.tsx",
+          "locator": {
+            "side": "new",
+            "startLine": 4
+          },
+          "excerpt": "<ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>"
+        },
+        "subject": {
+          "path": "src/components/cart.tsx",
+          "content": "export function Cart({ cart }: { cart: CartModel }) {\n\tconst items = useMemo(() => cart.items.filter(Boolean), [cart.items])\n\treturn (\n\t\t<ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>\n\t)\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 4
+      },
+      {
+        "note": "hook 里的新增行同样唯一可重算",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/hooks/use-cart.ts",
+          "locator": {
+            "side": "new"
+          },
+          "excerpt": "const controller = new AbortController()"
+        },
+        "subject": {
+          "path": "src/hooks/use-cart.ts",
+          "content": "export function useCart(id: string) {\n\tuseEffect(() => {\n\t\tconst controller = new AbortController()\n\t\tvoid load(id)\n\t\treturn () => controller.abort()\n\t}, [id])\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 3
+      },
+      {
+        "note": "声明了别的文件，原文在唯一命中处 -> 搬迁",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/components/Moved.tsx",
+          "locator": {},
+          "excerpt": "<button type=\"button\" onClick={onPress} aria-pressed={pressed}>{children}</button>"
+        },
+        "subject": {
+          "path": "src/components/Moved.tsx",
+          "documents": [
+            {
+              "path": "src/components/cart.tsx",
+              "content": "export function Cart({ cart }: { cart: CartModel }) {\n\tconst items = useMemo(() => cart.items.filter(Boolean), [cart.items])\n\treturn (\n\t\t<ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>\n\t)\n}"
+            },
+            {
+              "path": "packages/ui/button.tsx",
+              "content": "export function Button({ onPress, pressed, children }: ButtonProps) {\n\treturn (\n\t\t<button type=\"button\" onClick={onPress} aria-pressed={pressed}>{children}</button>\n\t)\n}"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "packages/ui/button.tsx",
+        "expectStart": 3
+      }
+    ],
+    "negative": [
+      {
+        "note": "把 key 去掉的转述 -> no-match",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/components/cart.tsx",
+          "locator": {},
+          "excerpt": "<ul>{items.map((item) => <li>{item.name}</li>)}</ul>"
+        },
+        "subject": {
+          "path": "src/components/cart.tsx",
+          "content": "export function Cart({ cart }: { cart: CartModel }) {\n\tconst items = useMemo(() => cart.items.filter(Boolean), [cart.items])\n\treturn (\n\t\t<ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>\n\t)\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/hooks/use-cart.ts",
+          "locator": {
+            "startLine": 9
+          },
+          "excerpt": "const controller = new AbortController()"
+        },
+        "subject": {
+          "path": "src/hooks/use-cart.ts",
+          "content": "export function useCart(id: string) {\n\tuseEffect(() => {\n\t\tconst controller = new AbortController()\n\t\tvoid load(id)\n\t\treturn () => controller.abort()\n\t}, [id])\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "CSS 少一个分号就是另一行 -> no-match",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/styles/cart.css",
+          "locator": {},
+          "excerpt": "grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr))"
+        },
+        "subject": {
+          "path": "src/styles/cart.css",
+          "content": ".cart {\n  display: flex;\n  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行出现在两个组件文件 -> 跨文件搬迁不唯一，拒绝猜测",
+        "claim": {
+          "kind": "diff-line",
+          "path": "src/components/Gone.tsx",
+          "locator": {},
+          "excerpt": "return null"
+        },
+        "subject": {
+          "path": "src/components/Gone.tsx",
+          "documents": [
+            {
+              "path": "src/components/A.tsx",
+              "content": "export function A() {\n\treturn null\n}"
+            },
+            {
+              "path": "src/components/B.tsx",
+              "content": "export function B() {\n\treturn null\n}"
+            }
+          ]
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "src/components/A.tsx:2",
+          "src/components/B.tsx:2"
+        ]
+      }
+    ]
+  }
+}

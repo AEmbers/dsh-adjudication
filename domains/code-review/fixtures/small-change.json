@@ -1,0 +1,59 @@
+{
+  "name": "small-change",
+  "domain": "code-review",
+  "format": "unified-diff",
+  "description": "单文件单 hunk 的小变更：P1 准入 1 项，不足以触发分捆（bundle 的 minFiles 阈值 4），工作单应当把它当作一个可以一次性看完的对象，而不是分派成多轮。",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/src/config.ts b/src/config.ts\nindex 1111111..2222222 100644\n--- a/src/config.ts\n+++ b/src/config.ts\n@@ -1,3 +1,4 @@\n export const config = {\n-  retries: 3,\n+  retries: 5,\n+  timeoutMs: 30_000,\n }\n",
+      "files": [
+        { "path": "src/config.ts", "bytes": 96, "status": "modified", "additions": 2, "deletions": 1 }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": ["src/config.ts"],
+    "admitted": 1,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "extension": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["src/config.ts"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "小变更里唯一的锚点也必须能重算。",
+        "claim": { "kind": "diff-line", "path": "src/config.ts", "locator": { "startLine": 3, "side": "new" }, "excerpt": "  timeoutMs: 30_000," },
+        "subject": {
+          "path": "src/config.ts",
+          "documents": [{ "path": "src/config.ts", "content": "export const config = {\n  retries: 5,\n  timeoutMs: 30_000,\n}\n" }]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectStart": 3
+      }
+    ],
+    "negative": [
+      {
+        "note": "抄写时把下划线去掉（30_000 -> 30000）：数字读起来一样，文本不一样 —— 逐字匹配必须拒绝。",
+        "claim": { "kind": "diff-line", "path": "src/config.ts", "locator": { "startLine": 3, "side": "new" }, "excerpt": "  timeoutMs: 30000," },
+        "subject": {
+          "path": "src/config.ts",
+          "documents": [{ "path": "src/config.ts", "content": "export const config = {\n  retries: 5,\n  timeoutMs: 30_000,\n}\n" }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

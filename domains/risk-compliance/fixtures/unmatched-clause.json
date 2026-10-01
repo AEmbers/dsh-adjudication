@@ -1,0 +1,111 @@
+{
+  "name": "unmatched-clause",
+  "domain": "risk-compliance",
+  "format": "clause-and-surface",
+  "description": "一条条款的 appliesTo 匹配不到任何受监管面：它不是被静默丢弃，而是进 excluded 并说明理由。「这条制度条款管辖不到任何可取证的面」本身就是合规评审要看到的信息。",
+  "input": {
+    "format": "clause-and-surface",
+    "payload": {
+      "clauses": [
+        {
+          "id": "OK-01",
+          "title": "访问控制",
+          "text": "最小权限、职责分离、审计日志的不可篡改性。",
+          "appliesTo": ["service/**"]
+        },
+        {
+          "id": "ORPHAN-02",
+          "title": "固件签名",
+          "text": "固件镜像必须签名并在设备侧验签。",
+          "appliesTo": ["**/firmware/**"]
+        }
+      ],
+      "surface": [
+        {
+          "id": "svc-auth-check",
+          "type": "permission-edge",
+          "path": "service/auth/check.ts",
+          "description": "权限判定：内网来源被隐式信任。",
+          "evidence": "if (isPrivateNetwork(req.ip)) return { allowed: true }"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": ["ok-01/service/auth/check.ts"],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "excludedBySource": { "ORPHAN-02": "条款 appliesTo [**/firmware/**] 未匹配任何受监管面 —— 该条款管辖不到任何可取证的面" },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "内网隐式信任的那一行可以逐字锚定 -> recomputed-unique。锚定成功不代表它就一定是违规，但至少这句话确实在材料里。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/auth/check.ts",
+          "locator": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" },
+          "excerpt": "if (isPrivateNetwork(req.ip)) return { allowed: true }"
+        },
+        "subject": {
+          "path": "service/auth/check.ts",
+          "clauses": [{ "id": "OK-01", "title": "访问控制", "text": "最小权限、职责分离、审计日志的不可篡改性。" }],
+          "candidates": [
+            { "id": "OK-01@svc-auth-check", "path": "service/auth/check.ts", "locator": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" }, "meta": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" } }
+          ],
+          "documents": [
+            { "path": "service/auth/check.ts", "content": "export function check(req) {\n  if (isPrivateNetwork(req.ip)) return { allowed: true }\n  return verifyRole(req)\n}\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "把已被证据正面否定的说法当成发现：材料写的是「内网也必须验角色」，抄写的原文却是旧版 -> 逐字未命中，未锚定。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/auth/check.ts",
+          "locator": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" },
+          "excerpt": "if (isPrivateNetwork(req.ip)) return { allowed: true, reason: 'trusted-intranet' }"
+        },
+        "subject": {
+          "path": "service/auth/check.ts",
+          "clauses": [{ "id": "OK-01", "title": "访问控制", "text": "最小权限、职责分离、审计日志的不可篡改性。" }],
+          "candidates": [
+            { "id": "OK-01@svc-auth-check", "path": "service/auth/check.ts", "locator": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" }, "meta": { "clauseId": "OK-01", "surfaceId": "svc-auth-check" } }
+          ],
+          "documents": [
+            { "path": "service/auth/check.ts", "content": "export function check(req) {\n  if (isPrivateNetwork(req.ip)) return { allowed: true }\n  return verifyRole(req)\n}\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "锚点种类不符：本领域只验证 clause-and-evidence，收到别的 kind 一律 kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "surface-only",
+          "path": "service/auth/check.ts",
+          "locator": { "clauseId": "OK-01" },
+          "excerpt": "if (isPrivateNetwork(req.ip)) return { allowed: true }"
+        },
+        "subject": {
+          "path": "service/auth/check.ts",
+          "clauses": [{ "id": "OK-01", "title": "访问控制", "text": "最小权限、职责分离、审计日志的不可篡改性。" }],
+          "documents": [
+            { "path": "service/auth/check.ts", "content": "export function check(req) {\n  if (isPrivateNetwork(req.ip)) return { allowed: true }\n  return verifyRole(req)\n}\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch"
+      }
+    ],
+    "ambiguous": []
+  }
+}

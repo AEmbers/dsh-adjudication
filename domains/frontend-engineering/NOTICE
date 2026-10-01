@@ -1,0 +1,71 @@
+frontend-engineering — attribution (Apache-2.0)
+
+This domain directory is part of dsh-adjudication, Copyright 2026 AEmbers,
+licensed under the Apache License, Version 2.0.
+
+It REUSES, by reference, code that is itself derived from open-code-review
+(https://github.com/alibaba/open-code-review), Copyright Alibaba Group,
+licensed under the Apache License, Version 2.0:
+
+  source.js
+      imports parseUnifiedDiff / hunkLineCounts / hunkNewSpan from
+      ../code-review/source.js and delegates enumeration to it.
+      <- open-code-review internal/diff/hunk.go (hunkHeaderRe) and
+         internal/diff/parser.go, via domains/code-review/source.js.
+      Deviation: none in the reused parser. This domain adds the `bundleReport`
+      join onto `candidate.meta.chunkBytes`; it does not change which candidates
+      exist, their ids, their locators or the gate predicates that see them.
+
+  anchor.js
+      re-exports ../code-review/anchor.js unchanged (object identity; the
+      domain's test asserts `anchor === codeReviewAnchor`).
+      <- open-code-review internal/diff/resolver.go. The same deviation
+         documented in the root NOTICE for domains/code-review/anchor.js
+         applies verbatim: upstream's third tier re-locates with a model call;
+         this port stops at "unanchored" and distinguishes `locator-mismatch`
+         from `relocation-ambiguous`.
+      Known limitation carried over from the reference implementation: the
+      normaliser strips a LEADING `+` or `-` from both the excerpt and the
+      document line, so a legitimate whole-line quote that itself begins with
+      `-` (a CSS custom property such as `--focus-ring: …`, a YAML list item, a
+      `--flag`) is refused as a no-match. The fixtures avoid such lines and the
+      limitation is reported rather than papered over; a local "fix" here would
+      make this domain's anchor tolerance differ from the reference, which is
+      exactly what the reuse rule forbids.
+
+  evidence.js
+      spreads ../code-review/evidence.js's three tools into its toolkit by
+      function identity, and adds `render_scope`.
+      <- the layout of internal/tool/file_read.go and internal/tool/git_grep.go
+         (bounded read/search payloads) via domains/code-review/evidence.js.
+      `render_scope` is ORIGINAL to this project: a bounded, pattern-based walk
+      from a line up to the enclosing component/scope. It reports UNKNOWN when
+      it finds no scope opener instead of guessing, and its `provenance` says it
+      is not a parser.
+
+  index.js
+      gate.extensions
+      <- internal/config/allowlist/supported_file_types.json via
+         domains/code-review/index.js. This list is a SMALL SUBSET of upstream's
+         116 extensions (11 here); it is NOT a full port and does not claim
+         parity.
+
+  rules/*.md
+      Original prose written for this project. NOT derived from open-code-review
+      and NOT expert-validated: every document carries
+      `needs-expert-review: true`.
+
+Everything else in this directory — the bundle-cost join, the review order, the
+rule library, `render_scope`, the fixtures and the test suite — is original to
+this project.
+
+Note requested for the package-root NOTICE (this file is the domain-local
+record; the root NOTICE is owned by the package, not by this domain):
+
+  The following parts of domains/frontend-engineering/ reuse, by reference,
+  code derived from open-code-review:
+    source.js, anchor.js, evidence.js (the three reused tools) and
+    index.js (gate.extensions, a strict subset of the upstream allowlist).
+  The reuse is by import, not by copy: domains/frontend-engineering/anchor.js is
+  object-identical to domains/code-review/anchor.js, and its test asserts that
+  identity. `render_scope`, the bundleReport join and rules/*.md are original.

@@ -1,0 +1,145 @@
+{
+  "name": "zero-coverage-file",
+  "domain": "tech-test",
+  "format": "test-inventory-and-coverage",
+  "description": "整个文件在覆盖报告里连条目都没有 —— 这是最常见也最容易被漏掉的一类缺口：它不是「某几行没跑到」，而是「这个文件根本没被报告覆盖」。同时放入一个每行都有命中的文件作为对照，证明「有覆盖」不会被误报。",
+  "input": {
+    "format": "test-inventory-and-coverage",
+    "payload": {
+      "cases": [
+        {
+          "id": "t1",
+          "file": "src/core/engine.spec.ts",
+          "assertions": [
+            {
+              "kind": "equals",
+              "target": "run"
+            }
+          ]
+        }
+      ],
+      "coverage": {
+        "files": {
+          "src/core/engine.ts": {
+            "lines": {
+              "1": 2,
+              "2": 2,
+              "3": 2
+            },
+            "branches": {
+              "if@2": 2
+            }
+          }
+        }
+      },
+      "source": {
+        "src/legacy/report.ts": {
+          "lines": [
+            "export function legacyReport(rows: Row[]): string {",
+            "  return rows",
+            "    .map((row) => row.label)",
+            "    .join(', ')",
+            "}"
+          ]
+        },
+        "src/core/engine.ts": {
+          "lines": [
+            "export function run(input: string): string {",
+            "  if (!input) return ''",
+            "  return input.trim()",
+            "}"
+          ]
+        }
+      }
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": [
+      "src/legacy/report.ts"
+    ],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "CHANGED (t23)：零覆盖文件的可核验形式是「报告**显式列出该文件、且没有任何命中**」，而不是「报告里根本没有这个文件」——后者是「没有数据」，不是「数据表明未覆盖」。改前这里给的是空的 files 表，等于凭「不给数据」换取 anchored；现在改成显式的零命中条目，锚点照样成立，而且是真被核验过的。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/legacy/report.ts",
+          "locator": {},
+          "excerpt": "export function legacyReport(rows: Row[]): string {"
+        },
+        "subject": {
+          "path": "src/legacy/report.ts",
+          "content": "export function legacyReport(rows: Row[]): string {\n  return rows\n    .map((row) => row.label)\n    .join(', ')\n}",
+          "coverage": {
+            "files": {
+              "src/legacy/report.ts": {
+                "lines": {}
+              }
+            }
+          }
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "CHANGED (t23)：同一段原文、同一个位置，但报告里**连该文件的条目都没有** —— 没有数据不等于数据表明未覆盖，必须判未锚定。这是 F2 的负例：改前它会 anchored。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/legacy/report.ts",
+          "locator": {},
+          "excerpt": "export function legacyReport(rows: Row[]): string {"
+        },
+        "subject": {
+          "path": "src/legacy/report.ts",
+          "content": "export function legacyReport(rows: Row[]): string {\n  return rows\n    .map((row) => row.label)\n    .join(', ')\n}",
+          "coverage": {
+            "files": {
+              "src/core/engine.ts": {
+                "lines": {
+                  "1": 2
+                }
+              }
+            }
+          }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "对照文件每行都有命中：同一个 verifier 必须拒绝把「有覆盖」当成缺口，否则零覆盖的判定没有意义。",
+        "claim": {
+          "kind": "case-and-covered-line",
+          "path": "src/core/engine.ts",
+          "locator": {},
+          "excerpt": "return input.trim()"
+        },
+        "subject": {
+          "path": "src/core/engine.ts",
+          "content": "export function run(input: string): string {\n  if (!input) return ''\n  return input.trim()\n}",
+          "coverage": {
+            "files": {
+              "src/core/engine.ts": {
+                "lines": {
+                  "1": 2,
+                  "2": 2,
+                  "3": 2
+                }
+              }
+            }
+          }
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

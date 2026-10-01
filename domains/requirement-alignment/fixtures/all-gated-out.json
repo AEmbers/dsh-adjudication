@@ -1,0 +1,334 @@
+{
+  "name": "all-gated-out",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "chains/archived/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ]
+          },
+          "meta": {}
+        },
+        {
+          "path": "traces/node_modules/dep/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ]
+          },
+          "meta": {}
+        },
+        {
+          "path": "export/trace.txt",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ]
+          },
+          "meta": {}
+        },
+        {
+          "path": "gone/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ]
+          },
+          "meta": {
+            "deleted": true
+          }
+        },
+        {
+          "path": "scans/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R1",
+                "to": "I1",
+                "kind": "implements"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/a.ts#L1-L4"
+              }
+            ]
+          },
+          "meta": {
+            "binary": true
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 25,
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false,
+    "excludedByPredicate": {
+      "user-exclude": [
+        "chains/archived/trace-implements-r1-i1.json",
+        "chains/archived/trace-node-i1-downstream.json",
+        "chains/archived/trace-node-i1-upstream.json",
+        "chains/archived/trace-node-r1-downstream.json",
+        "chains/archived/trace-node-r1-upstream.json"
+      ],
+      "default-path": [
+        "traces/node_modules/dep/trace-implements-r1-i1.json",
+        "traces/node_modules/dep/trace-node-i1-downstream.json",
+        "traces/node_modules/dep/trace-node-i1-upstream.json",
+        "traces/node_modules/dep/trace-node-r1-downstream.json",
+        "traces/node_modules/dep/trace-node-r1-upstream.json"
+      ],
+      "extension": [
+        "export/trace-implements-r1-i1.txt",
+        "export/trace-node-i1-downstream.txt",
+        "export/trace-node-i1-upstream.txt",
+        "export/trace-node-r1-downstream.txt",
+        "export/trace-node-r1-upstream.txt"
+      ],
+      "deleted": [
+        "gone/trace-implements-r1-i1.json",
+        "gone/trace-node-i1-downstream.json",
+        "gone/trace-node-i1-upstream.json",
+        "gone/trace-node-r1-downstream.json",
+        "gone/trace-node-r1-upstream.json"
+      ],
+      "binary": [
+        "scans/trace-implements-r1-i1.json",
+        "scans/trace-node-i1-downstream.json",
+        "scans/trace-node-i1-upstream.json",
+        "scans/trace-node-r1-downstream.json",
+        "scans/trace-node-r1-upstream.json"
+      ]
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "锚点与闸门无关：即使整篇文档被闸门排除，这条边本身仍然是可确认的",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/archived/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/archived/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1",
+          "I1"
+        ],
+        "subject": {
+          "path": "chains/archived/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}",
+          "documents": [
+            {
+              "path": "chains/archived/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "traces/node_modules/dep/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "export/trace.txt",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "gone/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "scans/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "文档里没有 R2 —— 声明既不被确认也不被否定",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/archived/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R2",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/archived/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "subject": {
+          "path": "chains/archived/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}",
+          "documents": [
+            {
+              "path": "chains/archived/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "traces/node_modules/dep/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "export/trace.txt",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "gone/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            },
+            {
+              "path": "scans/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/a.ts#L1-L4\"}],\"edges\":[{\"from\":\"R1\",\"to\":\"I1\",\"kind\":\"implements\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"src\",\"ref\":\"src/a.ts#L1-L4\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

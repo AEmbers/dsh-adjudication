@@ -1,0 +1,110 @@
+{
+  "name": "undeclared-branch",
+  "domain": "ux-review",
+  "format": "flow-spec",
+  "description": "一条分支引用了流程里不存在的步骤 w9：这不是畸形输入，是流程图本身的缺陷（悬空引用），因此进 excluded 并说明，而不是被静默丢弃。其余候选照常准入。",
+  "input": {
+    "format": "flow-spec",
+    "payload": {
+      "flow": {
+        "id": "onboarding",
+        "name": "新用户引导",
+        "steps": [
+          { "id": "w1", "name": "欢迎页", "type": "screen", "next": "w2" },
+          { "id": "w2", "name": "选择偏好", "type": "choice", "next": "w3", "onCancel": "w1" }
+        ]
+      },
+      "branches": [
+        { "id": "happy", "kind": "happy", "steps": ["w1", "w2", "w9"] },
+        { "id": "returning", "kind": "returning", "steps": ["w1"] }
+      ],
+      "prototype": {
+        "nodes": [
+          { "id": "w1", "name": "欢迎页", "screen": "screens/onboarding/welcome.png" },
+          { "id": "w2", "name": "偏好选择", "screen": "screens/onboarding/prefs.png" }
+        ]
+      }
+    }
+  },
+  "expect": {
+    "candidates": 3,
+    "paths": [
+      "onboarding/happy/w1",
+      "onboarding/happy/w2",
+      "onboarding/returning/w1"
+    ],
+    "admitted": 3,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "danglingStep": "w9"
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "w1 同时属于两条分支，两条分支上的绑定各自成立 —— 候选不同、锚点也各自成立。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "onboarding/returning/w1",
+          "locator": { "branchId": "returning", "stepId": "w1" },
+          "excerpt": "next = w2"
+        },
+        "subject": {
+          "path": "onboarding/returning/w1",
+          "flow": { "id": "onboarding", "steps": [{ "id": "w1" }, { "id": "w2" }] },
+          "branches": [
+            { "id": "happy", "kind": "happy", "steps": ["w1", "w2"] },
+            { "id": "returning", "kind": "returning", "steps": ["w1"] }
+          ],
+          "documents": [
+            { "path": "onboarding/returning/w1", "content": "步骤 w1 — 欢迎页（类型 screen）\n  next = w2\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 2
+      }
+    ],
+    "negative": [
+      {
+        "note": "悬空步骤不可锚定：w9 不在流程步骤表里，即使某条分支声称到达它，也判未锚定。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "onboarding/happy/w9",
+          "locator": { "branchId": "happy", "stepId": "w9" },
+          "excerpt": "步骤 w9 — 不存在的步骤"
+        },
+        "subject": {
+          "path": "onboarding/happy/w9",
+          "flow": { "id": "onboarding", "steps": [{ "id": "w1" }, { "id": "w2" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["w1", "w2", "w9"] }],
+          "documents": [
+            { "path": "onboarding/happy/w9", "content": "步骤 w9 — 不存在的步骤\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "锚点种类不符：本领域只验证 flow-step-and-node，收到别的 kind 一律 kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "onboarding/returning/w1",
+          "locator": { "branchId": "returning", "stepId": "w1" },
+          "excerpt": "next = w2"
+        },
+        "subject": {
+          "path": "onboarding/returning/w1",
+          "flow": { "id": "onboarding", "steps": [{ "id": "w1" }] },
+          "branches": [{ "id": "returning", "kind": "returning", "steps": ["w1"] }],
+          "documents": [
+            { "path": "onboarding/returning/w1", "content": "next = w2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch"
+      }
+    ],
+    "ambiguous": []
+  }
+}

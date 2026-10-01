@@ -1,0 +1,91 @@
+{
+  "name": "cycle",
+  "domain": "architecture",
+  "format": "module-graph-and-adr",
+  "description": "真的存在一个环：a → b → c → a。另有一个模块 d 依赖 a，但没有任何模块依赖 d，所以经过 d 的边不在环上。这个 fixture 的用途是证明「环依赖」这一类主张是被依赖图重算出来的，而不是只要边存在就算成立 —— d → a 这条边确实存在，但环的主张在图上不成立。",
+  "input": {
+    "format": "module-graph-and-adr",
+    "payload": {
+      "modules": [
+        { "id": "a", "path": "src/a/a.ts", "dependsOn": ["b"], "layer": "application" },
+        { "id": "b", "path": "src/b/b.ts", "dependsOn": ["c"], "layer": "domain" },
+        { "id": "c", "path": "src/c/c.ts", "dependsOn": ["a"], "layer": "infrastructure" },
+        { "id": "d", "path": "src/d/d.ts", "dependsOn": ["a"], "layer": "infrastructure" }
+      ],
+      "adrs": []
+    }
+  },
+  "expect": {
+    "candidates": 4,
+    "paths": ["src/a/a.ts", "src/b/b.ts", "src/c/c.ts", "src/d/d.ts"],
+    "admitted": 4,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "bundleKeys": ["src/a/a.ts", "src/b/b.ts", "src/c/c.ts", "src/d/d.ts"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "环依赖：引擎从图里重算出一条完整回路 a → b → c → a，主张成立。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/a/a.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/a/a.ts", "moduleId": "a", "targetId": "b", "findingKind": "cycle" },
+          "excerpt": "a -> b"
+        },
+        "subject": {
+          "modules": [
+            { "id": "a", "path": "src/a/a.ts", "dependsOn": ["b"], "layer": "application" },
+            { "id": "b", "path": "src/b/b.ts", "dependsOn": ["c"], "layer": "domain" },
+            { "id": "c", "path": "src/c/c.ts", "dependsOn": ["a"], "layer": "infrastructure" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      }
+    ],
+    "negative": [
+      {
+        "note": "这条边存在，但没有任何回路经过 d：「存在环依赖」的主张与图矛盾，必须判未锚定。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/d/d.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/d/d.ts", "moduleId": "d", "targetId": "a", "findingKind": "cycle" },
+          "excerpt": "d -> a"
+        },
+        "subject": {
+          "modules": [
+            { "id": "a", "path": "src/a/a.ts", "dependsOn": ["b"], "layer": "application" },
+            { "id": "b", "path": "src/b/b.ts", "dependsOn": ["c"], "layer": "domain" },
+            { "id": "c", "path": "src/c/c.ts", "dependsOn": ["a"], "layer": "infrastructure" },
+            { "id": "d", "path": "src/d/d.ts", "dependsOn": ["a"], "layer": "infrastructure" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "把环写错一环：抄写的规范形式与图重算出的不一致，判未锚定的更早一级（no-match），不进入图重算。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/a/a.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/a/a.ts", "moduleId": "a", "targetId": "b", "findingKind": "cycle" },
+          "excerpt": "a -> c"
+        },
+        "subject": {
+          "modules": [
+            { "id": "a", "path": "src/a/a.ts", "dependsOn": ["b"], "layer": "application" },
+            { "id": "b", "path": "src/b/b.ts", "dependsOn": ["c"], "layer": "domain" },
+            { "id": "c", "path": "src/c/c.ts", "dependsOn": ["a"], "layer": "infrastructure" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

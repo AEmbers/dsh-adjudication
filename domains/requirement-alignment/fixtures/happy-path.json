@@ -1,0 +1,434 @@
+{
+  "name": "happy-path",
+  "domain": "requirement-alignment",
+  "format": "trace-graph",
+  "input": {
+    "format": "trace-graph",
+    "payload": {
+      "documents": [
+        {
+          "path": "chains/checkout/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "F1",
+                "type": "feedback",
+                "ref": "feedback/fb-1"
+              },
+              {
+                "id": "R1",
+                "type": "requirement",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "id": "P1",
+                "type": "plan",
+                "ref": "plans/p1/serves/r1"
+              },
+              {
+                "id": "D1",
+                "type": "design",
+                "ref": "design/checkout.md#L10-L24"
+              },
+              {
+                "id": "I1",
+                "type": "implementation",
+                "ref": "src/cart.ts#L12-L20"
+              },
+              {
+                "id": "C1",
+                "type": "case",
+                "ref": "tests/cart.spec.ts#L5-L9"
+              }
+            ],
+            "edges": [
+              {
+                "from": "F1",
+                "to": "R1",
+                "kind": "informs"
+              },
+              {
+                "from": "R1",
+                "to": "P1",
+                "kind": "derives"
+              },
+              {
+                "from": "P1",
+                "to": "D1",
+                "kind": "specifies"
+              },
+              {
+                "from": "D1",
+                "to": "I1",
+                "kind": "implements"
+              },
+              {
+                "from": "I1",
+                "to": "C1",
+                "kind": "verifies"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "feedback",
+                "ref": "feedback/fb-1"
+              },
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u2"
+              },
+              {
+                "domain": "plans",
+                "ref": "plans/p1/serves/r1"
+              },
+              {
+                "domain": "design",
+                "ref": "design/checkout.md#L10-L24"
+              },
+              {
+                "domain": "src",
+                "ref": "src/cart.ts#L12-L20"
+              },
+              {
+                "domain": "tests",
+                "ref": "tests/cart.spec.ts#L5-L9"
+              }
+            ]
+          }
+        },
+        {
+          "path": "chains/refund/trace.json",
+          "type": "trace-graph",
+          "payload": {
+            "nodes": [
+              {
+                "id": "R2",
+                "type": "requirement",
+                "ref": "sessions/s1/u5"
+              },
+              {
+                "id": "P2",
+                "type": "plan",
+                "ref": "plans/p2/serves/r2"
+              },
+              {
+                "id": "I2",
+                "type": "implementation",
+                "ref": "src/refund.ts#L3-L11"
+              },
+              {
+                "id": "C2",
+                "type": "case",
+                "ref": "tests/refund.spec.ts#L2-L6"
+              }
+            ],
+            "edges": [
+              {
+                "from": "R2",
+                "to": "P2",
+                "kind": "derives"
+              },
+              {
+                "from": "P2",
+                "to": "I2",
+                "kind": "implements"
+              },
+              {
+                "from": "I2",
+                "to": "C2",
+                "kind": "verifies"
+              }
+            ],
+            "upstream": [
+              {
+                "domain": "sessions",
+                "ref": "sessions/s1/u5"
+              },
+              {
+                "domain": "plans",
+                "ref": "plans/p2/serves/r2"
+              },
+              {
+                "domain": "src",
+                "ref": "src/refund.ts#L3-L11"
+              },
+              {
+                "domain": "tests",
+                "ref": "tests/refund.spec.ts#L2-L6"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 28,
+    "admitted": 28,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "两端 + kind 都被 locator 点名，图上确认 —— declared-locator",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "P1",
+            "edgeKind": "derives"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1",
+          "P1"
+        ],
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "locator 没点名 kind，引擎自己去图上读出 kind 才能确认 —— recomputed-unique",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "P1"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectNodes": [
+          "R1",
+          "P1"
+        ],
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "链路：locator 只点名两端，中间那条路径由引擎重算出来 —— recomputed-unique",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "chain-path",
+            "fromId": "F1",
+            "toId": "C1"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectNodes": [
+          "F1",
+          "R1",
+          "P1",
+          "D1",
+          "I1",
+          "C1"
+        ],
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "跨域 ref：locator 点名了 ref，且它在 upstream[] 的产出集合里",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "cross-domain-ref",
+            "fromId": "F1",
+            "ref": "feedback/fb-1"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "F1"
+        ],
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "negative": [
+      {
+        "note": "「R1 由 I1 实现」—— 图上两端都在，就是没有这条边。转述得再像也不锚定",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "I1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "方向写反（reversed-edge）：图上只有 R1→P1",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "P1",
+            "toId": "R1",
+            "edgeKind": "derives"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "关系类型不符（edge-kind-confusion）：R1→P1 是 derives，不是 implements",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-edge",
+            "fromId": "R1",
+            "toId": "P1",
+            "edgeKind": "implements"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "ref 被转述成一句话：逐字对不上就是未锚定（这是本域最容易被绕过的一条）",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "cross-domain-ref",
+            "fromId": "R1",
+            "ref": "用户希望结账更快"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            },
+            {
+              "path": "chains/refund/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      }
+    ],
+    "ambiguous": []
+  }
+}

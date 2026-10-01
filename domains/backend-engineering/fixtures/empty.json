@@ -1,0 +1,55 @@
+{
+  "name": "empty",
+  "domain": "backend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": ""
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空 diff 不改变锚点语义：原文仍逐字可重算",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/handler.go",
+          "locator": {},
+          "excerpt": "if len(orders) == 0 {"
+        },
+        "subject": {
+          "path": "api/handler.go",
+          "content": "package api\n\nfunc (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n\tif len(orders) == 0 {\n\t\twriteJSON(w, http.StatusOK, []Order{})\n\t\treturn\n\t}\n}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 4
+      }
+    ],
+    "negative": [
+      {
+        "note": "空摘录 -> 未锚定",
+        "claim": {
+          "kind": "diff-line",
+          "path": "api/handler.go",
+          "locator": {},
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "api/handler.go",
+          "content": "package api\n\nfunc (s *Server) ListOrders(w http.ResponseWriter, r *http.Request) {\n\tif len(orders) == 0 {\n\t\twriteJSON(w, http.StatusOK, []Order{})\n\t\treturn\n\t}\n}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ]
+  }
+}

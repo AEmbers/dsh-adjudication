@@ -1,0 +1,69 @@
+{
+  "name": "proto-field-removed",
+  "domain": "backend-engineering",
+  "format": "unified-diff",
+  "input": {
+    "format": "unified-diff",
+    "payload": {
+      "diff": "diff --git a/proto/ledger.proto b/proto/ledger.proto\nindex 1111111..2222222 100644\n--- a/proto/ledger.proto\n+++ b/proto/ledger.proto\n@@ -8,7 +8,6 @@ message Entry {\n   string id = 1;\n   int64 amount_cents = 2;\n-  string legacy_currency = 3;\n   string currency_code = 4;\n }\n",
+      "serviceMap": {
+        "proto/ledger.proto": "ledger-api"
+      }
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "admitted": 1,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "删除的字段行同样可以被逐字锚定（它出现在旧侧文档里）",
+        "claim": {
+          "kind": "diff-line",
+          "path": "proto/ledger.proto",
+          "locator": {
+            "side": "old"
+          },
+          "excerpt": "string legacy_currency = 3;"
+        },
+        "subject": {
+          "path": "proto/ledger.proto",
+          "documents": [
+            {
+              "path": "proto/ledger.proto",
+              "content": "message Entry {\n  string id = 1;\n  int64 amount_cents = 2;\n  string legacy_currency = 3;\n  string currency_code = 4;\n}"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 4
+      }
+    ],
+    "negative": [
+      {
+        "note": "把被删字段说成「重命名为 currency_code」-> 无命中，重命名不是原文",
+        "claim": {
+          "kind": "diff-line",
+          "path": "proto/ledger.proto",
+          "locator": {},
+          "excerpt": "string currency_code = 3;"
+        },
+        "subject": {
+          "path": "proto/ledger.proto",
+          "documents": [
+            {
+              "path": "proto/ledger.proto",
+              "content": "message Entry {\n  string id = 1;\n  string currency_code = 4;\n}"
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ]
+  }
+}

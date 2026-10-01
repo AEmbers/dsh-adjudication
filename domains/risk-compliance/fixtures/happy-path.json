@@ -1,0 +1,316 @@
+{
+  "name": "happy-path",
+  "domain": "risk-compliance",
+  "format": "clause-and-surface",
+  "description": "5 条制度条款 × 6 个受监管面 = 22 个 (条款, 面) 绑定，全部准入。条款的 appliesTo 决定管辖范围，因此这是真正按「一条制度条款」分捆的输入（5 捆），不是按文件路径分捆。三个正例锚点覆盖 declared-locator / recomputed-unique / relocated-unique，并带 binding 校验。",
+  "input": {
+    "format": "clause-and-surface",
+    "payload": {
+      "clauses": [
+        {
+          "id": "DP-01",
+          "title": "数据最小化",
+          "text": "为达成目的所必需之外的个人信息收集、存储、传输，即为问题。",
+          "appliesTo": ["service/**", "data/**"]
+        },
+        {
+          "id": "RT-02",
+          "title": "留存与删除",
+          "text": "是否声明保留期限；是否支持删除请求的端到端落实（含备份、派生数据、日志）。",
+          "appliesTo": ["data/**", "service/**"]
+        },
+        {
+          "id": "AC-03",
+          "title": "访问控制",
+          "text": "最小权限、职责分离、审计日志的不可篡改性；是否存在越权的隐式信任。",
+          "appliesTo": ["service/**"]
+        },
+        {
+          "id": "XB-04",
+          "title": "跨境与第三方传输",
+          "text": "个人数据出境是否有合法性基础与合同工具；是否存在未申报的境外接收方或第三方 SDK 回传。",
+          "appliesTo": ["service/**", "data/**", "sdk/**"]
+        },
+        {
+          "id": "LG-05",
+          "title": "日志与审计",
+          "text": "日志中是否出现明文个人信息；敏感操作是否有审计记录。",
+          "appliesTo": ["service/**"]
+        }
+      ],
+      "surface": [
+        {
+          "id": "svc-profile-read",
+          "type": "data-flow",
+          "path": "service/profile/read.ts",
+          "description": "用户资料读取接口：按 uid 查询并返回完整资料对象，包含手机号与邮箱。",
+          "evidence": "export async function getProfile(uid) {\n  const row = await db.user.findOne({ where: { uid } })\n  return { uid, name: row.name, phone: row.phone, email: row.email }\n}"
+        },
+        {
+          "id": "svc-export-upload",
+          "type": "external-api",
+          "path": "service/export/upload.ts",
+          "description": "导出结果上传到第三方分析服务，请求体包含手机号。",
+          "evidence": "await fetch('https://analytics.example-eu.com/v2/ingest', {\n  method: 'POST',\n  body: JSON.stringify({ uid, phone, events }),\n})"
+        },
+        {
+          "id": "data-archive-policy",
+          "type": "retention",
+          "path": "data/archive/policy.ts",
+          "description": "归档留存策略：保留期限未声明，清理任务未实现。",
+          "evidence": "export const RETENTION_DAYS = 0 // 未声明保留期限，清理任务未实现"
+        },
+        {
+          "id": "data-events-collect",
+          "type": "data-flow",
+          "path": "data/events/collect.ts",
+          "description": "事件采集：写入 uid、IP 与设备标识，未声明保留期限。",
+          "evidence": "events.push({ uid, ip, deviceId, at: Date.now() })"
+        },
+        {
+          "id": "sdk-analytics-init",
+          "type": "third-party-sdk",
+          "path": "sdk/analytics/init.ts",
+          "description": "第三方分析 SDK 初始化：默认采集设备标识并每 30 秒回传。",
+          "evidence": "Analytics.init({ appId, collectDeviceId: true, uploadIntervalMs: 30000 })"
+        },
+        {
+          "id": "svc-logs-access",
+          "type": "logging",
+          "path": "service/logs/access.ts",
+          "description": "登录成功日志：明文写入手机号与邮箱。",
+          "evidence": "logger.info(`login ok phone=${phone} email=${email}`)"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 22,
+    "paths": [],
+    "admitted": 22,
+    "excludedByPredicate": {
+      "binary": [],
+      "secret": [],
+      "deleted": [],
+      "user-exclude": [],
+      "default-path": [],
+      "too-large": []
+    },
+    "bounded": true,
+    "truncated": false,
+    "clauseCounts": {
+      "DP-01": 5,
+      "RT-02": 5,
+      "AC-03": 3,
+      "XB-04": 6,
+      "LG-05": 3
+    },
+    "bundleKeys": ["ac-03", "dp-01", "lg-05", "rt-02", "xb-04"]
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写 + 声明的行号正确 + 条款 ID 与 (条款, 面) 绑定都在 -> declared-locator。双锚点两侧同时成立才叫「确认」。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/profile/read.ts",
+          "locator": { "clauseId": "DP-01", "surfaceId": "svc-profile-read", "startLine": 2 },
+          "excerpt": "  const row = await db.user.findOne({ where: { uid } })"
+        },
+        "subject": {
+          "path": "service/profile/read.ts",
+          "clauses": [
+            { "id": "DP-01", "title": "数据最小化", "text": "为达成目的所必需之外的个人信息收集、存储、传输，即为问题。" },
+            { "id": "LG-05", "title": "日志与审计", "text": "日志中是否出现明文个人信息。" }
+          ],
+          "candidates": [
+            { "id": "DP-01@svc-profile-read", "path": "service/profile/read.ts", "locator": { "clauseId": "DP-01", "surfaceId": "svc-profile-read" }, "meta": { "clauseId": "DP-01", "surfaceId": "svc-profile-read" } },
+            { "id": "LG-05@svc-logs-access", "path": "service/logs/access.ts", "locator": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" }, "meta": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" } }
+          ],
+          "documents": [
+            { "path": "service/profile/read.ts", "content": "export async function getProfile(uid) {\n  const row = await db.user.findOne({ where: { uid } })\n  return { uid, name: row.name, phone: row.phone, email: row.email }\n}\n" },
+            { "path": "service/logs/access.ts", "content": "logger.info(`login ok phone=${phone} email=${email}`)\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "service/profile/read.ts",
+        "expectStart": 2,
+        "expectClause": "DP-01"
+      },
+      {
+        "note": "不给行号，靠唯一命中重算 -> recomputed-unique。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/logs/access.ts",
+          "locator": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" },
+          "excerpt": "logger.info(`login ok phone=${phone} email=${email}`)"
+        },
+        "subject": {
+          "path": "service/logs/access.ts",
+          "clauses": [{ "id": "LG-05", "title": "日志与审计", "text": "日志中是否出现明文个人信息。" }],
+          "candidates": [
+            { "id": "LG-05@svc-logs-access", "path": "service/logs/access.ts", "locator": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" }, "meta": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" } }
+          ],
+          "documents": [
+            { "path": "service/logs/access.ts", "content": "logger.info(`login ok phone=${phone} email=${email}`)\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      },
+      {
+        "note": "声明的受监管面不在文档集中，但原文在唯一另一个文件里 -> relocated-unique，发现已搬迁。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/profile/moved-here.ts",
+          "locator": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" },
+          "excerpt": "Analytics.init({ appId, collectDeviceId: true, uploadIntervalMs: 30000 })"
+        },
+        "subject": {
+          "path": "service/profile/moved-here.ts",
+          "clauses": [{ "id": "XB-04", "title": "跨境与第三方传输", "text": "是否存在未申报的第三方 SDK 回传。" }],
+          "candidates": [
+            { "id": "XB-04@sdk-analytics-init", "path": "sdk/analytics/init.ts", "locator": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" }, "meta": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" } }
+          ],
+          "documents": [
+            { "path": "sdk/analytics/init.ts", "content": "Analytics.init({ appId, collectDeviceId: true, uploadIntervalMs: 30000 })\n" },
+            { "path": "service/unrelated.ts", "content": "export const nothing = 1\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "sdk/analytics/init.ts",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把 findOne 写成 findByUid，语义相同但逐字不同 -> no-match。双锚点的条款侧成立也没用，证据侧不成立即未锚定。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/profile/read.ts",
+          "locator": { "clauseId": "DP-01", "surfaceId": "svc-profile-read" },
+          "excerpt": "const row = await db.user.findByUid(uid)"
+        },
+        "subject": {
+          "path": "service/profile/read.ts",
+          "clauses": [{ "id": "DP-01", "title": "数据最小化", "text": "为达成目的所必需之外的个人信息收集、存储、传输，即为问题。" }],
+          "candidates": [
+            { "id": "DP-01@svc-profile-read", "path": "service/profile/read.ts", "locator": { "clauseId": "DP-01", "surfaceId": "svc-profile-read" }, "meta": { "clauseId": "DP-01", "surfaceId": "svc-profile-read" } }
+          ],
+          "documents": [
+            { "path": "service/profile/read.ts", "content": "export async function getProfile(uid) {\n  const row = await db.user.findOne({ where: { uid } })\n  return { uid, name: row.name, phone: row.phone, email: row.email }\n}\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "跨文件歧义拒绝猜测：同一行在 data/events 的两个文件里逐字出现，声明的面不在文档集中 -> relocation-ambiguous，必须列出竞争位置。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/unknown.ts",
+          "locator": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" },
+          "excerpt": "events.push({ uid, ip, deviceId, at: Date.now() })"
+        },
+        "subject": {
+          "path": "service/unknown.ts",
+          "clauses": [{ "id": "XB-04", "title": "跨境与第三方传输", "text": "是否存在未申报的第三方 SDK 回传。" }],
+          "candidates": [
+            { "id": "XB-04@sdk-analytics-init", "path": "sdk/analytics/init.ts", "locator": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" }, "meta": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" } }
+          ],
+          "documents": [
+            { "path": "data/events/collect.ts", "content": "events.push({ uid, ip, deviceId, at: Date.now() })\n" },
+            { "path": "data/events/legacy.ts", "content": "events.push({ uid, ip, deviceId, at: Date.now() })\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["data/events/collect.ts:1", "data/events/legacy.ts:1"]
+      },
+      {
+        "note": "条款侧锚点不存在：条款 ID 不在条款清单里，即使原文逐字命中 —— 规则侧不成立，整体未锚定。拒绝挑一个「最接近」的条款。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/logs/access.ts",
+          "locator": { "clauseId": "NOPE-99", "surfaceId": "svc-logs-access" },
+          "excerpt": "logger.info(`login ok phone=${phone} email=${email}`)"
+        },
+        "subject": {
+          "path": "service/logs/access.ts",
+          "clauses": [{ "id": "LG-05", "title": "日志与审计", "text": "日志中是否出现明文个人信息。" }],
+          "documents": [
+            { "path": "service/logs/access.ts", "content": "logger.info(`login ok phone=${phone} email=${email}`)\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "绑定不存在：RT-02 的 appliesTo 不覆盖 sdk/ 面，候选集里没有这一对 -> 未锚定。拒绝凭空建立「条款管辖该面」的绑定。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "sdk/analytics/init.ts",
+          "locator": { "clauseId": "RT-02", "surfaceId": "sdk-analytics-init" },
+          "excerpt": "Analytics.init({ appId, collectDeviceId: true, uploadIntervalMs: 30000 })"
+        },
+        "subject": {
+          "path": "sdk/analytics/init.ts",
+          "clauses": [{ "id": "RT-02", "title": "留存与删除", "text": "是否声明保留期限。" }],
+          "candidates": [
+            { "id": "XB-04@sdk-analytics-init", "path": "sdk/analytics/init.ts", "locator": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" }, "meta": { "clauseId": "XB-04", "surfaceId": "sdk-analytics-init" } }
+          ],
+          "documents": [
+            { "path": "sdk/analytics/init.ts", "content": "Analytics.init({ appId, collectDeviceId: true, uploadIntervalMs: 30000 })\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "行号与原文矛盾：声明第 1 行，但第 1 行不是这段原文 -> locator-mismatch，不是「就近取一个」。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "service/logs/access.ts",
+          "locator": { "clauseId": "LG-05", "surfaceId": "svc-logs-access", "startLine": 1 },
+          "excerpt": "return { uid, name: row.name, phone: row.phone, email: row.email }"
+        },
+        "subject": {
+          "path": "service/logs/access.ts",
+          "clauses": [{ "id": "LG-05", "title": "日志与审计", "text": "日志中是否出现明文个人信息。" }],
+          "candidates": [
+            { "id": "LG-05@svc-logs-access", "path": "service/logs/access.ts", "locator": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" }, "meta": { "clauseId": "LG-05", "surfaceId": "svc-logs-access" } }
+          ],
+          "documents": [
+            { "path": "service/logs/access.ts", "content": "logger.info(`login ok phone=${phone} email=${email}`)\nreturn { uid, name: row.name, phone: row.phone, email: row.email }\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一文件内重复行：唯一命中在文件内也不成立，同样拒绝并列出竞争位置。",
+        "claim": {
+          "kind": "clause-and-evidence",
+          "path": "data/events/dup.ts",
+          "locator": { "clauseId": "DP-01" },
+          "excerpt": "events.push({ uid, ip })"
+        },
+        "subject": {
+          "path": "data/events/dup.ts",
+          "clauses": [{ "id": "DP-01", "title": "数据最小化", "text": "为达成目的所必需之外的个人信息收集、存储、传输，即为问题。" }],
+          "documents": [
+            { "path": "data/events/dup.ts", "content": "events.push({ uid, ip })\nconst other = 1\nevents.push({ uid, ip })\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": ["data/events/dup.ts:1", "data/events/dup.ts:3"]
+      }
+    ]
+  }
+}

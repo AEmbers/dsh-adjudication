@@ -1,0 +1,109 @@
+{
+  "name": "hardcoded-value",
+  "domain": "ui-visual",
+  "format": "design-tokens-and-layers",
+  "description": "本领域的典型候选：一个图层的属性值恰好等于 token 表里某个 token 的值，却没有声明 tokenRef —— 这正是「应当引用 token 却写死了」。同时含一个坏引用图层：它声明的 token 名在 token 表里不存在，进 excluded 并说明（坏引用是缺陷，但不是硬编码值）。",
+  "input": {
+    "format": "design-tokens-and-layers",
+    "payload": {
+      "tokens": {
+        "color": {
+          "brand-primary": { "value": "#2563eb" },
+          "text-muted": { "value": "#767676" }
+        }
+      },
+      "layers": [
+        {
+          "id": "cta",
+          "name": "主行动按钮",
+          "type": "component",
+          "component": "atoms",
+          "props": { "bg-color": "#2563eb" }
+        },
+        {
+          "id": "ghost",
+          "name": "幽灵按钮",
+          "type": "component",
+          "component": "atoms",
+          "props": { "bg-color": "#2563eb" },
+          "tokenRefs": { "bg-color": "brand-secondary" }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 1,
+    "paths": ["atoms/cta/bg-color"],
+    "admitted": 1,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false,
+    "excludedBySource": { "ghost.bg-color": "属性 \"bg-color\" 引用了 token 表里不存在的 token \"brand-secondary\" —— 这是坏引用，不是硬编码值" }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "值等于 token 值且未声明 tokenRef -> 本领域最典型的正例：三件事全部成立。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/cta/bg-color",
+          "locator": { "layerId": "cta", "prop": "bg-color", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/cta/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "cta", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/cta/bg-color", "content": "属性 bg-color = #2563eb\n\ntoken 表对照：\n  color.brand-primary = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1,
+        "expectToken": "brand-primary"
+      }
+    ],
+    "negative": [
+      {
+        "note": "引用了坏 token：该图层声明的是 brand-secondary（token 表里没有），因此「本应使用 brand-primary」无法在 token 表上成立 -> 未锚定。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/ghost/bg-color",
+          "locator": { "layerId": "ghost", "prop": "bg-color", "tokenName": "brand-secondary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/ghost/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "ghost", "props": { "bg-color": "#2563eb" }, "tokenRefs": { "bg-color": "brand-secondary" } }],
+          "documents": [
+            { "path": "atoms/ghost/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "图层侧三要素缺一：不给属性名 -> 未锚定，不允许只凭图层与 token 出结论。",
+        "claim": {
+          "kind": "layer-and-token",
+          "path": "atoms/cta/bg-color",
+          "locator": { "layerId": "cta", "tokenName": "brand-primary" },
+          "excerpt": "属性 bg-color = #2563eb"
+        },
+        "subject": {
+          "path": "atoms/cta/bg-color",
+          "tokens": { "color": { "brand-primary": { "value": "#2563eb" } } },
+          "layers": [{ "id": "cta", "props": { "bg-color": "#2563eb" } }],
+          "documents": [
+            { "path": "atoms/cta/bg-color", "content": "属性 bg-color = #2563eb\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      }
+    ],
+    "ambiguous": []
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "name": "all-gated-out",
+  "domain": "architecture",
+  "format": "module-graph-and-adr",
+  "description": "全部被闸门排除：六条依赖边无一存活。覆盖 default-path（node_modules）与 user-exclude（dist/build/.git/generated/测试路径）两类谓词——全部来自领域包自己的 exclude。CHANGED (t23)：本 fixture 现在**不带自己的 gate**——它证明的是「pack 自己能排干」，而不是「pack ∪ fixture 能排干」。另有一个 src/shared.ts 模块因没有任何出边而不产生候选，用来区分「被排除」与「本来就没有候选」；ADR-0002 的 affects 为空，produces no candidate，与「被排除」是第三件不同的事。",
+  "input": {
+    "format": "module-graph-and-adr",
+    "payload": {
+      "modules": [
+        { "id": "vendor", "path": "node_modules/vendor/lib.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "bundle", "path": "dist/bundle.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "out", "path": "build/out.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "hook", "path": ".git/hooks/hook.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "api_gen", "path": "generated/api.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "graph_test", "path": "tests/graph.test.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+        { "id": "shared", "path": "src/shared.ts", "dependsOn": [], "layer": "domain" }
+      ],
+      "adrs": [
+        { "id": "ADR-0002", "title": "Vendored runtime", "status": "accepted", "decision": "运行时保持 vendored。", "affects": [] }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 6,
+    "paths": [
+      "node_modules/vendor/lib.ts",
+      "dist/bundle.ts",
+      "build/out.ts",
+      ".git/hooks/hook.ts",
+      "generated/api.ts",
+      "tests/graph.test.ts"
+    ],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "user-exclude": [
+        ".git/hooks/hook.ts",
+        "build/out.ts",
+        "dist/bundle.ts",
+        "generated/api.ts",
+        "tests/graph.test.ts"
+      ],
+      "default-path": [
+        "node_modules/vendor/lib.ts"
+      ]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "P1 全部排除不影响 P5：锚点层面独立于闸门结论。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "src/shared.ts",
+          "locator": { "kind": "dependency-edge", "path": "src/shared.ts", "moduleId": "shared", "targetId": "core", "findingKind": "edge" },
+          "excerpt": "shared -> core"
+        },
+        "subject": {
+          "modules": [
+            { "id": "shared", "path": "src/shared.ts", "dependsOn": ["core"], "layer": "domain" },
+            { "id": "core", "path": "src/core/engine.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "adrs": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique"
+      }
+    ],
+    "negative": [
+      {
+        "note": "ADR 的 affects 里没有这个模块：决策类主张与归档矛盾，判未锚定，不因为模块本身在清单里就放行。",
+        "claim": {
+          "kind": "module-and-adr",
+          "path": "node_modules/vendor/lib.ts",
+          "locator": { "kind": "adr-decision", "path": "node_modules/vendor/lib.ts", "moduleId": "shared", "adrId": "ADR-0002", "findingKind": "edge" },
+          "excerpt": "ADR-0002 -> shared"
+        },
+        "subject": {
+          "modules": [
+            { "id": "vendor", "path": "node_modules/vendor/lib.ts", "dependsOn": ["shared"], "layer": "infrastructure" },
+            { "id": "shared", "path": "src/shared.ts", "dependsOn": [], "layer": "domain" }
+          ],
+          "adrs": [{ "id": "ADR-0002", "title": "Vendored runtime", "status": "accepted", "decision": "运行时保持 vendored。", "affects": ["vendor"] }]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

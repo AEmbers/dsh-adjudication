@@ -1,0 +1,320 @@
+{
+  "name": "two-ledgers",
+  "domain": "user-feedback",
+  "format": "feedback-ledger",
+  "description": "两份台账共同组成语料，用于搬迁阶梯：声明指向的 `feedback/absent.json` 不在语料里，而该声明在一份台账里成立、在另一处不成立（relocated-unique）；另一条声明在两份台账里都成立（relocation-ambiguous，必须列出全部竞争位置）。",
+  "input": {
+    "format": "feedback-ledger",
+    "payload": {
+      "documents": [
+        {
+          "path": "feedback/alpha.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 1024
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-4001",
+                "quote": "通知中心的消息重复推送",
+                "severity": "medium",
+                "reach": "some",
+                "frequency": 6,
+                "theme": "notify"
+              }
+            ],
+            "decisions": [],
+            "themes": []
+          }
+        },
+        {
+          "path": "feedback/beta.json",
+          "type": "feedback-ledger",
+          "meta": {
+            "bytes": 1024
+          },
+          "payload": {
+            "feedback": [
+              {
+                "id": "fb-4002",
+                "quote": "通知中心的消息重复推送",
+                "severity": "low",
+                "reach": "few",
+                "frequency": 6,
+                "theme": "notify"
+              }
+            ],
+            "decisions": [],
+            "themes": []
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 2,
+    "paths": [
+      "feedback/alpha-fb-4001.json",
+      "feedback/beta-fb-4002.json"
+    ],
+    "admitted": 2,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "声明指向的台账不存在，而这条引文只在 alpha.json 里逐字出现。tier 是 recomputed-unique 而不是 relocated-unique，这个区别是有意的：locator 里根本没给 feedbackId，所以缺的是**定位信息**，引擎是从引文把身份重算出来的——先走重算、就不会再走搬迁阶梯。`detail` 里写明了它落在哪份台账上。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/absent.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "quote": "通知中心的消息重复推送"
+          }
+        },
+        "subject": {
+          "path": "feedback/absent.json",
+          "documents": [
+            {
+              "path": "feedback/alpha.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            },
+            {
+              "path": "feedback/other.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-5001",
+                    "quote": "完全不相干的一条原话内容",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 1
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "feedback/alpha.json"
+      },
+      {
+        "note": "同一个 ID 在一份台账里成立、在另一份里不被声明时，搬迁是唯一的——这条走的是真正的搬迁阶梯（locator 给全了 ID，所以不是重算）。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/absent.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-4001"
+          }
+        },
+        "subject": {
+          "path": "feedback/absent.json",
+          "documents": [
+            {
+              "path": "feedback/alpha.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            },
+            {
+              "path": "feedback/other.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-5001",
+                    "quote": "完全不相干的一条原话内容",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 1
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "feedback/alpha.json"
+      }
+    ],
+    "negative": [
+      {
+        "note": "搬迁不允许挑一个：声明的台账不存在，而两份台账里都有一条叫 fb-400x 的反馈无人处理——竞争位置必须列出。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/absent.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-4001"
+          }
+        },
+        "subject": {
+          "path": "feedback/absent.json",
+          "documents": [
+            {
+              "path": "feedback/alpha.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            },
+            {
+              "path": "feedback/beta.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "另一条同名记录的原话内容",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 3
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
+      },
+      {
+        "note": "ID 在两份台账里都被声明，身份本身就不唯一——此后任何关于它的关系都无法确认。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/alpha.json",
+          "locator": {
+            "kind": "unclosed-feedback",
+            "feedbackId": "fb-4001"
+          }
+        },
+        "subject": {
+          "path": "feedback/alpha.json",
+          "documents": [
+            {
+              "path": "feedback/alpha.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            },
+            {
+              "path": "feedback/beta.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "另一条同名记录的原话内容",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 3
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一句原话在两份台账里各出现一次，声明只给了引文——竞争位置必须全部列出。",
+        "claim": {
+          "kind": "feedback-and-quote",
+          "path": "feedback/alpha.json",
+          "locator": {
+            "kind": "quote-anchor",
+            "quote": "通知中心的消息重复推送"
+          }
+        },
+        "subject": {
+          "path": "feedback/alpha.json",
+          "documents": [
+            {
+              "path": "feedback/alpha.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4001",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "medium",
+                    "reach": "some",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            },
+            {
+              "path": "feedback/beta.json",
+              "payload": {
+                "feedback": [
+                  {
+                    "id": "fb-4002",
+                    "quote": "通知中心的消息重复推送",
+                    "severity": "low",
+                    "reach": "few",
+                    "frequency": 6
+                  }
+                ],
+                "decisions": []
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "feedback/alpha.json#feedback:fb-4001",
+          "feedback/beta.json#feedback:fb-4002"
+        ]
+      }
+    ]
+  }
+}

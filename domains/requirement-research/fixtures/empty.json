@@ -1,0 +1,65 @@
+{
+  "name": "empty",
+  "domain": "requirement-research",
+  "format": "interview-corpus",
+  "input": {
+    "format": "interview-corpus",
+    "payload": {
+      "sessions": []
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "空语料不改变锚点语义：只要有语料，逐字引用仍然可重算",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {},
+          "excerpt": "对不上就只能一笔一笔翻，没人知道是哪天错的。"
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 3
+      }
+    ],
+    "negative": [
+      {
+        "note": "空语料 + 空摘录 -> 未锚定，不得据以出结论",
+        "claim": {
+          "kind": "verbatim-and-timestamp",
+          "path": "sessions/s1",
+          "locator": {},
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "sessions/s1",
+          "content": "请说说你们现在怎么做月度对账？\n每个月要花两天手工核对，最怕的是漏掉一笔。\n对不上就只能一笔一笔翻，没人知道是哪天错的。",
+          "times": [
+            "2026-01-05T09:00:00Z",
+            "2026-01-05T09:00:30Z",
+            "2026-01-05T09:01:10Z"
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ]
+  }
+}

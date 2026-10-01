@@ -1,0 +1,882 @@
+{
+  "name": "happy-path",
+  "domain": "reverse-engineering",
+  "format": "artifact-and-observations",
+  "description": "一个目标产物、两条线索（auth-flow / protocol）、六条陈述（四条有可复现步骤，两条是明确标注的推断）：P0 枚举出 2×7=14 个候选（每条线索：产物身份行 1 个 + 每条陈述的原文行与可复现性行各 1 个），P1 全部准入，P2 按「一条线索」分成 2 捆 —— 每捆 7 个候选，这正是「一捆 = 一条线索」而不是「一捆 = 一个候选」的证据，也意味着一条推断与支持/推翻它的观察必然同捆。锚点样例覆盖 正例（declared-locator、recomputed-unique、推断保留猜想标注 inference-labelled、搬迁确认、链级确认）、反例（转述不锚定、样本哈希不符、把不可复现的推断写成已验证、未知产物、行号与原文矛盾、kind 不符、没有登记表）与歧义（同一行命中两份笔记）。",
+  "input": {
+    "format": "artifact-and-observations",
+    "payload": {
+      "artifact": {
+        "id": "fw-1.2.3",
+        "kind": "firmware",
+        "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a",
+        "size": 4194304,
+        "tool": {
+          "name": "radare2",
+          "version": "5.9.0"
+        },
+        "environment": "linux-x86_64, ghidra 11.1"
+      },
+      "observations": [
+        {
+          "id": "o-uart-shell",
+          "kind": "observation",
+          "lead": "auth-flow",
+          "statement": "The firmware exposes a UART shell on pin 12 without authentication.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "wire pin 12 to a 3.3V UART adapter at 115200 8N1",
+              "power the board with the debug header shorted",
+              "observe the `#` prompt without any credential"
+            ],
+            "tool": "minicom",
+            "version": "2.8"
+          }
+        },
+        {
+          "id": "o-shell-cmd",
+          "kind": "observation",
+          "lead": "auth-flow",
+          "statement": "The shell accepts the command `dumpcfg` on the debug port.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "attach to the UART shell",
+              "run `dumpcfg` and observe the configuration dump"
+            ]
+          }
+        },
+        {
+          "id": "o-crypto-guess",
+          "kind": "inference",
+          "lead": "auth-flow",
+          "statement": "The configuration blob is probably AES-128-CBC with a fixed IV.",
+          "reproducibility": {
+            "steps": []
+          }
+        },
+        {
+          "id": "o-protocol",
+          "kind": "observation",
+          "lead": "protocol",
+          "statement": "The device speaks a length-prefixed binary protocol on TCP 9000.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "open a TCP session to port 9000",
+              "send a 4-byte little-endian length header",
+              "observe the framed reply"
+            ],
+            "tool": "scapy",
+            "version": "2.5.0"
+          }
+        },
+        {
+          "id": "o-protocol-replay",
+          "kind": "inference",
+          "lead": "protocol",
+          "statement": "The session token is a monotonic counter and can be replayed across sessions.",
+          "reproducibility": {
+            "steps": []
+          }
+        },
+        {
+          "id": "o-strings",
+          "kind": "observation",
+          "lead": "protocol",
+          "statement": "The string `X-Auth-Debug` appears in the release binary.",
+          "verified": true,
+          "reproducibility": {
+            "steps": [
+              "run `strings -a fw-1.2.3.bin | grep X-Auth-Debug`"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "expect": {
+    "candidates": 14,
+    "admitted": 14,
+    "excludedByPredicate": {},
+    "sourceExcluded": 0,
+    "bounded": false,
+    "truncated": false,
+    "bundleKeys": [
+      "re/fw-1.2.3/observations/auth-flow",
+      "re/fw-1.2.3/observations/protocol"
+    ],
+    "bundles": 2,
+    "bundleSizes": {
+      "re/fw-1.2.3/observations/auth-flow": 7,
+      "re/fw-1.2.3/observations/protocol": 7
+    },
+    "sameBundle": [
+      [
+        "o-uart-shell#statement",
+        "o-crypto-guess#repro"
+      ],
+      [
+        "fw-1.2.3#artifact#protocol",
+        "o-protocol#repro"
+      ]
+    ],
+    "candidateIds": [
+      "fw-1.2.3#artifact#auth-flow",
+      "o-uart-shell#statement",
+      "o-uart-shell#repro",
+      "o-shell-cmd#statement",
+      "o-shell-cmd#repro",
+      "o-crypto-guess#statement",
+      "o-crypto-guess#repro",
+      "fw-1.2.3#artifact#protocol",
+      "o-protocol#statement",
+      "o-protocol#repro",
+      "o-protocol-replay#statement",
+      "o-protocol-replay#repro",
+      "o-strings#statement",
+      "o-strings#repro"
+    ],
+    "noteFragments": [
+      "候选集不可先验枚举、成本无上界",
+      "自称是「推断」",
+      "缺少可复现步骤"
+    ],
+    "verified": {
+      "o-uart-shell": true,
+      "o-shell-cmd": true,
+      "o-crypto-guess": false,
+      "o-protocol": true,
+      "o-protocol-replay": false,
+      "o-strings": true
+    }
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "逐字抄写陈述行 + 正确行号 + 样本哈希一致 -> declared-locator：引擎确认了声明的行、样本与复现状态。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a",
+            "kind": "statement",
+            "observationId": "o-uart-shell",
+            "verified": true,
+            "startLine": 7
+          },
+          "excerpt": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\",\"b\",\"c\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a",
+                  "b",
+                  "c"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\nartifact.tool = radare2 5.9.0\nartifact.environment = linux-x86_64, ghidra 11.1\nartifact.kind = firmware\n--- observations ---\nstatement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\nrepro o-uart-shell :: steps=3 tool=minicom 2.8 verified=true"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\",\"b\",\"c\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "re/fw-1.2.3/observations/auth-flow.md",
+        "expectStart": 7,
+        "expectCode": "statement-confirmed"
+      },
+      {
+        "note": "推断必须保留猜想标注：抄写推断的原文行、并且不声称已验证 -> inference-labelled（锚定，但代码写明它是猜想）。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-crypto-guess",
+            "verified": false
+          },
+          "excerpt": "statement o-crypto-guess :: The configuration blob is probably AES-128-CBC with a fixed IV."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-crypto-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-crypto-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-crypto-guess :: The configuration blob is probably AES-128-CBC with a fixed IV.\nrepro o-crypto-guess :: steps=0 verified=false (推断，未复现)\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-crypto-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/fw-1.2.3/observations/auth-flow.md",
+        "expectStart": 4,
+        "expectCode": "inference-labelled"
+      },
+      {
+        "note": "复现状态行本身也可以被锚定：repro 行的原文逐字存在 -> repro-confirmed。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "repro",
+            "observationId": "o-protocol",
+            "verified": true
+          },
+          "excerpt": "repro o-protocol :: steps=3 tool=scapy 2.5.0 verified=true"
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\",\"b\",\"c\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-protocol",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a",
+                  "b",
+                  "c"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000.\nrepro o-protocol :: steps=3 tool=scapy 2.5.0 verified=true\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\",\"b\",\"c\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/fw-1.2.3/observations/protocol.md",
+        "expectStart": 5,
+        "expectCode": "repro-confirmed"
+      },
+      {
+        "note": "声明的路径里没有这一行，但另一份笔记唯一命中 -> relocated-unique：按搬迁确认（笔记被重新组织过），行号以重算结果为准。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/moved.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-strings"
+          },
+          "excerpt": "statement o-strings :: The string `X-Auth-Debug` appears in the release binary."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-strings :: The string `X-Auth-Debug` appears in the release binary.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-strings\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"x\"]}}]}"
+            }
+          ],
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-strings",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "x"
+                ]
+              }
+            }
+          ],
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-strings\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"x\"]}}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "relocated-unique",
+        "expectPath": "re/fw-1.2.3/observations/protocol.md",
+        "expectStart": 4,
+        "expectCode": "note-relocated"
+      },
+      {
+        "note": "adjudication_anchor 只能给出 excerpt/path（没有领域 locator）时的链级确认：原文逐字存在，结论明确写着「具体观察与复现状态未确认」。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {},
+          "excerpt": "artifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+        },
+        "subject": {
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "documents": [
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[]}"
+            },
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\n"
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/fw-1.2.3/observations/protocol.md",
+        "expectStart": 2,
+        "expectCode": "artifact-confirmed"
+      },
+      {
+        "note": "只容忍空白/缩进差异：多写两个空格仍命中，标识符与十六进制大小写不吞。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-protocol"
+          },
+          "excerpt": "statement   o-protocol ::    The device speaks a length-prefixed binary protocol on TCP 9000."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-protocol",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000.\nrepro o-protocol :: steps=3 tool=scapy 2.5.0 verified=true\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectPath": "re/fw-1.2.3/observations/protocol.md",
+        "expectStart": 4,
+        "expectCode": "statement-confirmed"
+      }
+    ],
+    "negative": [
+      {
+        "note": "转述不锚定：把陈述缩写成更顺的一句，意思不变也不是原文。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-uart-shell"
+          },
+          "excerpt": "statement o-uart-shell :: The firmware exposes an unauthenticated UART shell."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "no-match"
+      },
+      {
+        "note": "本领域的关键反例之一：原文逐字存在，但样本哈希不符 —— 结论是在另一个产物上得出的，不能搬运。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "kind": "statement",
+            "observationId": "o-uart-shell"
+          },
+          "excerpt": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "artifact-mismatch"
+      },
+      {
+        "note": "本领域的关键反例之二：引文逐字存在，但那条陈述是 steps=0 的推断，却被写成已验证 —— 证据等级被升级，拒绝。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-crypto-guess",
+            "verified": true
+          },
+          "excerpt": "statement o-crypto-guess :: The configuration blob is probably AES-128-CBC with a fixed IV."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-crypto-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-crypto-guess",
+              "kind": "inference",
+              "reproducibility": {
+                "steps": []
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-crypto-guess :: The configuration blob is probably AES-128-CBC with a fixed IV.\nrepro o-crypto-guess :: steps=0 verified=false (推断，未复现)\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-crypto-guess\",\"kind\":\"inference\",\"reproducibility\":{\"steps\":[]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "verification-overclaim"
+      },
+      {
+        "note": "显式标记 verified=false 的陈述同样不能被写成已验证。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-protocol-replay",
+            "verified": true
+          },
+          "excerpt": "statement o-protocol-replay :: The session token is a monotonic counter and can be replayed across sessions."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol-replay\",\"kind\":\"inference\",\"verified\":false,\"reproducibility\":{\"steps\":[\"a\",\"b\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-protocol-replay",
+              "kind": "inference",
+              "verified": false,
+              "reproducibility": {
+                "steps": [
+                  "a",
+                  "b"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-protocol-replay :: The session token is a monotonic counter and can be replayed across sessions.\nrepro o-protocol-replay :: steps=2 verified=false (缺少可复现步骤)\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol-replay\",\"kind\":\"inference\",\"verified\":false,\"reproducibility\":{\"steps\":[\"a\",\"b\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "verification-overclaim"
+      },
+      {
+        "note": "声明针对另一个产物 -> unknown-artifact：不是同一个样本，任何比较都不成立。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-9.9.9",
+            "kind": "statement",
+            "observationId": "o-uart-shell"
+          },
+          "excerpt": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "unknown-artifact"
+      },
+      {
+        "note": "观察不在登记表里 -> unknown-observation，并列出真实 id。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-nope"
+          },
+          "excerpt": "statement o-nope :: something"
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/auth-flow.md",
+              "content": "# lead auth-flow — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "expectCode": "unknown-observation",
+        "expectKnownObservations": [
+          "o-uart-shell"
+        ]
+      },
+      {
+        "note": "行号与原文矛盾 -> locator-mismatch：不修补、不裁剪，直接拒绝。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-protocol",
+            "startLine": 99
+          },
+          "excerpt": "statement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-protocol",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/protocol.md",
+              "content": "# lead protocol — artifact fw-1.2.3\nartifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n--- observations ---\nstatement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-protocol\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch",
+        "expectCode": "locator-mismatch"
+      },
+      {
+        "note": "锚点 kind 不符 -> kind-mismatch，不做强制转换。",
+        "claim": {
+          "kind": "diff-line",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {},
+          "excerpt": "artifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+        },
+        "subject": {
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "content": "artifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "kind-mismatch",
+        "expectCode": "kind-mismatch"
+      },
+      {
+        "note": "没有样本登记表 -> no-documents/no-artifact：本域不用笔记文本代替登记表（没有表就无法核对样本与复现状态）。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-protocol"
+          },
+          "excerpt": "statement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "content": "# lead protocol\nstatement o-protocol :: The device speaks a length-prefixed binary protocol on TCP 9000.\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-documents",
+        "expectCode": "no-artifact"
+      },
+      {
+        "note": "摘录为空 -> empty-excerpt：没有原文就没有锚点。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "locator": {
+            "artifactId": "fw-1.2.3"
+          },
+          "excerpt": "  "
+        },
+        "subject": {
+          "path": "re/fw-1.2.3/observations/protocol.md",
+          "content": "artifact.sha256 = 18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\n"
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt",
+        "expectCode": "empty-excerpt"
+      }
+    ],
+    "ambiguous": [
+      {
+        "note": "同一行出现在两份笔记里 -> 位置不唯一，拒绝猜测它属于哪一条线索，并列出全部竞争位置。",
+        "claim": {
+          "kind": "reproducible-observation",
+          "path": "re/fw-1.2.3/observations/auth-flow.md",
+          "locator": {
+            "artifactId": "fw-1.2.3",
+            "kind": "statement",
+            "observationId": "o-uart-shell"
+          },
+          "excerpt": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication."
+        },
+        "subject": {
+          "path": "re/fw-1.2.3.json",
+          "documents": [
+            {
+              "path": "re/fw-1.2.3/observations/a.md",
+              "content": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3/observations/b.md",
+              "content": "statement o-uart-shell :: The firmware exposes a UART shell on pin 12 without authentication.\n"
+            },
+            {
+              "path": "re/fw-1.2.3.json",
+              "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}"
+            }
+          ],
+          "artifact": {
+            "id": "fw-1.2.3",
+            "sha256": "18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a"
+          },
+          "observations": [
+            {
+              "id": "o-uart-shell",
+              "kind": "observation",
+              "verified": true,
+              "reproducibility": {
+                "steps": [
+                  "a"
+                ]
+              }
+            }
+          ],
+          "content": "{\"artifact\":{\"id\":\"fw-1.2.3\",\"sha256\":\"18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a18f6d4b2907e5c3a\"},\"observations\":[{\"id\":\"o-uart-shell\",\"kind\":\"observation\",\"verified\":true,\"reproducibility\":{\"steps\":[\"a\"]}}]}",
+          "x-self-folded": "caller handed the payload back as a document; the engine collapses subject to {path, content, documents}"
+        },
+        "expectTier": "relocation-ambiguous",
+        "expectAmbiguousIn": [
+          "re/fw-1.2.3/observations/a.md:1",
+          "re/fw-1.2.3/observations/b.md:1"
+        ]
+      }
+    ]
+  }
+}

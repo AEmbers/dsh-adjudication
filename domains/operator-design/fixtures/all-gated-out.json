@@ -1,0 +1,71 @@
+{
+  "name": "all-gated-out",
+  "domain": "operator-design",
+  "format": "operator-registry-and-tests",
+  "description": "P0 枚举出 5 个未覆盖形态（5 个算子各一个形态，测试清单为空），P1 把它们全部排除：4 个落在领域包自己的排除规则上（产物目录、构建产物、版本库目录、生成内核），1 个由引擎默认排除规则拦下（依赖目录）。这是「源头有东西、闸门后为空」的边界——必须能被区分于 empty。CHANGED (t23)：本 fixture 现在**不带自己的 gate**——它证明的是「pack 自己能排干」，而不是「pack ∪ fixture 能排干」。",
+  "input": {
+    "format": "operator-registry-and-tests",
+    "payload": {
+      "operators": [
+        { "name": "op_vendor", "signature": "void op_vendor(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"], "path": "node_modules/vendor/op.cu", "source": "void op_vendor(const Tensor& x) {\n}" },
+        { "name": "op_built", "signature": "void op_built(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"], "path": "dist/op.cu", "source": "void op_built(const Tensor& x) {\n}" },
+        { "name": "op_builddir", "signature": "void op_builddir(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"], "path": "build/op.cu", "source": "void op_builddir(const Tensor& x) {\n}" },
+        { "name": "op_hook", "signature": "void op_hook(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"], "path": ".git/hooks/op.cu", "source": "void op_hook(const Tensor& x) {\n}" },
+        { "name": "op_generated", "signature": "void op_generated(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"], "path": "generated/op.cu", "source": "void op_generated(const Tensor& x) {\n}" }
+      ],
+      "tests": []
+    }
+  },
+  "expect": {
+    "candidates": 5,
+    "paths": ["node_modules/vendor/op.cu", "dist/op.cu", "build/op.cu", ".git/hooks/op.cu", "generated/op.cu"],
+    "admitted": 0,
+    "excludedByPredicate": {
+      "user-exclude": [".git/hooks/op.cu", "build/op.cu", "dist/op.cu", "generated/op.cu"],
+      "default-path": ["node_modules/vendor/op.cu"]
+    },
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "被闸门排除的实现里，原文依然可以被逐字锚定；闸门与锚点是两层，不该互相冒充。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "generated/op.cu",
+          "locator": { "kind": "operator-form", "path": "generated/op.cu", "operator": "op_generated", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "uncovered-form" },
+          "excerpt": "void op_generated(const Tensor& x) {"
+        },
+        "subject": {
+          "path": "generated/op.cu",
+          "content": "void op_generated(const Tensor& x) {\n}\n",
+          "operators": [{ "name": "op_generated", "signature": "void op_generated(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"] }],
+          "tests": []
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "findingKind 不在本领域认得的集合里：拒绝猜测，判未锚定而不是当作一般性的边。",
+        "claim": {
+          "kind": "signature-and-tolerance",
+          "path": "generated/op.cu",
+          "locator": { "kind": "operator-form", "path": "generated/op.cu", "operator": "op_generated", "backend": "cuda", "dtype": "fp32", "shapeBranch": "contiguous", "findingKind": "performance-regression" },
+          "excerpt": "void op_generated(const Tensor& x) {"
+        },
+        "subject": {
+          "path": "generated/op.cu",
+          "content": "void op_generated(const Tensor& x) {\n}\n",
+          "operators": [{ "name": "op_generated", "signature": "void op_generated(const Tensor& x)", "backends": ["cuda"], "dtypes": ["fp32"], "shapeBranches": ["contiguous"] }],
+          "tests": []
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      }
+    ]
+  }
+}

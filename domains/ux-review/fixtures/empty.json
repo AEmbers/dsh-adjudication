@@ -1,0 +1,87 @@
+{
+  "name": "empty",
+  "domain": "ux-review",
+  "format": "flow-spec",
+  "description": "流程没有任何步骤、也没有任何分支：P0 产出空集，P1 也无从排除。空集本身就是结论——没有可审的交互面。",
+  "input": {
+    "format": "flow-spec",
+    "payload": {
+      "flow": { "id": "empty", "name": "空流程", "steps": [] },
+      "branches": [],
+      "prototype": { "nodes": [] }
+    }
+  },
+  "expect": {
+    "candidates": 0,
+    "paths": [],
+    "admitted": 0,
+    "excludedByPredicate": {},
+    "bounded": true,
+    "truncated": false
+  },
+  "anchors": {
+    "positive": [
+      {
+        "note": "流程为空不影响锚点重算：只要给出步骤表与分支表，步骤侧仍可核对，证据侧仍可滑窗定位。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "empty/b/happy/s1",
+          "locator": { "branchId": "happy", "stepId": "s1" },
+          "excerpt": "next = s2"
+        },
+        "subject": {
+          "path": "empty/b/happy/s1",
+          "flow": { "id": "empty", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "empty/b/happy/s1", "content": "next = s2\n" }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "recomputed-unique",
+        "expectStart": 1
+      }
+    ],
+    "negative": [
+      {
+        "note": "步骤侧缺一半：只给步骤 id 不给分支 id -> 无法证明「这个步骤在这条分支上」，未锚定。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "empty/b/happy/s1",
+          "locator": { "stepId": "s1" },
+          "excerpt": "next = s2"
+        },
+        "subject": {
+          "path": "empty/b/happy/s1",
+          "flow": { "id": "empty", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "empty/b/happy/s1", "content": "next = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "证据侧缺一半：原文为空 -> 没有可核验的证据，未锚定。",
+        "claim": {
+          "kind": "flow-step-and-node",
+          "path": "empty/b/happy/s1",
+          "locator": { "branchId": "happy", "stepId": "s1" },
+          "excerpt": "   "
+        },
+        "subject": {
+          "path": "empty/b/happy/s1",
+          "flow": { "id": "empty", "steps": [{ "id": "s1" }] },
+          "branches": [{ "id": "happy", "kind": "happy", "steps": ["s1"] }],
+          "documents": [
+            { "path": "empty/b/happy/s1", "content": "next = s2\n" }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt"
+      }
+    ],
+    "ambiguous": []
+  }
+}

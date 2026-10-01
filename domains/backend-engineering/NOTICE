@@ -1,0 +1,64 @@
+backend-engineering — attribution (Apache-2.0)
+
+This domain directory is part of dsh-adjudication, Copyright 2026 AEmbers,
+licensed under the Apache License, Version 2.0.
+
+It REUSES, by reference, code that is itself derived from open-code-review
+(https://github.com/alibaba/open-code-review), Copyright Alibaba Group,
+licensed under the Apache License, Version 2.0:
+
+  source.js
+      imports parseUnifiedDiff / hunkLineCounts / hunkNewSpan from
+      ../code-review/source.js and delegates enumeration to it.
+      <- open-code-review internal/diff/hunk.go (hunkHeaderRe) and
+         internal/diff/parser.go, via domains/code-review/source.js.
+      Deviation: none in the reused parser. What this domain adds is the
+      `serviceMap` join onto `candidate.meta.service`; it does not change which
+      candidates exist, their ids, their locators or the gate predicates that
+      see them.
+
+  anchor.js
+      re-exports ../code-review/anchor.js unchanged (object identity; the
+      domain's test asserts `anchor === codeReviewAnchor`).
+      <- open-code-review internal/diff/resolver.go (normalizeLine,
+         matchConsecutive, RelocateAcrossFiles). The same deviation documented
+         in the root NOTICE for domains/code-review/anchor.js applies verbatim:
+         upstream's third tier re-locates with a model call; this port stops at
+         "unanchored" and distinguishes `locator-mismatch` from
+         `relocation-ambiguous`.
+
+  evidence.js
+      spreads ../code-review/evidence.js's three tools into its toolkit by
+      function identity, and adds `interface_delta`.
+      <- the layout of internal/tool/file_read.go and internal/tool/git_grep.go
+         (bounded read/search payloads) via domains/code-review/evidence.js.
+      `interface_delta` is ORIGINAL to this project: a coarse, bounded scan of
+      ADDED diff lines for declaration shapes. It is a locator, not a parser,
+      and its own `provenance` string says so.
+
+  index.js
+      gate.extensions
+      <- internal/config/allowlist/supported_file_types.json via
+         domains/code-review/index.js. This list is a SMALL SUBSET of upstream's
+         116 extensions (17 here, plus the extensions code-review already
+         admits); it is NOT a full port and does not claim parity.
+
+  rules/*.md
+      Original prose written for this project. NOT derived from open-code-review
+      and NOT expert-validated: every document carries
+      `needs-expert-review: true`.
+
+Everything else in this directory — the service-boundary join, the review
+order, the rule library, `interface_delta`, the fixtures and the test suite —
+is original to this project.
+
+Note requested for the package-root NOTICE (this file is the domain-local
+record; the root NOTICE is owned by the package, not by this domain):
+
+  The following parts of domains/backend-engineering/ reuse, by reference,
+  code derived from open-code-review:
+    source.js, anchor.js, evidence.js (the three reused tools) and
+    index.js (gate.extensions, a strict subset of the upstream allowlist).
+  The reuse is by import, not by copy: domains/backend-engineering/anchor.js is
+  object-identical to domains/code-review/anchor.js, and its test asserts that
+  identity. `interface_delta`, the serviceMap join and rules/*.md are original.
