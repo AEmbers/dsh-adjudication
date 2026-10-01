@@ -25,19 +25,39 @@
 
 ### 变更（外部可观察的行为变化）
 
-- **锚点档位词汇表 —— 契约可见的删除。** `ANCHOR_TIERS` **9 → 13**、`TRUSTED_ANCHOR_TIERS`
-  **3 → 4**：
-  - **`domain-locator` 被移除**（全仓无任何生产者：19 份 `anchor.js`，包括它当初想服务的
-    ID/图/表/图层家族，报的都是 `declared-locator`；`declared-locator` 的语义本来就等于它）。
-    **影响第三方领域**：若某个领域返回 `tier:'domain-locator'`，它现在**不再被当作合法档位**——
-    裁决会被降级为 `unanchored/invalid-verdict` 并在 `detail` 里写明原因。**fail-closed，不会
-    静默放行**，但这是一个行为变化。
-  - **引擎实际会返回的四个档位补进声明**：`declared-document` 列为**受信**（引擎三级锚定的
+- **锚点档位词汇表的发布前收敛。** `ANCHOR_TIERS` **9 → 13**、`TRUSTED_ANCHOR_TIERS` **3 → 4**。
+  这**不是**一次对外删除：整个档位词汇表（包括那个 `domain-locator`）**从未出现在任何已提交、
+  更未出现在任何已发布的状态里** —— 承载它的 `lib/contracts.js` 的第一个提交就是本版本，
+  此前的 `acb1ae0` 里没有这个文件（自证命令见下）。所以下面写的是**发布前的内部设计纠正**，
+  没有任何第三方拿到过带旧词汇表的版本，也就没有「行为变化」可谈：
+  - **`domain-locator` 被删掉**，理由是它在仓库里**没有任何生产者**：19 份 `domains/<id>/anchor.js`
+    全量扫查（包括它当初想服务的 ID/图/表/图层家族）报的都是 `declared-locator`，
+    `lib/engine.js` 的通用阶梯也返回不了它；唯一用到它的是 kernel 测试夹具。
+    它被加进来时是为了让「没有行号」的家族能合法地报 anchored，而
+    `validateAnchorVerdict` 从第一天起就允许 anchored 裁决带**非空 `locator` 对象**，
+    所以这份能力从来没缺过。
+  - **引擎实际会返回的四个档位补进了声明**：`declared-document` 列为**受信**（引擎三级锚定的
     第一级，`smoke-test.mjs` 一直在断言它）；`sliding-window` / `no-excerpt` / `invalid-verdict`
-    列为**不受信**（只能出现在未锚定裁决上）。此前这四个档位**有生产者、没声明**，
-    而通用阶梯不经过校验器 ⇒ 契约描述不了自己的引擎。
-  - 两条**双向**运行期断言钉住它：「声明的档位都有生产者」与「生产者返回的档位都被声明」，
-    两个方向各自都能变红（`lib/kernel-test.mjs` §16）。
+    列为**不受信**（只能出现在未锚定裁决上）。此前这四个档位**有生产者、没名字**，
+    而通用阶梯不经过校验器 ⇒ 契约描述不了自己的引擎，这才是本轮真正修掉的东西。
+  - 值钱的那半是**守卫本身**：两条**双向**运行期断言（`lib/kernel-test.mjs` §16）——
+    (a)「每个**被声明**的档位都有真实生产者」、(b)「每个**被生产者返回**的档位都被声明」。
+    两个方向**各自都曾经是红的**，而且各自只抓到不同的东西：方向 (a) 在移除前抓到 **1 个**
+    「声明了却没有生产者」的档位（`domain-locator`），方向 (b) 在补声明前抓到 **4 个**
+    「有生产者却没名字」的档位（`declared-document`、`invalid-verdict`、`no-excerpt`、`sliding-window`）。
+    只做一个方向等于只修一半 —— 这份守卫留下的原因就在这里。
+  - **自证（可执行）**：`git show acb1ae0:lib/contracts.js` → `fatal: path ... not in 'acb1ae0'`；
+    `git log --all --diff-filter=A --oneline -- lib/contracts.js` → 只有本版本的提交；
+    对每个提交执行 `git show <rev>:lib/contracts.js | grep -c "^  'domain-locator':"` → 全为 `0`。
+- **系统提示的 recall-first 名单现在说明自己描述的是哪一层表面**（t52）：那段文本一直是从
+  **当前注册表**派生的（不是从 `lib/domains.js` 的 `RECALL_FIRST_DOMAINS` 常量），
+  但它在**首次工具调用触发目录发现之前**渲染时，注册表还是内置 v1 记录 —— 那时它报 9 个，
+  发现之后报 10 个（`algo-model` 的 v2 包是 recall-first），两句话读起来却像同一句。
+  现在发现尚未发生（或 `domains/<id>/` 没提供 v2 包）时，这一行会明说
+  「以上为内置回退表面的名单 …以 `adjudication_domains` 的结果为准」；发现之后该说明自动消失。
+  钉住它的是 `lib/kernel-test.mjs` §18 两条断言：内置表面上「名单 === `RECALL_FIRST_DOMAINS` 且带说明」，
+  v2 表面上「名单 === `adjudication_domains` 报的 recall-first 集合、含 `algo-model`、且**不等于**那个常量、
+  说明消失」；三个变异（把名单写死成内置九项 / 去掉说明 / 说明永不消失）分别把对应的那一半变红。
 - **P6 独立复核真的会跑**（此前 `reviewPrompts.verify` 全仓没有任何运行期渲染者，
   名为 P6 的那段代码是确定性损失策略、一个字都不读提示词）：`adjudication_submit` 现在按
   「P5 锚点重算 → **P6** → 损失策略取舍 → P7 覆盖度」执行，P6 上下文只含

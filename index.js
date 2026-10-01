@@ -1732,7 +1732,22 @@ export function apply(ctx, config) {
             })
             .filter(Boolean)
             .join(' / ')
-          const recallFirst = packs.filter((pack) => pack.lossOrientation === 'recall-first').map((pack) => pack.id)
+          // CHANGED (t52): this list is derived from whatever the registry holds
+          // RIGHT NOW — never from the `RECALL_FIRST_DOMAINS` constant, which is
+          // a statement about the built-in surface only. Before the first tool
+          // call that triggers directory discovery, "right now" IS the built-in
+          // fallback surface, and `domains/<id>/` packs have not replaced their
+          // v1 records yet. Say which surface the line is describing instead of
+          // letting a snapshot read as a permanent fact: after discovery the
+          // qualifier disappears by itself.
+          const recalled = packs.filter((pack) => pack.lossOrientation === 'recall-first').map((pack) => pack.id)
+          const replaced = directoryState.result?.replaced
+          const v2InForce = directoryState.status === 'ready'
+            && Array.isArray(replaced)
+            && replaced.some((id) => recalled.includes(id))
+          const surfaceNote = v2InForce
+            ? ''
+            : '（以上为内置回退表面的名单：目录发现尚未发生，或 `domains/<id>/` 未提供 v2 包；调用 `adjudication_domains` 后按实际生效的领域包更新）'
           return [
             `## 审定引擎 (adjudication)`,
             `可用领域包 ${packs.length} 个（${families}），**默认全部未加载**。`,
@@ -1742,7 +1757,7 @@ export function apply(ctx, config) {
             `- \`adjudication_plan\` — 确定性产出有界工作单（闸门/分捆/规则/预算）`,
             `- \`adjudication_anchor\` — 把抄写的原文定位到确定的行；行号一律不采信`,
             `- \`adjudication_submit\` — 交回判定，独立复核并出覆盖度证明`,
-            recallFirst.length === 0 ? '' : `recall-first 领域（漏检代价更高）：${recallFirst.join(', ')}`,
+            recalled.length === 0 ? '' : `recall-first 领域（漏检代价更高）：${recalled.join(', ')}${surfaceNote}`,
           ].filter(Boolean).join('\n')
         },
       }), 'adjudication.promptSection()')

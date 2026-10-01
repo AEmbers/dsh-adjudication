@@ -172,12 +172,18 @@ loader 装配结果），演示脚本见「端到端演示」一节。
 
 **十个领域**被标定为 recall-first：风控合规、数据工程、算法模型、技术测试、算子设计、需求调研、市场调研、逆向工程、用户反馈、需求对齐（其余九个是 precision-first；以各领域 `index.js` 的 `lossOrientation` 为准，上表逐域列了）。理由是同一个：这些领域里「我们审过了，没问题」这句话如果是假的，代价远高于多出几条噪音。
 
-> **与内置 v1 pack 的差别**：`domains/<id>/` 里的 v2 包按 id 覆盖 `lib/domains.js` 的内置 pack。
-> 内置的那 19 个里有 **9** 个 recall-first，v2 里有 **10** 个 —— 差别是 **`algo-model`**：
-> 内置是 `precision-first`，v2 领域包改成 `recall-first`。
-> 已知限制：`lib/domains.js` 导出的 `RECALL_FIRST_DOMAINS`（系统提示 section 用它宣告清单）
-> 仍是按**内置** pack 算的，所以那一行目前报 9 个、与 v2 实际生效的 10 个不一致；
-> 要修得动 `lib/domains.js`（本轮的 inScope 不含它），已登记为已知限制。
+> **两层表面，以及它们的关系（t52 起被机械钉住）**：`domains/<id>/` 里的 v2 包按 id 覆盖
+> `lib/domains.js` 的内置 pack。内置的那 19 个里有 **9** 个 recall-first，v2 里有 **10** 个 ——
+> 差别是 **`algo-model`**：内置记录写的是 `precision-first`，v2 领域包改成 `recall-first`。
+>
+> - **系统提示里那一行**是从**当前注册表**派生的（不是从常量），所以目录发现之前它报内置的 9 个、
+>   发现之后报生效的 10 个；发现尚未发生时它会**明说**自己说的是内置回退表面、并以
+>   `adjudication_domains` 的结果为准，发现之后这句自动消失。
+> - **`lib/domains.js` 的 `RECALL_FIRST_DOMAINS`** 是一条**关于内置表面**的导出（它自己的注释
+>   也是这么写的），用于「不依赖 `domains/` 目录」的场合，**不**由系统提示读取。
+>   两者不是同一个问题，`lib/kernel-test.mjs` §18 把两层各自钉住：
+>   内置表面上「提示行 === `RECALL_FIRST_DOMAINS` 且带说明」，v2 表面上
+>   「提示行 === `adjudication_domains` 报的 recall-first 集合、含 `algo-model`、且**不等于**该常量」。
 
 还有一层保护：`security` / `privacy` / `safety` / `data-loss` / `legal` 这类**受保护主题在两种取向下都先于正确性判断被保留**，先否决再谈对错。
 
