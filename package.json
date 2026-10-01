@@ -1,0 +1,55 @@
+{
+  "name": "dsh-adjudication",
+  "version": "0.1.0",
+  "description": "Multi-domain adjudication engine for DeepSeek Harness — deterministic gate/bundle/anchor/critique primitives plus a registry of on-demand domain packs.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./engine": "./lib/engine.js",
+    "./registry": "./lib/registry.js",
+    "./domains": "./lib/domains.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "deepseek",
+    "dsh",
+    "dsh-plugin",
+    "adjudication",
+    "code-review",
+    "domain-pack"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AEmbers/dsh-adjudication.git"
+  },
+  "homepage": "https://github.com/AEmbers/dsh-adjudication#readme",
+  "bugs": {
+    "url": "https://github.com/AEmbers/dsh-adjudication/issues"
+  },
+  "scripts": {
+    "test": "node smoke-test.mjs && node mount-test.mjs",
+    "test:unit": "node smoke-test.mjs",
+    "test:mount": "node mount-test.mjs",
+    "pack:check": "npm pack --dry-run"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

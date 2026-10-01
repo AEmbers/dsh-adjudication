@@ -1,0 +1,8 @@
+# Normalise line endings on commit so a Windows checkout and a Linux CI
+# produce identical blobs. This repo is source-only (no build products).
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.webp binary
+*.tgz binary

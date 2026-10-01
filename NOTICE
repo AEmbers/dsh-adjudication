@@ -1,0 +1,56 @@
+dsh-adjudication
+Copyright 2026 AEmbers
+
+This product includes software developed as part of open-code-review
+(https://github.com/alibaba/open-code-review), Copyright Alibaba Group,
+licensed under the Apache License, Version 2.0.
+
+The following parts of lib/engine.js are derived from open-code-review. Every
+one of them is MODIFIED: the upstream logic is generalised out of the
+code-review domain into domain-neutral primitives that are parameterised by a
+domain pack, and the file/function names below are the upstream origins, not a
+description of the current code.
+
+  normalizeLine, normalizeExcerpt
+      <- internal/diff/resolver.go (normalizeLine)
+
+  matchConsecutive, anchorInDocument
+      <- internal/diff/resolver.go (matchConsecutive, ResolveComment)
+
+  resolveAnchor and its three-tier degradation ladder
+      <- internal/diff/resolver.go (RelocateAcrossFiles) and
+         internal/agent/relocation.go (RE_LOCATION_TASK)
+      Deviation: upstream's third tier is an LLM-driven re-location. It is
+      deliberately NOT reproduced. This port ends the ladder at "unanchored"
+      because an anchor a model guessed is not an anchor an engine can verify.
+
+  DEFAULT_GATE_PREDICATES and their ordering
+      <- internal/agent/selection.go (selectFiles, whyExcluded)
+
+  DEFAULT_EXCLUDE_PATTERNS
+      <- internal/config/default_exclude_patterns.json
+
+  DEFAULT_SECRET_PATTERNS
+      <- internal/config/default_secret_patterns.json
+
+  BUNDLE_DEFAULTS (minFiles, lineThreshold, maxPerBundle)
+      <- internal/agent/grouping.go (GROUPING_MIN_FILES,
+         GROUPING_BUNDLE_LINE_THRESHOLD, maxFilesPerGroup)
+
+  BUDGET_DEFAULTS
+      <- internal/agent/estimate.go (avgMainRoundsPerFile),
+         internal/tool/file_read.go (fileReadMaxLines),
+         internal/tool/git_grep.go (gitGrepMaxCount)
+
+  critique, runCritiquePanel and the asymmetric loss orientation
+      <- internal/prompts/review_filter_task_system.md (the precision-first
+         "when your evidence falls short of proof, approve" policy) and the
+         protected-subject veto in review_filter_task_user.md
+
+  coverage and report
+      <- internal/delegate/* (the coverage self-proof field set)
+
+Everything else is original to this project and has no counterpart upstream:
+the domain registry (lib/registry.js), the nineteen domain packs
+(lib/domains.js), the on-demand tool activation lifecycle and the service
+facade (index.js), the recall-first loss orientation, and the test suites.

@@ -1,0 +1,36 @@
+# dsh-adjudication — bundle layer.
+#
+# This is the only row the bundle needs. Everything else (domains, extra tools)
+# is registered by the plugin itself, either from `config.domains` or by a
+# downstream package that injects the `adjudication` service.
+#
+# Row fields follow the Loader's `EntryOptions`: id / name / config / disabled /
+# inject / group. Patch semantics: `insert` appends; an id-only patch replaces
+# the target row's fields WHOLESALE (config is never deep-merged).
+- insert:
+    - id: adjudication
+      name: dsh-adjudication
+      config:
+        # Built-in domain packs to load. `'all'` loads every pack shipped in
+        # lib/domains.js; a list of ids loads only those.
+        domains: all
+        # Tools per domain that `adjudication_activate` registers on demand.
+        # `'full'` registers the domain's own entry tool plus its gate/panel
+        # tools; `'entry'` registers only the domain entry tool.
+        domainTools: full
+        # P1 gate defaults, overridable per domain pack.
+        gate:
+          maxCandidates: 400
+          maxFileBytes: 1048576
+        # P2 bundling defaults (mirrors open-code-review's constants).
+        bundle:
+          minFiles: 4
+          lineThreshold: 200
+          maxPerBundle: 10
+        # P7 budget defaults.
+        budget:
+          maxToolCalls: 100
+          maxExcerptLines: 500
+          maxSearchHits: 100
+        # Loss orientation applied when a domain pack does not declare one.
+        lossOrientation: precision-first

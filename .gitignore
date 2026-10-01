@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# Packed artifacts
+*.tgz
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# DSH local scratch
+cordis.yml
+*.local.cordis.patch.yml
