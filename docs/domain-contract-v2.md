@@ -185,8 +185,9 @@ assert.deepEqual(validateCandidateSetResult(out, { maxCandidates: 400 }), [])
  * @param {object} context  { maxExcerptLines, signal }
  * @returns {{
  *   status: 'anchored' | 'unanchored',
- *   tier: 'declared-locator'|'recomputed-unique'|'relocated-unique'
- *       |'locator-mismatch'|'relocation-ambiguous'|'no-match'|'empty-excerpt'|'kind-mismatch'|'no-documents',
+ *   tier: 受信 'declared-locator'|'declared-document'|'recomputed-unique'|'relocated-unique'
+ *       |不受信 'sliding-window'|'locator-mismatch'|'no-excerpt'|'invalid-verdict'
+ *       |'relocation-ambiguous'|'no-match'|'empty-excerpt'|'kind-mismatch'|'no-documents',
  *   path: string|null,
  *   start: number|null,   // 1-based；ID/图家族可为 null
  *   end: number|null,
@@ -215,7 +216,7 @@ export default defineAnchorVerifier({
 - **转述不锚定**：引文必须逐字（允许忽略缩进与 diff 标记）。改写 → `no-match`，降级为未锚定，不得"尽力而为"。
 - **kind 不符** → `unanchored` + `kind-mismatch`；**claim 形状不合法**（缺 `kind`/`path`，或 `locator` 非对象）→ 抛 `E_ANCHOR_CONTRACT`。
 - **verifier 不得调用模型**。OCR 的第三级是 LLM 重定位，本项目**有意不实现**（理由见 README「已知限制」#2）：模型猜出来的锚点不是引擎能重算的锚点。
-- `tier ∈ TRUSTED_ANCHOR_TIERS`（`declared-locator`/`recomputed-unique`/`relocated-unique`）才允许 `status: 'anchored'`，由 `validateAnchorVerdict` 强制。**受信档位必须真的有生产者**（CHANGED (t49)，见下条）。
+- `tier ∈ TRUSTED_ANCHOR_TIERS`（`declared-locator`/`declared-document`/`recomputed-unique`/`relocated-unique`）才允许 `status: 'anchored'`，由 `validateAnchorVerdict` 强制。**受信档位必须真的有生产者**，反过来**生产者返回的档位必须被声明**（CHANGED (t49)，见下条）。
 
 **裁决形状：行号**或**领域 locator，二选一**（CHANGED / t17）
 
@@ -233,9 +234,11 @@ export default defineAnchorVerifier({
 >
 > 为什么删而不是补一个生产者：那样等于**先造一个消费者来给一条死声明背书**，正是本队反复撞到的「声明先行、之后再说」；而它带来的能力是零——`validateAnchorVerdict` 一直允许「整数 range **或** 非空 locator 对象」，非行家族用 `declared-locator` 本来就能合法锚定。
 >
-> 它的守卫是**运行期断言**：`lib/kernel-test.mjs` §16「`TRUSTED_ANCHOR_TIERS` 里每个档位都必须有真实生产者」——生产者一侧是**执行**通用阶梯（`lib/engine.js`），另一侧是**扫查**已发运的 `domains/<id>/anchor.js`。这条断言在移除前是**红的**（唯一失败项就是 `domain-locator`），移除后转绿。
+> 它的守卫是**双向运行期断言**：`lib/kernel-test.mjs` §16 断言 (a)「每个**被声明**的档位都有真实生产者」**(b)**「每个**被真实生产者返回**的档位都被声明」。生产者一侧是**执行**通用阶梯与 `anchorInDocument`，另一侧是**扫查** `lib/engine.js`、`index.js` 与已发运的 `domains/<id>/anchor.js`。**两个方向各自都曾经是红的**：方向 (a) 的唯一失败项是 `domain-locator`（移除前），方向 (b) 的唯一失败项是 `["declared-document","invalid-verdict","no-excerpt","sliding-window"]`（补声明前）。只做一个方向等于只修一半。
 >
-> 已知的同类缺口（**本次未修，如实记录**）：反方向也不成立——`lib/engine.js:168` 的阶梯会返回 `declared-document`，`anchorInDocument` 会返回 `sliding-window`，而这两个档位**不在 `ANCHOR_TIERS` 里**（通用阶梯路径不经过 `validateAnchorVerdict`，所以不会当场报错）。它们是有真实生产者的**未声明**档位，与 `domain-locator` 是同一族问题的镜像；修它意味着改动引擎的档位词汇表（影响 19 个域的回退路径语义），因此留给单独一次改动，而不是塞进这次移除里。
+> **同一族镜像缺口已一并收口（CHANGED (t49) 第二遍）**：`lib/engine.js` 的阶梯返回 `declared-document`、`anchorInDocument` 返回内部标记 `sliding-window`、`index.js` 的两条引擎路径返回 `no-excerpt` 与 `invalid-verdict` —— 四个档位**有生产者却没有声明**，而通用阶梯不经过 `validateAnchorVerdict`，所以谁都不会报错。收口方式两条都做了：
+> 1. **补声明**：`declared-document` 补进 `ANCHOR_TIERS` 并列为**受信**（它一直就是引擎接受的一档，`smoke-test.mjs:460` 断言的就是它；语义是「引文在 claim 指定的文档里逐字命中」，与 `declared-locator` 的区别是**它不咨询 locator**）；`sliding-window`、`no-excerpt`、`invalid-verdict` 声明为**不受信**（只能出现在 `unanchored` 裁决上）。其中 `sliding-window` 是 `anchorInDocument` 的**内部命中标记**，通用阶梯在它逃逸前一定会重定档为 `declared-document`/`relocated-unique`——这条由 §16 的反向钩子钉住（该标记必须被生产、且**永远不能出现在离开阶梯的裁决里**）。
+> 2. **加执行**：`index.js` 新增 `validatedEngineVerdict()`，**引擎自己的裁决也走 `validateAnchorVerdict`**（与领域验证器路径同形：不合契约就降级为 `unanchored` + `invalid-verdict` + 列出违规，不抛异常、不静默接受）。此后「词汇表描述不了的档位交给调用方」在结构上不可能发生。
 
 > **为什么改**：原先的校验要求 anchored 必须带整数 range 且 tier 在三个行号 tier 里。那是把 `code-review` 的形状当成了**唯一**形状 —— 换成规则层同样成立：**连契约本身都是行号家族假设**。后果是 ID/图家族的**诚实**裁决在契约上非法，会被调用方降级成 `invalid-verdict`，等于那些域永远出不了锚点。修正后行号家族的每一条要求原样保留（`contract-test.mjs` 的 34 条断言一字未动）。
 
@@ -1225,14 +1228,34 @@ assert.deepEqual(validateSkippedEntries(result.skipped), [])
 **`npm test` 的目标形态**
 
 ```bash
-node contract-test.mjs          # 34 条：契约自洽与校验器（t1 已存在）
-node lib/kernel-test.mjs        # 49 条：契约 v2 运行时机制（t2 新增，t16 起含 skipped 形状锁）
-node smoke-test.mjs             # 43 条：引擎与插件（必须保持 43 passed, 0 failed）
+node contract-test.mjs          # 38 条：契约自洽与校验器（含 t49 的引擎档位与交付物自洽性两条）
+node lib/imports-check.mjs      # 导入图：每个具名相对导入都能解析
+node lib/kernel-test.mjs        # 92 条：契约 v2 运行时机制（含 t49 的双向档位断言与 P6 独立性闸门）
+node domains-test.mjs           # 19 个 domains/<id>/test.mjs 的总入口（19 ran / 0 failed / 0 skipped）
+node smoke-test.mjs             # 45 条：引擎与插件
 node mount-test.mjs             # 13 条：真实 Cordis（必须保持全过 / 或缺宿主时 SKIP）
-node domains/run-all.mjs        # 19 个 domains/<id>/test.mjs 的总入口
 ```
 
-`package.json` 的 `test` 脚本按上述顺序串联前四个；领域任务完成后把 `domains/run-all.mjs` 接到末尾。
+**交付物自洽性：`git archive HEAD` 必须能跑（CHANGED (t49)，F1）**
+
+工作树绿 ≠ HEAD 绿。F1 实测过一次完整的分裂：`git archive HEAD` 只解出 **14 个文件**（没有 `domains/`、没有 `lib/contracts.js`、没有 `contract-test.mjs`），HEAD 的 `test` 脚本还是旧版（只跑 smoke+mount），**一条领域断言都不跑**。修好之后仍然红过一次，原因更隐蔽 —— 行尾：`domains/user-feedback/fixtures/_generate.mjs` 故意把 fixture 渲染成 CRLF，而 artifact 比对是**字符串相等**，`* text=auto eol=lf` 又把 blob 归一成 LF，于是**只有抽取树红、工作树是绿的**。
+
+因此判据不是「本机 `npm test` 全绿」，而是：
+
+```bash
+git archive HEAD | tar -x -C /tmp/head-check
+cd /tmp/head-check
+npm test        # 期望 EXIT=0，且输出里有 `domains: 19 ran, 0 failed, 0 skipped`
+```
+
+那条行尾例外写在 `.gitattributes`（`domains/user-feedback/fixtures/*.json -text`，附「为什么必须是 `-text`」的理由）。**别顺手把它统一成 LF** —— 那会让上面这条命令重新变红，而工作树仍然全绿，是最容易看漏的形状。快速代理判据（不需要抽取）：
+
+```bash
+git ls-files --eol "domains/user-feedback/fixtures/*.json"
+# 每行都必须是：  i/crlf  w/crlf  attr/-text    <path>
+```
+
+`contract-test.mjs` 把这两半都钉住了：属性行必须在 `.gitattributes` 里，且（在 git 工作树里时）`git ls-files --eol` 必须报告 `i/crlf w/crlf attr/-text`；不在工作树里时它**大声说明这一半没跑**，而不是假装通过。
 
 ---
 
@@ -1255,7 +1278,8 @@ enumerate(input, context) => {
 // 2) anchorVerifier — P5
 verify(claim: { kind, path, locator, excerpt? }, subject: { path, content, document?, documents?, candidates?, index? }, context) => {
   status: 'anchored' | 'unanchored',
-  tier: 'declared-locator'|'recomputed-unique'|'relocated-unique'|'locator-mismatch'
+  tier: 受信 'declared-locator'|'declared-document'|'recomputed-unique'|'relocated-unique'
+      |不受信 'sliding-window'|'locator-mismatch'|'no-excerpt'|'invalid-verdict'
       |'relocation-ambiguous'|'no-match'|'empty-excerpt'|'kind-mismatch'|'no-documents',
   path: string|null, start: number|null, end: number|null, locator?: object,
   ambiguousIn?: string[], detail?: string

@@ -68,6 +68,7 @@ import {
   resolveAnchor,
   runCritiquePanel,
   selectRules,
+  validatedEngineVerdict,
 } from './lib/engine.js'
 
 export const name = 'adjudication'
@@ -954,18 +955,33 @@ export function apply(ctx, config) {
       return {
         claim,
         via: 'engine-resolveAnchor',
-        verdict: {
+        verdict: validatedEngineVerdict({
           status: 'unanchored',
           tier: 'no-excerpt',
           path: null,
           start: null,
           end: null,
           detail: '发现没有提供逐字原文（excerpt 或 evidence），引擎无法重算锚点 —— 自报的行号不采信',
-        },
+        }),
       }
     }
-    return { claim, via: 'engine-resolveAnchor', verdict: resolveAnchor(excerpt, documents, path ?? undefined) }
+    return {
+      claim,
+      via: 'engine-resolveAnchor',
+      // The ladder validates its own verdicts (`validatedEngineVerdict` inside
+      // `resolveAnchor`, t49), so this call needs no second pass; the
+      // `no-excerpt` outcome above is built here and is validated here.
+      verdict: resolveAnchor(excerpt, documents, path ?? undefined),
+    }
   }
+
+  // t49: the engine's own verdicts are validated by the layer that produces them
+  // — `lib/engine.js:validatedEngineVerdict`, applied inside `resolveAnchor` and
+  // here for the `no-excerpt` outcome. The domain-verifier path above gets the
+  // identical treatment via `validateAnchorVerdict` (an `invalid-verdict`
+  // downgrade), so no path in this file can hand a caller a tier the vocabulary
+  // does not name. Vocabulary: `lib/contracts.js` (`ANCHOR_TIERS`); the
+  // two-directional check that keeps it honest: `lib/kernel-test.mjs` §16.
 
   /** Normalise model-supplied documents once, for every P5 entry point. */
   function anchorDocuments(input) {

@@ -12,7 +12,13 @@
  */
 
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import * as contracts from './lib/contracts.js'
+
+const PACKAGE_ROOT = dirname(fileURLToPath(import.meta.url))
 
 let failures = 0
 let passes = 0
@@ -400,6 +406,58 @@ test('a fixture with anchors must carry both a positive and a negative case', ()
     contracts.validateFixture({ ...base, anchors: { positive: [{ excerpt: 'x' }], negative: [{ excerpt: 'y' }] } }),
     [],
   )
+})
+
+test('the engine\'s own anchor verdicts are nameable, and only the real ones are trusted', () => {
+  // t49, second pass: the vocabulary must cover what the ENGINE returns, not just
+  // what domains return. `declared-document` is the ladder's tier-1 verdict and is
+  // trusted (it always was, in behaviour); `sliding-window`, `no-excerpt` and
+  // `invalid-verdict` are declared and deliberately NOT trusted, so they can only
+  // appear on an unanchored verdict.
+  assert.deepEqual(
+    contracts.validateAnchorVerdict({ status: 'anchored', tier: 'declared-document', path: 'a.ts', start: 2, end: 2 }),
+    [],
+  )
+  assert.ok(contracts.TRUSTED_ANCHOR_TIERS.includes('declared-document'))
+  for (const tier of ['sliding-window', 'no-excerpt', 'invalid-verdict']) {
+    assert.ok(Object.hasOwn(contracts.ANCHOR_TIERS, tier), `${tier} must be DECLARED: a real producer returns it`)
+    assert.equal(contracts.TRUSTED_ANCHOR_TIERS.includes(tier), false, `${tier} must NOT be trusted`)
+    const problems = contracts.validateAnchorVerdict({ status: 'anchored', tier, path: 'a.ts', start: 2, end: 2 })
+    assert.equal(problems.length, 1, problems.join('; '))
+    assert.match(problems[0], /untrusted tier/u)
+  }
+})
+
+// ---------------------------------------------------------------------------
+console.log('\nrepository — the deliverable must survive its own git round trip (F1)')
+// ---------------------------------------------------------------------------
+
+test('the byte-exactness exception is still declared, and git stores those fixtures verbatim', () => {
+  // F1 taught this the hard way: `fixtures/_generate.mjs` renders the
+  // user-feedback fixtures with CRLF on purpose and the generator/artifact
+  // comparison is a STRING equality, while `* text=auto eol=lf` normalised the
+  // blobs to LF. The symptom is asymmetric and easy to miss — the WORKING TREE
+  // stays green (the generator wrote it) and only the tree git hands out is red
+  // (`domains: 19 ran, 1 failed`). Hence two guards: the attribute must still be
+  // there, and, when this is a git work tree, git itself must agree.
+  const attributes = readFileSync(join(PACKAGE_ROOT, '.gitattributes'), 'utf8')
+  assert.match(attributes, /^domains\/user-feedback\/fixtures\/\*\.json -text$/mu,
+    'the -text exception for the byte-exactness fixtures is missing — without it, `git archive HEAD | tar -x; npm test` fails even though this working tree passes')
+
+  const probe = spawnSync('git', ['-C', PACKAGE_ROOT, 'ls-files', '--eol', 'domains/user-feedback/fixtures/*.json'], { encoding: 'utf8' })
+  const lines = String(probe.stdout ?? '').trim().split('\n').filter((line) => line.trim() !== '')
+  if (probe.status !== 0 || lines.length === 0) {
+    // Loud, not silent: this package may legitimately sit outside a git checkout
+    // (an npm tarball has no .git), and pretending the check ran would be worse
+    // than saying it did not.
+    console.log('       note: not a git work tree (or git unavailable) — the archive round-trip half did NOT run here.')
+    console.log('       run it by hand: git archive HEAD | tar -x -C <tmp> && (cd <tmp> && npm test)   # expect EXIT=0 and "domains: 19 ran, 0 failed"')
+    return
+  }
+  for (const line of lines) {
+    assert.match(line, /i\/crlf\s+w\/crlf\s+attr\/-text/u,
+      `git is converting this fixture's line endings (index/work tree/attr must be crlf/crlf/-text): ${line}`)
+  }
 })
 
 // ---------------------------------------------------------------------------
