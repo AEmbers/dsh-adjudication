@@ -810,7 +810,7 @@ claimed:
 |---|---|---|
 | in which commits does the **word** appear or disappear? | `git log -S"domain-locator" …` | `c84f752`, `f613d21` |
 | in which commits is a **key** of that name added or removed? | `git log -G"domain-locator.:" …` | *(nothing)* |
-| how many commits contain it in **key position**? | the count below | `0` of 7 |
+| how many commits contain it in **key position**? | the count below | `0` of every commit |
 
 Same repository, same file, same word — and only the third row is about the claim. The same
 distinction applies to *where* the file itself came from: `git show acb1ae0:lib/contracts.js`
