@@ -37,7 +37,7 @@ Two follow-up questions catch the rest:
 
 ## Taxonomy
 
-Four sections, fifteen forms. The number in the first column is the section-local label
+Four sections, sixteen forms. The number in the first column is the section-local label
 used by the headings, so `1.10` is the tenth form of the first section:
 
 | # | Section | Form | One-line symptom |
@@ -57,6 +57,7 @@ used by the headings, so `1.10` is the tenth form of the first section:
 | 3.1 | Unfalsifiable | The property is a tautology | every fabricated input satisfies it |
 | 4.1 | Methodology | Reachability | the question "has this ever run?" was never asked |
 | 4.2 | Methodology | Green on the wrong path | the assertion *did* run — through a degraded branch it was not about |
+| 4.3 | Methodology | The audit answered a neighbouring question | the command is true, non-empty, and about a proposition one step from the claim |
 
 **Too tight and too loose are the same disease.** Both point the assertion at the
 *state of the world* instead of at a *property of the mechanism*:
@@ -781,6 +782,102 @@ plugin (see **Who is exposed**).
 
 ---
 
+### 4.3 The audit answered a neighbouring question
+
+**The sentence to ask.** "Say out loud, as a sentence, what this command just proved." If
+that sentence is not the claim, the command is not evidence for the claim — however green it
+looks.
+
+**Real example.** A claim was made about a *tier key* in the contract: that the key never
+appeared in any commit. The audit command was a name search over the file's history:
+
+```bash
+git -C dsh-adjudication log -S"domain-locator" --oneline -- lib/contracts.js
+```
+
+It prints two commits (`c84f752`, `f613d21`). Every character of that output is true — and it
+reads as the **opposite** of the claim. `-S` matches a change in the *number of occurrences
+of the string*, and the string has been in the file since `f613d21` as **prose**. The only
+places the word occurs today are two comment lines, `lib/contracts.js:330` (a `REMOVED …`
+note) and `lib/contracts.js:355`; no commit ever contains it in key position. The command
+answered *"which commits touched the mention"* — a question one anchoring decision away from
+the one that was asked.
+
+The difference is visible the moment the pattern is anchored to the shape of the thing being
+claimed:
+
+| the question actually being asked | the command | what it prints |
+|---|---|---|
+| in which commits does the **word** appear or disappear? | `git log -S"domain-locator" …` | `c84f752`, `f613d21` |
+| in which commits is a **key** of that name added or removed? | `git log -G"domain-locator.:" …` | *(nothing)* |
+| how many commits contain it in **key position**? | the count below | `0` of 7 |
+
+Same repository, same file, same word — and only the third row is about the claim. The same
+distinction applies to *where* the file itself came from: `git show acb1ae0:lib/contracts.js`
+fails (`fatal: path 'lib/contracts.js' exists on disk, but not in 'acb1ae0'`) because the
+file did not exist yet, and the question "which commit introduced it" has a direct answer
+rather than an inferred one:
+
+```bash
+git -C dsh-adjudication log --all --diff-filter=A --oneline -- lib/contracts.js
+```
+
+**The discriminator that transfers.** **Ask what the command's *failure* looks like.** If it
+prints the same thing when the claim is false as when the claim is true, it does not prove
+the claim. A name search prints commits whether or not the key exists; a scan that answers
+"0 everywhere" prints zeros in both worlds; an assertion on a prefix of the real answer
+passes for the wrong reason. A command that can serve as evidence prints something **only**
+in the world where its claim holds — and you should run the negative control once to see that
+empty output with your own eyes.
+
+**Trigger condition, independent of the tool.** Whenever the thing being claimed has **other
+carriers of the same name** inside the audit target — a comment, a document, a string, a log
+line, a filename in prose — a search keyed on that name will count the carriers as the
+subject. Nothing about this is specific to `git`: `grep`, `rg`, `find`, a log query and a
+history search all share it. The name is not the thing; the *syntax of the name in its
+declaration* is the thing.
+
+**Fix.** Three habits, none of them expensive:
+
+* **Anchor the pattern to the declaration.** A key has key position and a colon; a call has
+  parentheses; a field has a property form. Search for the shape, not the word.
+* **Ask the question at object level.** "Which commit added this file", "what did this file
+  contain at commit X", "how many commits contain this key" — each has one answer, and none
+  of them is a substring count.
+* **Run the negative control.** Construct the world where the claim is false — a name that
+  appears only in prose — and confirm the command says nothing. If it still speaks, it was
+  never listening to your claim.
+
+**Why it is more insidious than it looks.** This is the third member of a family that runs
+through the document. 1.10 is a **field** whose name promises a set the code does not
+compute; 4.2 is a **run** that went down a path the author did not mean; this one is an
+**audit action** that is true, non-empty, and about a neighbouring proposition. The output is
+not wrong — it is the correct answer to a question one step away from the claim, which is why
+no amount of re-reading reveals it: the wrong question's answer looks exactly like the right
+one's. And because the command is executable and prints plausible receipts, the *step
+"I ran an audit"* gets ticked. That step is the one that was supposed to be trustworthy.
+
+An extra degree of the same disease, measured: the identical command with the pattern in
+single quotes (`-S'domain-locator'`) prints **nothing at all** in a shell that does not treat
+single quotes as quoting — the quotes become part of the searched string. Silence, exit code
+zero, and a reader entitled to conclude "the word never appeared". A command that prints
+nothing can be printing nothing for a reason other than the one you are looking for.
+
+**Reproduce.**
+
+```bash
+git -C dsh-adjudication log -G"domain-locator.:" --oneline -- lib/contracts.js
+```
+
+```bash
+node --input-type=module -e "import {execFileSync} from 'node:child_process';const R='dsh-adjudication';const git=(a)=>execFileSync('git',['-C',R,...a],{encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();const Q=String.fromCharCode(39);const NL=String.fromCharCode(10);const commits=git(['log','--all','--format=%h']).split(NL);let hits=0;for(const c of commits){let text='';try{text=git(['show',c+':lib/contracts.js'])}catch{continue}const keys=text.split(NL).filter((l)=>l.startsWith('  '+Q+'domain-locator'+Q+':'));hits+=keys.length;console.log('  '+c+': '+keys.length+' in key position')}console.log('  '+commits.length+' commits examined, '+hits+' in total')"
+```
+
+The first command is silent, and the second prints `0` for every commit that has the file —
+the two answers the claim actually needed, next to the two commits the name search prints.
+
+---
+
 ## Appendix A — a glob in a block comment
 
 **The rule.** Never write a glob that contains `**/` inside a `/* … */` comment. Write it
@@ -901,7 +998,7 @@ which programs you just started.
 
 ## Closing
 
-None of the fifteen is "writing the test badly". Every one of them is the same thing:
+None of the sixteen is "writing the test badly". Every one of them is the same thing:
 **the test describes what the author believed was happening rather than what must
 happen.** The author was competent; the belief was reasonable; the code was green.
 That is why these patterns are found by asking questions rather than by reviewing
