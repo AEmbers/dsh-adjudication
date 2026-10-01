@@ -2,6 +2,26 @@
 # produce identical blobs. This repo is source-only (no build products).
 * text=auto eol=lf
 
+# F1/t49 — the ONE exception, and why it is an exception.
+#
+# `domains/user-feedback/fixtures/_generate.mjs` renders these fixtures with
+# CRLF (`\n` -> `\r\n`, deliberately), and
+# `domains/user-feedback/test.mjs` asserts that the generator reproduces every
+# committed fixture BYTE for byte (`_generate-util.mjs:compareRendered` reads the
+# file and compares strings). `text=auto eol=lf` rewrites them to LF inside the
+# blob, so a tree checked out of git no longer matches the generator and that
+# assertion fails — while the working tree, where the generator last wrote,
+# still passes. That is an inconsistency between HEAD and the working tree, i.e.
+# exactly what F1 is about: `git archive HEAD | tar -x; npm test` must be green.
+#
+# `-text` keeps the blob byte-identical to the generator's output, which is the
+# property the test asserts, and it keeps the repo's goal intact (the bytes are
+# the same on Windows and on Linux — no conversion happens at all).
+#
+# If the generator is ever changed to emit LF, DELETE this exception with it:
+# the rule is "the generator owns the bytes", not "fixtures are CRLF".
+domains/user-feedback/fixtures/*.json -text
+
 *.png binary
 *.jpg binary
 *.webp binary
