@@ -131,32 +131,35 @@ Directory-level rules, all enforced by the loader:
 
 ## 3. What the completion gate rejects
 
-`validateDomainPackV2` (`lib/contracts.js:1023`) is the gate. Run it against your **loaded**
+`validateDomainPackV2` (`lib/contracts.js:1098`) is the gate. Run it against your **loaded**
 pack, not against the object you exported from `index.js` — the loader fills in the
 extension points, so the two are different objects.
 
 | you will see | cause | line |
 |---|---|---|
-| `contractVersion must be 2` | `contractVersion` missing/≠2 | `lib/contracts.js:1027` |
-| `missing required field "criticism"` | one of `id title category lossOrientation anchor candidateSet criticism` | `:1030` |
-| `id must be lowercase kebab-case` | `CartReview` | `:1033` |
-| `category must be one of A/B/C/D` | unknown category | `:1034` |
-| `candidateSource.kind "x" must equal candidateSet.kind "y"` | the two declarations drifted apart | `:1038` |
-| `candidateSet.inputFormat must equal candidateSource.inputFormat` | same | `:1041` |
-| `anchorVerifier.kind "x" must equal anchor.kind "y"` | same | `:1047` |
-| `anchor.verify must be one of engine-recomputable/externally-recheckable` | typo | `:1050` |
-| `criticism.kind "fact-checker" disagrees with lossOrientation "recall-first"` | the two declarations contradict | `:1066-1068` |
-| `bundleKey must use the v2 object form` | you kept the v1 string | `:1072-1073` |
-| `bundleKey.strategy must be one of path/file/directory/extension (or supply bundleKey.resolve)` | private strategy name without a resolver | `:1074-1077` |
-| `missing mandatory fixture "all-gated-out"` | see §5 | `:1085-1087` |
-| `test.mjs must be wired into npm test` | only with `{ requireTestWiring: true }` | `:1091-1092` |
+| `contractVersion must be 2` | `contractVersion` missing/≠2 | `lib/contracts.js:1102` |
+| `missing required field "criticism"` | one of `id title category lossOrientation anchor candidateSet criticism` | `:1105` |
+| `id must be lowercase kebab-case` | `CartReview` | `:1108` |
+| `category must be one of A/B/C/D` | unknown category | `:1109` |
+| `candidateSource.kind "x" must equal candidateSet.kind "y"` | the two declarations drifted apart | `:1113` |
+| `candidateSet.inputFormat must equal candidateSource.inputFormat` | same | `:1116` |
+| `anchorVerifier.kind "x" must equal anchor.kind "y"` | same | `:1122` |
+| `anchor.verify must be one of engine-recomputable/externally-recheckable` | typo | `:1125` |
+| `criticism.kind "fact-checker" disagrees with lossOrientation "recall-first"` | the two declarations contradict | `:1138-1142` |
+| `invalid evidenceTools: evidenceTools.tools has 9 entries; at most 8 are allowed` | more tools than `EVIDENCE_LIMITS.maxToolsPerDomain` | `:1130` (message at `:531`) |
+| `invalid reviewPrompts: verify().instructions must be a non-empty string` | the P6 renderer returned nothing to say | `:1133` (messages at `:601-634`) |
+| `invalid ruleLibrary: rules/*.md: match must be a non-empty array of globs` | a rule document whose front matter is incomplete | `:1136` (messages at `:719-815`) |
+| `bundleKey must use the v2 object form` | you kept the v1 string | `:1147-1148` |
+| `bundleKey.strategy must be one of path/file/directory/extension (or supply bundleKey.resolve)` | private strategy name without a resolver | `:1149-1152` |
+| `missing mandatory fixture "all-gated-out"` | see §5 | `:1160-1162` |
+| `test.mjs must be wired into npm test` | only with `{ requireTestWiring: true }` | `:1166-1168` |
 
 Rules are validated separately, one document at a time:
 
-* `MIN_RULES_PER_DOMAIN = 20` — `lib/contracts.js:580`;
+* `MIN_RULES_PER_DOMAIN = 20` — `lib/contracts.js:655`;
 * `name`, non-empty `match`, `needs-expert-review: true` are required —
-  `lib/contracts.js:584`, enforced at `:650-651` and `:739-740`;
-* an HTML comment instead of front matter is refused — `:743`.
+  `lib/contracts.js:659`, enforced at `:725-726` and `:814-815`;
+* an HTML comment instead of front matter is refused — `:818`.
 
 ### The one hard-coded number you must coordinate, not edit
 
@@ -165,15 +168,15 @@ node -e "const fs=require('fs');const re=/expected 19|length, 19|count, 19/;cons
 #   domains/algo-model/test.mjs:1030  assert.equal(listed.count, 19)
 #   domains/backend-engineering/test.mjs:948  assert.equal(listed.count, 19, 'replacement must not change the domain count')
 #   … nine more domain suites …
-#   lib/contracts.js:1353  if (DOCUMENTED_DOMAIN_IDS.length !== 19) problems.push(`expected 19 documented input formats, got …`)
-#   contract-test.mjs:84  assert.equal(contracts.DOCUMENTED_DOMAIN_IDS.length, 19)
+#   lib/contracts.js:1428  if (DOCUMENTED_DOMAIN_IDS.length !== 19) problems.push(`expected 19 documented input formats, got …`)
+#   contract-test.mjs:90  assert.equal(contracts.DOCUMENTED_DOMAIN_IDS.length, 19)
 #   smoke-test.mjs:210  assert.equal(BUILTIN_DOMAINS.length, 19)
 #   smoke-test.mjs:347  assert.equal(facade.listDomains().length, 19)
 #   smoke-test.mjs:631  assert.equal(listed.count, 19)
 ```
 
-`lib/contracts.js:1353` is the engine's own self-check (`checkContractIntegrity`, `:1343`), the
-same check that refuses `bounded: false` outside the two C-family ids (`:1365`). Adding a
+`lib/contracts.js:1428` is the engine's own self-check (`checkContractIntegrity`, `:1418`), the
+same check that refuses `bounded: false` outside the two C-family ids (`:1441`). Adding a
 twentieth domain therefore turns **sixteen** assertions red at once — eleven domain suites,
 `lib/contracts.js` and `contract-test.mjs`, and three lines in `smoke-test.mjs` — all of them
 in files that are not yours.
@@ -219,7 +222,7 @@ Two traps that cost real time:
   want the value for tests, import it directly from `./source.js`.
 * **The plugin's tool names derive from the id**, so a wrong `id` produces tools that look
   right and are registered under the wrong names. `adjudicate_<id>_<suffix>` with `-`
-  replaced by `_` (`lib/contracts.js:424-426`).
+  replaced by `_` (`lib/contracts.js:480-482`).
 
 Verify the assembly — this command prints exactly the files the loader actually imported:
 
@@ -237,14 +240,14 @@ repository resolves, which is the cheap version of the same check.
 
 ## 5. Fixtures: three mandatory boundaries, and keeping them honest
 
-`MANDATORY_FIXTURES = ['empty', 'all-gated-out', 'happy-path']` — `lib/contracts.js:969`,
-enforced at `:1085-1087`.
+`MANDATORY_FIXTURES = ['empty', 'all-gated-out', 'happy-path']` — `lib/contracts.js:1044`,
+enforced at `:1160-1162`.
 
-`validateFixture` (`lib/contracts.js:977`) further requires: lowercase kebab `name`, `domain`,
+`validateFixture` (`lib/contracts.js:1052`) further requires: lowercase kebab `name`, `domain`,
 `format`, `input.format === fixture.format`, a non-empty `expect` block drawn from
-`FIXTURE_EXPECT_FIELDS` (`:972`) declaring at least one of `candidates` / `admitted` /
+`FIXTURE_EXPECT_FIELDS` (`:1047`) declaring at least one of `candidates` / `admitted` /
 `throws`, and — if `anchors` is present at all — **at least one `positive` and one `negative`
-case** (`:1003-1008`). That last rule applies to the empty fixture too: on an empty corpus the
+case** (`:1078-1083`). That last rule applies to the empty fixture too: on an empty corpus the
 only legal verdict is a refusal, so put the refusal in the `positive` bucket and say in the
 note that it asserts a refusal, rather than inventing a confirmation.
 
@@ -299,7 +302,7 @@ use for their own export (`domains/project-management/index.js:123`,
 `domains/user-feedback/index.js:127`, private in `domains/requirement-alignment/index.js:118`).
 What the engine reads is `pack.gate.extensions`, and it is consumed in two places: handed to
 your enumerator (`index.js:1021-1026`) and handed to the gate's extension predicate
-(`index.js:1058`, predicate at `lib/engine.js:246`, matcher at `:316-320`). Every migrated
+(`index.js:1070-1074`, predicate at `lib/engine.js:307`, matcher at `:377-382`). Every migrated
 source documents that it deliberately does **not** apply the extension list itself —
 `domains/requirement-alignment/source.js:150`, `domains/code-review/source.js:228`,
 `domains/project-management/source.js:247`.
@@ -349,16 +352,16 @@ check only if you also pin exact rule counts, so a catch-all cannot satisfy it.
 
 ## 7. `bundleKey`
 
-The engine's `bundle()` groups by `entry.key` (`lib/engine.js:398`) and is unchanged by v2;
-the key is derived by `resolveBundleKey` from `pack.bundleKey` (`lib/contracts.js:857`,
-strategies at `:814-827`). The gate accepts exactly two forms:
+The engine's `bundle()` groups by `entry.key` (`lib/engine.js:459`) and is unchanged by v2;
+the key is derived by `resolveBundleKey` from `pack.bundleKey` (`lib/contracts.js:932`,
+strategies at `:889-902`). The gate accepts exactly two forms:
 
 * an object `{ strategy, ... }` whose `strategy` is one of `path` / `file` / `directory` /
   `extension`; or
 * an object carrying `resolve(candidate)` for your domain's own grouping semantics
-  (`lib/contracts.js:1074-1077`).
+  (`lib/contracts.js:1149-1152`).
 
-A string form is rejected (`:1072-1073`). `{ strategy: 'path' }` passes validation and is
+A string form is rejected (`:1147-1148`). `{ strategy: 'path' }` passes validation and is
 still wrong when your domain has structure: it means one candidate per bundle, i.e. no
 grouping at all. The accepted shape of the test is not "the object was applied" but "two
 candidates that should share a bundle really do" — see `domains/requirement-alignment/test.mjs:1610-1621`.
@@ -367,7 +370,7 @@ candidates that should share a bundle really do" — see `domains/requirement-al
 through `toCandidates`, which keeps a fixed set of fields and drops `meta`; a resolver that
 reads `candidate.meta.sessionId` works in your unit test and silently falls back in the plugin.
 Derive from the path and let an explicit candidate key win when one is present
-(`lib/contracts.js:844-850`).
+(`lib/contracts.js:918-925`).
 
 ```bash
 node --input-type=module -e "import { readFileSync } from 'node:fs'; import { loadDomain, createNodeIo } from './lib/domain-loader.js'; import { resolveBundleKey, BUNDLE_KEY_STRATEGIES } from './lib/contracts.js'; const id = 'requirement-alignment'; const io = await createNodeIo({ root: process.cwd() }); const { pack } = await loadDomain(io, { id, dir: 'domains/' + id }); const v = JSON.parse(readFileSync('domains/' + id + '/fixtures/happy-path.json', 'utf8')); const e = pack.candidateSource.enumerate(v.input.payload, { maxCandidates: 400, maxExcerptLines: 400 }); const keys = e.candidates.map((c) => resolveBundleKey(pack, c, { strategies: {}, trustDeclaredStrategies: true })); console.log('declared strategy: ' + pack.bundleKey.strategy + (BUNDLE_KEY_STRATEGIES[pack.bundleKey.strategy] ? ' (built-in)' : ' (custom resolve)')); console.log('applied: ' + keys.every((k) => k.applied === true)); const groups = {}; keys.forEach((k) => { (groups[k.key] ??= []).push(1) }); console.log('bundles: ' + Object.keys(groups).length + ' over ' + keys.length + ' candidates; largest holds ' + Math.max(...Object.values(groups).map((g) => g.length)));"
@@ -386,33 +389,118 @@ reference domain's.
 ## 8. `anchor.js` — the tier rules
 
 A verifier is `defineAnchorVerifier({ kind, verifyLevel, describe, verify })`
-(`lib/contracts.js:375`) and returns
-`{ status, tier, path, start, end, ambiguousIn?, detail? }`. `status` is `anchored` or
-`unanchored` (`:286`). The engine accepts a verdict only when `tier` is in
-`TRUSTED_ANCHOR_TIERS` (`:310`):
+(`lib/contracts.js:431`) and returns
+`{ status, tier, path, start, end, locator?, ambiguousIn?, detail? }`. `status` is `anchored`
+or `unanchored` (`:286`). Every domain verdict passes `validateAnchorVerdict` (`:395`) at
+`index.js:936`, and it is that validator which makes the two lists below load-bearing.
+
+**Trusted** — `TRUSTED_ANCHOR_TIERS`, `lib/contracts.js:366`; an `anchored` verdict must use
+one of these (`:402`):
 
 | trusted | meaning |
 |---|---|
 | `declared-locator` | the claim's locator was independently confirmed against the subject |
-| `domain-locator` | the domain's own (non-line) locator was confirmed |
+| `declared-document` | the excerpt was found verbatim in the document the claim named — the *document* is confirmed, the locator is not consulted |
 | `recomputed-unique` | the locator was absent or wrong, the excerpt resolved to exactly one place |
-| `relocated-unique` | the excerpt was found in exactly one *other* document |
+| `relocated-unique` | the excerpt was found in exactly one *other* document; the finding moved there |
 
-| untrusted (`ANCHOR_TIERS`, `lib/contracts.js:292-307`) | when |
+**Untrusted** — the other nine entries of `ANCHOR_TIERS` (`lib/contracts.js:292-325`); an
+`unanchored` verdict must use one of these (`:422`):
+
+| untrusted | when |
 |---|---|
+| `sliding-window` | the consecutive-line matcher's INTERNAL hit marker (`lib/engine.js:143`) — the ladder re-tiers it before it can escape; never claim it as an anchor |
 | `locator-mismatch` | the locator contradicts the input — the model is not trusted over the input |
-| `relocation-ambiguous` | two or more equally valid locations — never guessed |
+| `no-excerpt` | the finding supplied no verbatim excerpt at all (`index.js:959`), so self-reported positions are not trusted |
+| `invalid-verdict` | the returned verdict violated this contract and was downgraded, with the violations reported (`index.js:942`) |
+| `relocation-ambiguous` | two or more equally valid locations — never guessed (must list them in `ambiguousIn`, `:424`) |
 | `no-match` | nothing matched |
 | `empty-excerpt` | the excerpt normalised to nothing |
 | `kind-mismatch` | `claim.kind` ≠ `verifier.kind` |
 | `no-documents` | no subject material was supplied |
 
+*Audited against commit `c84f752` (`git log -1 --format=%h`) — the commit that closed the
+anchor-tier vocabulary: `domain-locator` removed, and `declared-document`, `sliding-window`,
+`no-excerpt`, `invalid-verdict` declared. The command below re-derives both tables from
+`contracts.js`, so re-run it instead of trusting the date.*
+
+### The two tables are a copy — let the command check them
+
+`ANCHOR_TIERS` and `TRUSTED_ANCHOR_TIERS` are the source of truth; the tables above are a hand
+copy of them, and a hand copy drifts in silence. This command reads both sets from the
+contract, reads the tier names out of the tables above, scans the real producers, and prints
+the three differences:
+
+```bash
+node --input-type=module -e "import { readFileSync, readdirSync } from 'node:fs'; import { ANCHOR_TIERS, TRUSTED_ANCHOR_TIERS } from './lib/contracts.js'; const BT = String.fromCharCode(96); const doc = readFileSync('docs/adding-a-domain.md', 'utf8'); const section = doc.slice(doc.indexOf('## 8.'), doc.indexOf('## 9.')); const row = new RegExp('^\\|\\s*' + BT + '([a-z][a-z-]*)' + BT + '\\s*\\|', 'gmu'); const inGuide = [...section.matchAll(row)].map((m) => m[1]); const files = [...readdirSync('domains').map((d) => 'domains/' + d + '/anchor.js'), ...readdirSync('lib').filter((f) => f.endsWith('.js')).map((f) => 'lib/' + f), 'index.js']; const produced = new Map(); for (const file of files) { let text; try { text = readFileSync(file, 'utf8') } catch { continue } for (const m of text.matchAll(/tier:\s*'([a-z][a-z-]*)'/gu)) { if (!produced.has(m[1])) produced.set(m[1], []); produced.get(m[1]).push(file) } } const declared = Object.keys(ANCHOR_TIERS); const diff = (a, b) => a.filter((x) => !b.includes(x)); console.log('contract trusted   : ' + TRUSTED_ANCHOR_TIERS.join(', ')); console.log('contract declared  : ' + declared.join(', ')); console.log('guide table        : ' + [...inGuide].sort().join(', ')); console.log('declared, not in guide: ' + (diff(declared, inGuide).join(', ') || 'none')); console.log('in guide, not declared: ' + (diff(inGuide, declared).join(', ') || 'none')); console.log('produced, not declared: ' + ([...produced.keys()].filter((t) => !declared.includes(t)).map((t) => t + ' (' + produced.get(t)[0] + ')').join('; ') || 'none'));"
+# contract trusted   : declared-locator, declared-document, recomputed-unique, relocated-unique
+# contract declared  : declared-locator, declared-document, recomputed-unique, relocated-unique, sliding-window, locator-mismatch, no-excerpt, invalid-verdict, relocation-ambiguous, no-match, empty-excerpt, kind-mismatch, no-documents
+# guide table        : declared-document, declared-locator, empty-excerpt, invalid-verdict, kind-mismatch, locator-mismatch, no-documents, no-excerpt, no-match, recomputed-unique, relocated-unique, relocation-ambiguous, sliding-window
+# declared, not in guide: none
+# in guide, not declared: none
+# produced, not declared: none
+```
+
+How to read it: lines 1–2 are the contract, line 3 is this document. A non-empty
+`declared, not in guide` or `in guide, not declared` means the copy drifted — fix the tables
+above (or fix `contracts.js`, if the copy is right). A non-empty `produced, not declared` means
+some producer returns a tier the vocabulary cannot describe; the code-side halves of that
+question are pinned by `lib/kernel-test.mjs` §16 in both directions, so a hit here means the
+guide and the kernel guard disagree. Run this whenever you change a tier anywhere.
+
+### Which of these may your verifier return?
+
+Two of the thirteen are not yours to produce, and two more are produced *for* you:
+
+* **`declared-document` is legitimately yours.** It is what the engine's generic ladder
+  reports when a pack declares no `anchorVerifier` at all (`lib/engine.js:194`) — the excerpt
+  was found verbatim in the named document and the locator was never consulted. If your
+  verifier confirms a document rather than a position, this is the honest tier for it.
+* **`sliding-window` is not yours.** It is the internal hit marker of the consecutive-line
+  matcher (`lib/engine.js:143`); the ladder re-tiers every hit as `declared-document` or
+  `relocated-unique` before it can escape, and the marker must never reach a finding —
+  `lib/kernel-test.mjs` §16 pins that. Measured: an `anchored` verdict carrying it is refused.
+* **`no-excerpt` and `invalid-verdict` are the caller's outcomes, not a verifier's.** They are
+  what the plugin records when a finding supplies no excerpt (`index.js:959`) or when a
+  returned verdict fails `validateAnchorVerdict` and is downgraded (`index.js:942`). Do not
+  return them; you would be describing your own output as a contract violation.
+
+Measured, on the shipped contract:
+
+```bash
+node --input-type=module -e "import { validateAnchorVerdict } from './lib/contracts.js'; for (const tier of ['sliding-window', 'declared-document', 'invalid-verdict', 'no-excerpt']) { console.log(tier.padEnd(18) + 'anchored   -> ' + JSON.stringify(validateAnchorVerdict({ status: 'anchored', tier, path: 'a.json', start: 1, end: 2 }))); console.log(tier.padEnd(18) + 'unanchored -> ' + JSON.stringify(validateAnchorVerdict({ status: 'unanchored', tier, path: 'a.json' }))); }"
+# sliding-window    anchored   -> ["anchored with untrusted tier \"sliding-window\""]
+# sliding-window    unanchored -> []
+# declared-document anchored   -> []
+# declared-document unanchored -> []
+# invalid-verdict   anchored   -> ["anchored with untrusted tier \"invalid-verdict\""]
+# invalid-verdict   unanchored -> []
+# no-excerpt        anchored   -> ["anchored with untrusted tier \"no-excerpt\""]
+# no-excerpt        unanchored -> []
+```
+
+The vocabulary itself is pinned by measurement in **both** directions — every declared tier must
+be returned by a real producer, and every tier a real producer names must be declared
+(`lib/kernel-test.mjs:2547` §16; the two halves at `:2622` and `:2647`). That is how
+`domain-locator` was removed: it had no producer a user could run, and an `anchored` verdict
+with a non-line locator is legal with `declared-locator` under `lib/contracts.js:415-417`, so
+the second name carried no capability. If you are about to add a tier, add the producer first
+and then measure.
+
+The engine's generic ladder is not routed through `validateAnchorVerdict` (`:395`, whose only
+caller is `index.js:936`). That is why the ladder's own tiers had to be declared explicitly
+rather than being caught by a validator at run time.
+
 Notes that are easy to get wrong:
 
 * `ANCHOR_TIERS` is an **object**, not an array. `ANCHOR_TIERS.includes(tier)` is not a
   membership test; use `Object.hasOwn(ANCHOR_TIERS, tier)` (`domains/requirement-alignment/test.mjs:297`).
-* The correct single invariant to assert over every fixture case is the equivalence
-  "trusted ⇔ anchored" (`domains/requirement-alignment/test.mjs:587`).
+* The equivalence `trusted ⇔ anchored` is worth asserting over every fixture case
+  (`domains/requirement-alignment/test.mjs:587`), but note that only **one** direction is
+  enforced: the validator rejects `anchored` with an untrusted tier (`lib/contracts.js:402`),
+  and accepts `unanchored` with a trusted tier name (measured: `[]`). So
+  "trusted ⇒ anchored" is your domain's own discipline — keep the assertion, and do not
+  assume the engine is holding that half for you.
 * `declared-locator` is inferred from the **locator's completeness**, never from a flag the
   caller sets. A tier that flips on `claim.declared` is a tier the model can forge.
 * Candidate `path` values must match `/^[a-z0-9][a-z0-9._:/-]*$/u` (`lib/contracts.js:199`,
@@ -427,25 +515,50 @@ Notes that are easy to get wrong:
 
 ## 9. `prompts.js` — P4 and P6 are not the same text
 
-`defineReviewPrompts({ review, verify })` (`lib/contracts.js:565`):
+`defineReviewPrompts({ review, verify })` (`lib/contracts.js:640`):
 
 * `review(context) → { system, rules?, budget? }` — the P4 reviewer. It may see the work
   order: bundles, rule text, budget.
 * `verify(context) → { system, instructions }` — the independent P6 reviewer. Its context is
   built from a fixed field list — domain, pack, target, orientation, findings — and nothing
-  else: no rule text, no bundle, no budget (`lib/reasoner.js:137-141`). If P6 can read P4's
+  else: no rule text, no bundle, no budget (`lib/reasoner.js:630-638`). If P6 can read P4's
   assignment it is not an independent check.
 
-**The validators do not check that the two texts differ.** `validateReviewPrompts` returns
-`[]` for a pair with byte-identical text (measured), and `validateDomainPackV2` delegates to it
-at `lib/contracts.js:1058` — so a domain can pass both gates while handing its reviewer its own
-reasoning. Assert it yourself:
+**The validators check the prompt *functions*, not the prompt *text*.** That is layer 1 of a
+two-layer gate, and the two layers catch different shapes: layer 1 is load-time and can only
+see identity, layer 2 is run-time and compares the rendered documents.
+
+*Layer 1 — load time (`lib/contracts.js:603-621`).* A validator has no context and therefore
+cannot render; what it can compare is identity:
+
+* one function object serving both roles is refused —
+  `reviewPrompts.review and reviewPrompts.verify must be two different functions: P6 is an INDEPENDENT re-check…`
+  (`lib/contracts.js:620`);
+* two distinct functions are accepted even when their text agrees — `[]` from
+  `validateReviewPrompts`, and `validateDomainPackV2` delegates to it at `lib/contracts.js:1133`.
+
+*Layer 2 — run time, same context (`lib/reasoner.js:651-672`).* `runVerify` renders **both**
+prompts from the same context and refuses a byte-identical pair with `E_P6_NOT_INDEPENDENT`
+(`ran: false`), returning *before* `onCharge` and before the P6 child session is started — the
+child is never started at all, not started-and-ignored. This is the half layer 1 deliberately
+does not try to guess at.
+
+The two layers are complementary, not redundant: layer 1 catches *one function doing both
+jobs*, layer 2 catches *two different functions that render the same characters*. Neither of
+them judges two *different* texts that ask the same question.
+
+**Know when layer 2 is even reached** — it lives inside the P6 stage, which returns earlier in
+two cases: no reasoner mounted (`if (!status.available)` — `lib/reasoner.js:608-611`, the
+`E_NO_REASONER` path), and zero anchored findings (`:612-616`). So the gate can only ever speak
+about runs that got as far as P6, and it never runs in your own `node test.mjs` unless you mount
+a reasoner. It is a backstop, **not** a substitute for your own assertion — add this line next
+to your other prompt assertions, where `p4`/`p6` are your two rendered documents:
 
 ```js
 assert.notEqual(p6.system, p4.system)   // domains/requirement-alignment/test.mjs:1174
 ```
 
-Both prompts run: `review()` via `renderReviewPrompt` (`lib/reasoner.js:98`), `verify()` via
+Both prompts run: `review()` via `renderReviewPrompt` (`lib/reasoner.js:139`), `verify()` via
 the symmetric `renderVerifyPrompt` (`:143`) inside the P6 stage of `adjudication_submit`.
 Degradation is explicit and must be stated rather than glossed: with neither `ctx.subagents`
 nor `ctx.llm` mounted the run reports `mode: 'none'`, `ran: false` and an `E_NO_REASONER`
@@ -466,7 +579,7 @@ usually **a green suite**, which is why each one ends with how to notice.
 files you do not own, none of which is about your domain.
 
 The audit command is in §3 (it lists all sixteen sites). Coordinates here:
-`lib/contracts.js:1353`, `contract-test.mjs:84`, three lines in `smoke-test.mjs`
+`lib/contracts.js:1428`, `contract-test.mjs:90`, three lines in `smoke-test.mjs`
 (`:210`, `:347`, `:631`), and `assert.equal(listed.count, 19)` in eleven domain suites
 (`domains/code-review/test.mjs:1418`, `domains/backend-engineering/test.mjs:948`, …).
 Reviewer-side treatment: `§1.1`.
@@ -549,7 +662,7 @@ node -e "const fs=require('fs');const f='domains/algo-model/test.mjs';let n=0;fs
 Every hit is a question: which side is produced by the code under test, and what input would
 make this false? If you cannot answer the second half, it is decoration. The single hit above
 is the legitimate kind — an observed count bounded by a *declared* limit that
-`lib/contracts.js:429-433` clamps into the engine's hard caps — and it is paired with an exact
+`lib/contracts.js:485-489` clamps into the engine's hard caps — and it is paired with an exact
 equality on the next line. Reviewer-side: `§1.5`.
 
 ### 10.6 A bound that is declared tighter than the tool behaves
@@ -558,9 +671,9 @@ equality on the next line. Reviewer-side: `§1.5`.
 it to the actual output. A tool declaring `maxItems: 1` while returning 40 items is an
 unbounded tool with a reassuring comment.
 
-Coordinates: the engine's hard caps are `EVIDENCE_LIMITS` (`lib/contracts.js:410-418`, hard
+Coordinates: the engine's hard caps are `EVIDENCE_LIMITS` (`lib/contracts.js:466-474`, hard
 maxima 8 tools / 20 calls / 2000 lines / 1000 items / 256 KiB) and a declared limit is
-normalised into them (`:429-433`). The measurement pattern is in the tree:
+normalised into them (`:485-489`). The measurement pattern is in the tree:
 
 ```bash
 node -e "const fs=require('fs');fs.readFileSync('domains/algo-model/test.mjs','utf8').split(String.fromCharCode(10)).slice(1360,1370).forEach((l,i)=>console.log((1361+i)+': '+l))"
@@ -587,7 +700,7 @@ minus one representative per injected rule", so it came back non-empty for essen
 bundle with two or more paths — a warning that fired constantly and meant nothing.
 
 Coordinates: the engine's own header records the change and the reproduction
-(`lib/engine.js:463-472`, computation now at `:482-505`), and a domain prompt documents the
+(`lib/engine.js:524-533`, computation now at `:543-566`), and a domain prompt documents the
 old reading and why it tolerated it (`domains/project-management/prompts.js:79-107`,
 accessor at `:134-147`). Reviewer-side: `§1.10`.
 
@@ -673,19 +786,19 @@ Rule libraries in this package are **drafted by an agent and flagged for expert 
 is a capability boundary, not a formality, and it is encoded:
 
 ```bash
-node -e "const fs=require('fs');fs.readFileSync('lib/contracts.js','utf8').split(String.fromCharCode(10)).slice(591,597).forEach((l,i)=>console.log((592+i)+': '+l))"
-# 592: export const RULE_PROVENANCE = Object.freeze({
-# 593:   draftedBy: 'agent',
-# 594:   expertValidated: false,
-# 595:   requiresExpertReview: true,
-# 596:   statement: '规则库由 agent 起草、标注 needs-expert-review: true，未经领域专家审定。任何交付物不得声称已通过专家验证。',
-# 597: })
+node -e "const fs=require('fs');fs.readFileSync('lib/contracts.js','utf8').split(String.fromCharCode(10)).slice(666,672).forEach((l,i)=>console.log((667+i)+': '+l))"
+# 667: export const RULE_PROVENANCE = Object.freeze({
+# 668:   draftedBy: 'agent',
+# 669:   expertValidated: false,
+# 670:   requiresExpertReview: true,
+# 671:   statement: '规则库由 agent 起草、标注 needs-expert-review: true，未经领域专家审定。任何交付物不得声称已通过专家验证。',
+# 672: })
 ```
 
 * `needs-expert-review: true` is required in every rule document's front matter and must be
-  exactly `true` (`lib/contracts.js:739-740`); an HTML comment is refused (`:743`);
+  exactly `true` (`lib/contracts.js:814-815`); an HTML comment is refused (`:818`);
 * `RULE_PROVENANCE.expertValidated` must stay `false` and `requiresExpertReview` must stay
-  `true`, and the contract's own self-check fails if either changes (`:1376-1377`);
+  `true`, and the contract's own self-check fails if either changes (`:1451-1452`);
 * no deliverable — README, tool description, prompt text, comment or report — may describe a
   draft library as expert-validated.
 
