@@ -54,6 +54,7 @@
     "test": "node contract-test.mjs && node lib/imports-check.mjs && node lib/kernel-test.mjs && node domains-test.mjs && node smoke-test.mjs && node mount-test.mjs",
     "test:contracts": "node contract-test.mjs",
     "test:imports": "node lib/imports-check.mjs",
+    "test:self-audit": "node lib/self-audit.mjs",
     "test:kernel": "node lib/kernel-test.mjs",
     "test:domains": "node domains-test.mjs",
     "test:unit": "node smoke-test.mjs",
