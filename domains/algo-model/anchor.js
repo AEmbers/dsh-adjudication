@@ -140,6 +140,18 @@ function locateText(claim, subject, preferred, fallbackDocument = null) {
   const named = documents.find((document) => document.path === preferred)
     ?? (subjectIsNamed ? { path: preferred, content: subjectContent } : null)
   const others = documents.filter((document) => document.path !== preferred && !isStructuredDocument(document))
+  // A structured payload document is DATA, never prose: the filter above is what
+  // makes `a structured payload document … an excerpt never relocates into it`
+  // true, and `test.mjs` pins it with the export's OWN line as the needle so it
+  // cannot pass for the wrong reason. But the refusal that follows must not claim
+  // "no document contains this text" when one demonstrably does. That message is
+  // false, and a false reason sends the caller hunting for a typo that is not
+  // there instead of quoting the card. So the structured holders are found here
+  // and named in the refusal.
+  const structuredHolders = documents
+    .filter((document) => document.path !== preferred && isStructuredDocument(document))
+    .filter((document) => allMatches(document.content, needle).length > 0)
+    .map((document) => document.path)
 
   if (named === null && documents.length === 0) {
     return unanchored('no-documents', 'no-documents', '没有提供任何可比对的文档内容 —— 无法重算锚点')
@@ -207,6 +219,11 @@ function locateText(claim, subject, preferred, fallbackDocument = null) {
         `抄写原文在渲染出的记录卡里出现 ${inCard.length} 次，位置不唯一 —— 拒绝猜测`,
         { ambiguousIn: inCard.map((hit) => `${fallbackDocument.path}:${hit.start}`) })
     }
+  }
+  if (structuredHolders.length > 0) {
+    return unanchored('no-match', 'no-match',
+      `抄写原文逐字出现在结构化导出 ${structuredHolders.join('、')} 里，但结构化导出是 DATA 而不是 prose：本域只从它重算记录，不拿它当可引用原文（一条 JSON 行永远不等于一张记录卡）。`
+      + `请引用工作单打印的那一行记录卡（形如 metric <name> = <value>）—— 本域会按已验证的 tracker 记录渲染出该卡并据此定位。`)
   }
   return unanchored('no-match', 'no-match', `声明的 "${preferred}" 与任何可比对文档都不含这段原文`)
 }

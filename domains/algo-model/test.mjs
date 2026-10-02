@@ -607,6 +607,22 @@ test('a structured payload document is DATA, not prose: an excerpt never relocat
   assert.equal(verdict.tier, 'no-match')
 })
 
+test('that refusal NAMES the structured export instead of denying it holds the text', () => {
+  // The behaviour above is deliberate, but the old detail said「与任何可比对文档都不含这段原文」
+  // while the supplied document demonstrably DID contain it. A false reason sends
+  // the caller hunting for a typo that is not there; the refusal has to say which
+  // document holds the text and why it still does not count, and point at the card.
+  const content = JSON.stringify({ experiments: [{ id: 'a', metrics: [{ name: 'accuracy', value: 0.9 }] }] })
+  const verdict = anchor.verify(
+    { kind: 'experiment-metric', path: 'experiments/a/metrics.json', locator: { experimentId: 'a', metricName: 'accuracy' }, excerpt: content },
+    { path: 'experiments/a/metrics.json', documents: [{ path: 'experiments/records.json', content }] },
+  )
+  assert.equal(verdict.tier, 'no-match')
+  assert.match(verdict.detail, /experiments\/records\.json/u, 'the refusal must name the document that holds the text')
+  assert.match(verdict.detail, /DATA/u, 'and say why it still does not count as quoted prose')
+  assert.match(verdict.detail, /记录卡/u, 'and point at what SHOULD be quoted')
+})
+
 test('the card the domain renders is a LAST RESORT, and only for the experiment’s own card path', () => {
   // The work order prints `metric accuracy = 0.9` and `submit` demands it back
   // verbatim, but that line is RENDERED from the record — it is a line of no file
