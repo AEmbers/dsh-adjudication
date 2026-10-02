@@ -94,6 +94,18 @@ export const ANCHOR_KINDS = Object.freeze([
   'theme-membership',
   'one-sided-theme',
   'unregistered-reference',
+  // ADDED (self-audit): the kinds the ENUMERATOR actually emits. It shipped
+  // `closure-edge` / `feedback-node` / `decision-node` / `theme-node` while this
+  // list only knew the claim-level names above, so every one of the twenty
+  // candidate locators was refused with `kind-mismatch` — and no test could see
+  // it, because the test that fed `entry.locator` into `verify()` was feeding a
+  // GAP record, not a candidate. `closure-edge` is the same claim as
+  // `closure-link`; the three `*-node` kinds assert what the card says: that id
+  // exists on this ledger.
+  'closure-edge',
+  'feedback-node',
+  'decision-node',
+  'theme-node',
 ])
 
 /**
@@ -140,6 +152,13 @@ const REQUIRED_FIELDS = Object.freeze({
   'theme-membership': ['themeId', 'feedbackId'],
   'one-sided-theme': ['themeId', 'feedbackId'],
   'unregistered-reference': ['referencedId', 'referrerId'],
+  // ADDED (self-audit): the enumerator's own kinds, so a complete candidate
+  // locator is recognised as DECLARED instead of falling through to the
+  // "you gave me nothing" branch.
+  'closure-edge': ['feedbackId', 'decisionId'],
+  'feedback-node': ['feedbackId'],
+  'decision-node': ['decisionId'],
+  'theme-node': ['themeId'],
 })
 
 const isText = (value) => typeof value === 'string' && value.trim() !== ''
@@ -249,7 +268,7 @@ function against(graph, claim) {
   const locator = claim.locator ?? {}
   const kind = locator.kind
 
-  if (kind === 'closure-link' || kind === 'one-sided-closure') {
+  if ((kind === 'closure-link' || kind === 'closure-edge') || kind === 'one-sided-closure') {
     const resolved = closureSides(graph, locator)
     if (resolved.mismatch !== undefined) return resolved.mismatch
     if (resolved.unknown === true) return null
@@ -257,7 +276,7 @@ function against(graph, claim) {
     if (side === null) return null
     const mutual = side.addresses && side.closedBy
 
-    if (kind === 'closure-link') {
+    if ((kind === 'closure-link' || kind === 'closure-edge')) {
       if (mutual) return { tier: 'declared-locator', hit: { feedbackId: side.feedbackId, decisionId: side.decisionId, mutual: true } }
       return {
         tier: 'locator-mismatch',
@@ -299,6 +318,25 @@ function against(graph, claim) {
       tier: 'locator-mismatch',
       conflict: `决策 ${decisionId} 并不是孤儿：${links.map(describeSide).join('；')}`,
     }
+  }
+
+  if (kind === 'feedback-node') {
+    const feedbackId = String(locator.feedbackId ?? '')
+    if (!graph.isFeedback(feedbackId)) return null
+    return { tier: 'declared-locator', hit: { feedbackId } }
+  }
+
+  if (kind === 'decision-node') {
+    const decisionId = String(locator.decisionId ?? '')
+    if (!graph.isDecision(decisionId)) return null
+    return { tier: 'declared-locator', hit: { decisionId } }
+  }
+
+  if (kind === 'theme-node') {
+    const themeId = String(locator.themeId ?? '')
+    const known = (graph.themes ?? []).some((theme) => String(theme?.id ?? '') === themeId)
+    if (themeId === '' || !known) return null
+    return { tier: 'declared-locator', hit: { themeId } }
   }
 
   if (kind === 'quote-anchor') {
@@ -380,7 +418,7 @@ function against(graph, claim) {
 function confirm(kind, graph, hit, tier, detail, scope = 'single-graph') {
   const extra = { scope }
   const base = { path: graph.path, tier, claim: kind, detail, extra }
-  if (kind === 'closure-link' || kind === 'one-sided-closure') {
+  if ((kind === 'closure-link' || kind === 'closure-edge') || kind === 'one-sided-closure') {
     return anchored({
       ...base, start: 1, end: 1, position: 'link', nodes: [hit.feedbackId, hit.decisionId],
       extra: {
@@ -501,12 +539,12 @@ function recompute(claim, kind, documents) {
   const hits = []
   for (const document of documents) {
     const graph = analyse(document)
-    if (kind === 'closure-link' || kind === 'one-sided-closure') {
+    if ((kind === 'closure-link' || kind === 'closure-edge') || kind === 'one-sided-closure') {
       for (const [decisionId, feedbackId] of graph.links) {
         if (!mentions(excerpt, decisionId) || !mentions(excerpt, feedbackId)) continue
         const side = graph.sidesOf(decisionId, feedbackId)
         const mutual = side?.addresses === true && side?.closedBy === true
-        const wanted = kind === 'closure-link' ? mutual : !mutual
+        const wanted = (kind === 'closure-link' || kind === 'closure-edge') ? mutual : !mutual
         if (!wanted) continue
         hits.push({
           graph,

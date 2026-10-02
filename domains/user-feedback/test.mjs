@@ -1222,6 +1222,10 @@ test('every claim kind is exercised in BOTH directions — a kind that can only 
     'theme-membership': { locator: { kind: 'theme-membership', themeId: 'ui', feedbackId: 'fb-1005' } },
     'one-sided-theme': { locator: { kind: 'one-sided-theme', themeId: 'report', feedbackId: 'fb-1007' } },
     'unregistered-reference': { locator: { kind: 'unregistered-reference', referencedId: 'fb-9999', referrerId: 'dec-24' } },
+    'closure-edge': { locator: { kind: 'closure-edge', feedbackId: 'fb-1001', decisionId: 'dec-20' } },
+    'feedback-node': { locator: { kind: 'feedback-node', feedbackId: 'fb-1001' } },
+    'decision-node': { locator: { kind: 'decision-node', decisionId: 'dec-20' } },
+    'theme-node': { locator: { kind: 'theme-node', themeId: 'ui' } },
   }
   const REFUTE = {
     'closure-link': { locator: { kind: 'closure-link', feedbackId: 'fb-1002', decisionId: 'dec-21' } },
@@ -1232,6 +1236,10 @@ test('every claim kind is exercised in BOTH directions — a kind that can only 
     'theme-membership': { locator: { kind: 'theme-membership', themeId: 'report', feedbackId: 'fb-1007' } },
     'one-sided-theme': { locator: { kind: 'one-sided-theme', themeId: 'ui', feedbackId: 'fb-1005' } },
     'unregistered-reference': { locator: { kind: 'unregistered-reference', referencedId: 'fb-1001', referrerId: 'dec-20' } },
+    'closure-edge': { locator: { kind: 'closure-edge', feedbackId: 'fb-1002', decisionId: 'dec-21' } },
+    'feedback-node': { locator: { kind: 'feedback-node', feedbackId: 'fb-9999' } },
+    'decision-node': { locator: { kind: 'decision-node', decisionId: 'dec-9999' } },
+    'theme-node': { locator: { kind: 'theme-node', themeId: 'no-such-theme' } },
   }
   const payload = ledgerPayload('happy-path')
   const subject = { path: payload.path, documents: [{ path: payload.path, payload: payload.payload }] }

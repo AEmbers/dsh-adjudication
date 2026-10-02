@@ -64,6 +64,10 @@ const CLAIM_KINDS = [
   '`theme-membership`（`{themeId,feedbackId}` —— 「这条反馈属于这个主题」，记录上的 `theme` 与主题目录的 `members` 两侧一致）',
   '`one-sided-theme`（`{themeId,feedbackId}` —— 「主题归属只有单边」）',
   '`unregistered-reference`（`{referencedId,referrerId}` —— 「台账链向一个不存在的 ID」）',
+    '`closure-edge`（`{feedbackId,decisionId}` —— 枚举器对同一条闭环边的叫法，与 `closure-link` 同义）',
+    '`feedback-node`（`{feedbackId}` —— 「这条反馈在台账里存在」，逐字定位到它的那一行）',
+    '`decision-node`（`{decisionId}` —— 「这条决策在台账里存在」，逐字定位到它的那一行）',
+    '`theme-node`（`{themeId}` —— 「这个主题在台账里存在」，逐字定位到它的那一行）',
 ]
 
 /**
