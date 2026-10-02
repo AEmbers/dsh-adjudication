@@ -337,7 +337,7 @@ npm run pack:check     # npm pack --dry-run：检查发布清单
 |---|---:|---|
 | `contract-test.mjs` | 38 | 契约常量/校验器自洽，含引擎档位双向对账与交付物自洽性（`-text` 例外） |
 | `lib/imports-check.mjs` | 129 模块 | 每个具名相对导入都能真的解析（一次性消灭「模块加载失败」） |
-| `lib/kernel-test.mjs` | 97 | 契约 v2 运行时机制：扩展点接线、目录发现、P4/P6、锚点档位双向断言、提示词两层表面 |
+| `lib/kernel-test.mjs` | 98 | 契约 v2 运行时机制：扩展点接线、目录发现、P4/P6、锚点档位双向断言、提示词两层表面 |
 | `domains-test.mjs` | **19 ran / 0 failed / 0 skipped**（1822 条） | 十九个领域各自的 `test.mjs`，跑 P0→P7 |
 | `smoke-test.mjs` | 45 | 引擎与插件（假上下文） |
 | `mount-test.mjs` | 13 | 真实 `@deepseek-ai/cordis` 挂载 |

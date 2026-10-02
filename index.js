@@ -1088,6 +1088,27 @@ export function apply(ctx, config) {
     // are never touched again.
     planCandidates.set(pack.id, capped.slice())
 
+    /**
+     * A JSON-SAFE view of a pack's declared `bundleKey` (ADDED: lossless-plan).
+     *
+     * WHY THIS EXISTS: this field used to be `pack.bundleKey` itself. A domain
+     * that declares its OWN strategy carries a `resolve` FUNCTION there, and the
+     * harness refuses to hand back a tool result that is not lossless JSON — so
+     * `plan` failed outright for every such domain (`algo-model`,
+     * `requirement-alignment`, …) while every direct-call test stayed green:
+     * `JSON.stringify` silently DROPS a function and `deepEqual` never looks at
+     * one, so nothing in the suite could see it. The closure is reported as a
+     * visible marker instead of being embedded — or silently dropped.
+     */
+    const describeDeclaredBundleKey = (declared) => {
+      if (declared === null || declared === undefined || typeof declared !== 'object') return declared ?? null
+      const safe = {}
+      for (const [key, value] of Object.entries(declared)) {
+        safe[key] = typeof value === 'function' ? '[function]' : value
+      }
+      return safe
+    }
+
     // P2 — `pack.bundleKey` becomes a real grouping decision HERE. `bundle()`
     // itself is untouched: it already groups by `entry.key`, and the missing
     // half was always the caller's, which never derived that key. Candidates
@@ -1098,7 +1119,7 @@ export function apply(ctx, config) {
       const resolution = resolveBundleKey(pack, entry, bundleKeySettings)
       if (bundleKeyInfo === null) {
         bundleKeyInfo = {
-          declared: pack.bundleKey ?? null,
+          declared: describeDeclaredBundleKey(pack.bundleKey),
           strategy: resolution.strategy,
           applied: resolution.applied,
           source: resolution.source,
@@ -1114,7 +1135,7 @@ export function apply(ctx, config) {
     })
     if (bundleKeyInfo === null) {
       bundleKeyInfo = {
-        declared: pack.bundleKey ?? null, strategy: null, applied: false, source: 'fallback',
+        declared: describeDeclaredBundleKey(pack.bundleKey), strategy: null, applied: false, source: 'fallback',
         reason: '没有准入候选，未派生 bundle key', derived: 0,
       }
     }
