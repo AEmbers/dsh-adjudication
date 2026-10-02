@@ -1225,13 +1225,22 @@ export function apply(ctx, config) {
       ].join(' '),
       parameters: params({
         category: { type: 'string', enum: ['A', 'B', 'C', 'D'], description: '按家族过滤：A 审定型 / B 构建型 / C 探索型 / D 关系型' },
-        query: { type: 'string', description: '按 id、标题、摘要或关键词检索' },
+        query: { type: 'string', description: '要审的东西是什么。可以是一整句用户原话（支持中文），也可以只是一串关键词：会按词与碎片打分，返回**多个**可能相关的领域，按相关度排序并给出每个命中的理由。**不知道属于哪个领域时，把用户的原话直接传进来。**' },
+        paths: { type: 'array', items: { type: 'string' }, description: '涉及的文件路径或扩展名，如 ["src/config.ts","pkg/queue/worker.go",".sql"]。**不知道该怎么描述的时候传这个** —— 路由据此判断比让用户描述更准。' },
         active: { type: 'boolean', description: '只列出已激活的领域' },
       }),
       output: { schema: { type: 'object' }, render: (_args, value) => text(value.summary) },
       async execute(args) {
         const directory = await ensureDirectoryDomains()
-        let packs = registry.overview({ category: args.category, query: args.query })
+        // CHANGED (request-router): the user's own words and the file paths of
+        // the thing under review are folded into ONE routing query. A user who
+        // cannot name a domain can still point at the artifacts, and one request
+        // that spans several domains now returns all of them, ranked.
+        const routing = [
+          args.query,
+          ...(Array.isArray(args.paths) ? args.paths : []),
+        ].filter((value) => String(value ?? '').trim() !== '').join(' ')
+        let packs = registry.overview({ category: args.category, query: routing === '' ? undefined : routing })
         if (args.active === true) packs = packs.filter((pack) => activated.has(pack.id))
 
         const grouped = new Map()
@@ -1251,12 +1260,21 @@ export function apply(ctx, config) {
             const mark = activated.has(pack.id) ? ' ●' : ''
             sections.push(`- **${pack.id}**${mark} — ${pack.title}　[${pack.lossOrientation}］ 锚点 ${pack.anchorKind}　规则 ${pack.rules} 条${pack.status !== 'ready' ? `　(${pack.status})` : ''}`)
             if (pack.summary) sections.push(`  ${pack.summary}`)
+            if (Array.isArray(pack.match?.reasons) && pack.match.reasons.length > 0) {
+              sections.push(`  ↳ 命中理由：${pack.match.reasons.join('；')}`)
+            }
           }
           sections.push('')
         }
 
         if (sections.length === 0) {
-          sections.push('没有匹配的领域包。用 adjudication_domains 不带参数看全部。')
+          // CHANGED (request-router): an empty shortlist can NEVER be a dead end.
+          // "No match" and "no such domain" look identical to a reader, so the
+          // tool says what to do next instead of just reporting zero.
+          sections.push('没有匹配的领域包。**不要就此停下**：')
+          sections.push('- 把用户的原话、以及涉及的文件路径（`paths`）一起再传一次 —— 路由会按词与碎片重新打分；')
+          sections.push('- 或者改用 `category`（A/B/C/D）过滤后挑一个；')
+          sections.push('- `adjudication_domains` 不带参数可以看到全部 19 个领域。')
         }
         sections.push(`已激活：${activated.size === 0 ? '（无）' : [...activated.keys()].join(', ')}`)
         sections.push('')
