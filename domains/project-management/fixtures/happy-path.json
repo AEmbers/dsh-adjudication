@@ -650,7 +650,76 @@
         },
         "expectStatus": "unanchored",
         "expectTier": "no-match"
+      },
+      {
+        "note": "同一文档里重复的风险 id 无法定位：「这条风险登记项存在」在 R1 指向两个对象时既非真也非假 —— relocation-ambiguous + scope=id-ambiguous，拒绝猜测。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "risk-entry",
+            "riskId": "R1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "risks": [
+                  {
+                    "id": "R1",
+                    "trigger": "合作方结算接口延期交付"
+                  },
+                  {
+                    "id": "R1",
+                    "trigger": "索引重建超窗"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
+      },
+      {
+        "note": "同一文档里重复的里程碑 id 同理：M1 指向两个对象时「这个里程碑存在」未锚定 —— relocation-ambiguous + scope=id-ambiguous。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "milestone-entry",
+            "milestoneId": "M1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "milestones": [
+                  {
+                    "id": "M1",
+                    "title": "购物车上线"
+                  },
+                  {
+                    "id": "M1",
+                    "title": "搜索改版"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "relocation-ambiguous"
       }
-    ]
+    ],
+    "ambiguous": []
   }
 }

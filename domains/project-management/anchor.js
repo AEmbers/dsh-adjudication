@@ -99,9 +99,9 @@ const KIND = 'task-and-edge'
  * four are the names this domain's own ENUMERATOR ships on its candidates
  * (`source.js` `CANDIDATE_KINDS`), and they were missing here until the
  * producer → consumer self-audit walked that edge: every one of the fourteen
- * candidates the source emits came back `kind-mismatch` from its own verifier, and
- * no test could see it because the fixtures hand-write locators in the CLAIM
- * vocabulary rather than feeding the enumerator's own output back in.
+ * candidates of the happy-path fixture came back `kind-mismatch` from its own
+ * verifier, and no test could see it because the fixtures hand-write locators in
+ * the CLAIM vocabulary rather than feeding the enumerator's own output back in.
  *
  *   dependency-edge  the same directed edge as `task-edge`. The enumerator also
  *                    pins `edgeKind` (a `dependsOn` edge and a `blockedBy` edge
@@ -675,10 +675,38 @@ export function verify(claim, subject) {
     return [String(claim.locator.taskId ?? '')]
   }
 
-  /** Ids declared more than once INSIDE one graph — the graph cannot be used. */
+  /**
+   * Ids declared more than once INSIDE one graph — the graph cannot be used.
+   *
+   * The identity set is NOT `declaredIds()` alone. `declaredIds()` is the TASK-id
+   * space (`tasks[].id` + `idSpace`), and it was the whole identity set while every
+   * claim kind this verifier knew was about a task. The enumerator's record kinds
+   * (`risk-entry` / `milestone-entry`) name rows of two OTHER registers, so the
+   * collision check has to read those registers too. Without them `touchedIds()`
+   * handed back a `riskId` that could never appear in `selfDupes`, the refusal
+   * below was unreachable for those kinds, and a document declaring the same risk
+   * id twice confirmed a claim about "the" row — the exact ambiguity this check
+   * exists to refuse.
+   *
+   * The union is deliberate, not an oversight: this domain's rule is "the same ID
+   * pointing at two objects", and `declaredIds()` already unions tasks with
+   * `idSpace` on exactly that reading. The cost is stated rather than hidden — a
+   * document whose RISK R1 and MILESTONE R1 are different objects now refuses a
+   * claim about either. Refusing an unambiguous claim is the direction a
+   * precision-first anchor layer is allowed to err in; confirming an ambiguous one
+   * is not.
+   */
   const selfCollisions = (graph) => {
     const counts = new Map()
-    for (const id of declaredIds(graph.document)) counts.set(id, (counts.get(id) ?? 0) + 1)
+    const identity = [
+      ...declaredIds(graph.document),
+      ...(Array.isArray(graph.risks) ? graph.risks.map((risk) => risk?.id) : []),
+      ...(Array.isArray(graph.milestones) ? graph.milestones.map((milestone) => milestone?.id) : []),
+    ]
+    for (const id of identity) {
+      if (typeof id !== 'string' || id === '') continue
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
     return [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id).sort()
   }
 

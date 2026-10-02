@@ -133,8 +133,8 @@ export const ANCHOR_KINDS = Object.freeze([
   'trace-edge', 'chain-path', 'dangling-ref', 'uncovered-requirement',
   'orphan-node', 'cross-domain-ref', 'stale-ref',
   // ADDED (self-audit): the ENUMERATOR's own node-side kind (`source.js`
-  // `CANDIDATE_KINDS.nodeSide`). It shipped `trace-node-side` on all twenty of the
-  // node-side candidates this domain emits, while this list knew only the
+  // `CANDIDATE_KINDS.nodeSide`). It shipped `trace-node-side` on all twenty
+  // node-side candidates of the happy-path fixture, while this list knew only the
   // claim-level names above — so every one of them came back `kind-mismatch` from
   // its own verifier. No test could see it: the fixtures hand-write locators in the
   // CLAIM vocabulary and had never fed the enumerator's output back in.
