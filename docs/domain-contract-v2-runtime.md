@@ -32,7 +32,7 @@
 | `lib/reasoner.js` | **t2 新增** | P4 有界推理回路执行器。零 import，两个服务都是普通对象 |
 | `lib/engine.js` | t2 改动 | `critique()` / `runCritiquePanel()` / `report()` 读取并回显 `criticism.kind`（不参与保留/删除） |
 | `index.js` | t2 改动 | 可选服务注入、惰性目录发现、`bundleKey` 派生、`input` 入参、证据工具与 P4 工具注册 |
-| `lib/kernel-test.mjs` | t2 新增，此后持续加码 | 运行时机制断言，已并入 `npm test`（现 **98 条**；这个数字、README 表格里的同一个数字、以及下面那段命令清单里的 `95 passed`，由该文件收尾的**漂移检查**逐处机械比对 —— 对不上就打印 `MISMATCH` 并以非零码退出，不靠人记得回来改） |
+| `lib/kernel-test.mjs` | t2 新增，此后持续加码 | 运行时机制断言，已并入 `npm test`（现 **99 条**；这个数字、README 表格里的同一个数字、以及下面那段命令清单里的 `95 passed`，由该文件收尾的**漂移检查**逐处机械比对 —— 对不上就打印 `MISMATCH` 并以非零码退出，不靠人记得回来改） |
 | `cordis.patch.yml` | t2 改动 | 新增 `domainRoot` / `bundleKey` / `reasoner` 三个配置块（全部可选） |
 
 **「零运行时 import」的准确含义**：没有任何**第三方包** import，模块加载期也不需要任何 `node:` 内置模块。
@@ -197,7 +197,7 @@ mkdir -p dsh-adjudication/domains/<id>/{rules,fixtures}
 npm --prefix dsh-adjudication test
 # = node contract-test.mjs      -> 38 passed, 0 failed   契约形状
 #   node lib/imports-check.mjs  -> 每个具名相对导入都能解析（129 个模块）
-#   node lib/kernel-test.mjs    -> 98 passed, 0 failed   运行时机制（这几个数字不是手抄的：见 §7 末尾的漂移检查）
+#   node lib/kernel-test.mjs    -> 99 passed, 0 failed   运行时机制（这几个数字不是手抄的：见 §7 末尾的漂移检查）
 #   node domains-test.mjs       -> domains: 19 ran, 0 failed, 0 skipped（1822 条领域断言）
 #   node smoke-test.mjs         -> 45 passed, 0 failed   引擎与插件
 #   node mount-test.mjs         -> 13 checks, all passed 真实 Cordis 挂载

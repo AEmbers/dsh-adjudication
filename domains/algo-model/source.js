@@ -66,7 +66,7 @@ function slug(value) {
 }
 
 /** The record artifact for one experiment — the bundle/chain identity. */
-function recordPath(experimentId, metric) {
+export function recordPath(experimentId, metric) {
   const base = `${CHAIN_ROOT}/${slug(experimentId) || 'unknown'}`
   if (metric?.kind === 'artifact') {
     const name = slug(metric.name) || 'artifact'

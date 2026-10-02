@@ -1142,17 +1142,50 @@ export function apply(ctx, config) {
 
     const bundleResult = bundle(keyed, { ...options.bundle, ...(pack.bundle ?? {}) })
 
+    // ADDED (anchor-preview): how many entries of one bundle the work order is
+    // allowed to show. See the comment on `entries` below.
+    const ANCHOR_PREVIEW_PER_BUNDLE = 40
+
     const bundlesWithRules = bundleResult.bundles.map((item) => {
       const paths = item.entries.map((entry) => entry.path)
       const { injected, unmapped } = selectRules(rulesOf(pack), paths)
       return {
         key: item.key,
         paths,
+        // ADDED (anchor-preview): the two things `submit` will demand of every
+        // finding — the path to NAME and the text to QUOTE VERBATIM. Both were
+        // reachable only from inside the enumerator, so a caller reading the
+        // work order had to invent them, and an invented excerpt can never
+        // anchor: six `no-match` refusals and zero anchored findings was the
+        // measured cost of this omission. Bounded, and `omitted` says by how much.
+        entries: item.entries.slice(0, ANCHOR_PREVIEW_PER_BUNDLE).map((entry) => ({
+          path: entry.path,
+          locator: entry.locator ?? null,
+          text: entry.text ?? '',
+        })),
+        omitted: Math.max(0, item.entries.length - ANCHOR_PREVIEW_PER_BUNDLE),
         rules: injected.map((rule) => rule.name),
         ruleText: renderRules(injected, paths),
         unmappedPaths: unmapped,
       }
     })
+
+    // The rendered form of the above. Line breaks inside a quoted excerpt are
+    // preserved (the engine's matcher strips whitespace but NOT line structure),
+    // and continuation lines are indented — indentation is stripped by the same
+    // normaliser, so the block stays copyable verbatim.
+    const anchorPreviewLines = []
+    let anchorPreviewOmitted = 0
+    for (const item of bundlesWithRules) {
+      anchorPreviewOmitted += item.omitted
+      for (const entry of item.entries) {
+        const loc = entry.locator === null || entry.locator === undefined ? '' : `\`${JSON.stringify(entry.locator)}\`　`
+        const textLines = String(entry.text).split(/\r?\n/u)
+        anchorPreviewLines.push(`- \`${entry.path}\`　${loc}「${textLines[0] ?? ''}`)
+        for (const line of textLines.slice(1)) anchorPreviewLines.push(`  ${line}`)
+        anchorPreviewLines[anchorPreviewLines.length - 1] += '」'
+      }
+    }
 
     const orientated = LOSS_ORIENTATIONS.includes(pack.lossOrientation)
       ? pack.lossOrientation
@@ -1199,6 +1232,17 @@ export function apply(ctx, config) {
         ? '空：闸门后无候选。这本身就是结论——不要凭空审核。'
         : bullet(bundlesWithRules.map((item) => `${item.key}：${item.paths.length} 项，注入规则 [${item.rules.join(', ') || '无'}]`)),
       '',
+      ...(anchorPreviewLines.length === 0 ? [] : [
+        `## 候选原文（锚定用，逐字抄写）`,
+        `**excerpt 必须逐字等于下面引号里的内容，path 必须逐字等于左边那条路径。**`
+          + `引擎按「整行相等」比对（忽略空白与行首的 +/-），**不做包含匹配** —— 转述、概括、改写一律判未锚定；`
+          + `只传 tracker 导出这类「原文不在这份文件里」的文档也一样锚不上。`,
+        ...anchorPreviewLines,
+        anchorPreviewOmitted > 0
+          ? `_（另有 ${anchorPreviewOmitted} 项超出预览上限未列出：用本域的取证工具按路径取原文，不要凭印象抄写。）_`
+          : '',
+        '',
+      ]),
       `## 边界`,
       `工具调用预算 ${ledger.settings.maxToolCalls} 次；单次读取上限 ${ledger.settings.maxExcerptLines} 行；检索上限 ${ledger.settings.maxSearchHits} 条。`,
       '',

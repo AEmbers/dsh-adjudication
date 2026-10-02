@@ -36,7 +36,7 @@
 
 import { ERROR_CODES, contractError, defineAnchorVerifier } from '../../lib/contracts.js'
 import { allMatches, matchesAt } from '../code-review/anchor.js'
-import { chainKeyFromPath } from './source.js'
+import { chainKeyFromPath, recordPath, renderExperiment } from './source.js'
 
 /** Same literal comparison rule as every migrated domain (see code-review/anchor.js). */
 const normalizeLine = (line) => String(line).replace(/^[+-]/u, '').replace(/\s+/gu, '')
@@ -125,7 +125,7 @@ function isStructuredDocument(document) {
   }
 }
 
-function locateText(claim, subject, preferred) {
+function locateText(claim, subject, preferred, fallbackDocument = null) {
   const needle = normalizeExcerpt(claim.excerpt ?? '')
   const documents = toDocuments(subject)
   const subjectContent = typeof subject?.content === 'string' ? subject.content : null
@@ -181,6 +181,33 @@ function locateText(claim, subject, preferred) {
       `声明的 "${preferred}" 不在可比对文档中，且原文在 ${hits.length} 处命中 —— 跨文件搬迁不唯一，拒绝猜测`,
       { ambiguousIn: hits.map((hit) => `${hit.path}:${hit.start}`) })
   }
+  // ADDED (anchor-preview): LAST RESORT — the card the DOMAIN renders for the
+  // experiment. The line the work order asks the caller to quote
+  // (`metric accuracy = 0.912`) is rendered FROM the JSON record: it is not a
+  // line of any file on disk, and the tracker export cannot contain it either, so
+  // before this the loop was unclosable — the plan printed a line, `submit`
+  // demanded it back verbatim, and no document could ever hold it (measured: six
+  // `no-match` refusals, zero anchored findings, P6 never running because there
+  // was nothing anchored to re-check).
+  //
+  // It is tried LAST on purpose: an ambiguity has to stay an ambiguity. A caller
+  // that hands back a real card still wins, and a quote that matches two places
+  // in the handed-back documents is still refused above. Not a bypass either:
+  // the metric name, value and definition were recomputed from the export
+  // immediately before this point, so a quote that does not match the confirmed
+  // record still fails.
+  if (fallbackDocument !== null && fallbackDocument !== undefined) {
+    const inCard = allMatches(fallbackDocument.content, needle)
+    if (inCard.length === 1) {
+      return anchored(fallbackDocument.path, inCard[0].start, inCard[0].end, 'recomputed-unique', 'quoted-line-recomputed',
+        `在 ${fallbackDocument.path} 唯一命中（第 ${inCard[0].start}-${inCard[0].end} 行，该记录卡由本域按已验证的 tracker 记录渲染），未采信模型行号`)
+    }
+    if (inCard.length > 1) {
+      return unanchored('relocation-ambiguous', 'relocation-ambiguous',
+        `抄写原文在渲染出的记录卡里出现 ${inCard.length} 次，位置不唯一 —— 拒绝猜测`,
+        { ambiguousIn: inCard.map((hit) => `${fallbackDocument.path}:${hit.start}`) })
+    }
+  }
   return unanchored('no-match', 'no-match', `声明的 "${preferred}" 与任何可比对文档都不含这段原文`)
 }
 
@@ -233,7 +260,9 @@ export function verify(claim, subject) {
       return unanchored('locator-mismatch', 'unknown-experiment',
         `locator 缺少 experimentId，且路径 "${claim.path}" 指向的实验 "${wanted}" 不在记录里 —— 拒绝猜测`)
     }
-    const result = locateText(claim, subject, claim.path)
+    const cardPath = recordPath(wanted, null)
+    const card = claim.path === cardPath ? { path: cardPath, content: renderExperiment(found) } : null
+    const result = locateText(claim, subject, claim.path, card)
     if (result.status === 'anchored') {
       result.code = 'experiment-confirmed'
       result.detail = `${result.detail}；实验 "${wanted}" 在记录中存在，但这次没有声明具体指标 —— 指标未确认`
@@ -272,7 +301,9 @@ export function verify(claim, subject) {
       { experimentId, metricName: name, recordedDefinition: metric.definition ?? null })
   }
 
-  const result = locateText(claim, subject, claim.path)
+  const cardPath = recordPath(experimentId, metric)
+  const card = claim.path === cardPath ? { path: cardPath, content: renderExperiment(experiment) } : null
+  const result = locateText(claim, subject, claim.path, card)
   if (result.status === 'anchored') {
     result.code = 'metric-confirmed'
     result.detail = `${result.detail}；指标 ${experimentId}.${name} = ${valueText(metric.value)} 已在记录中确认`

@@ -590,15 +590,54 @@ test('without the tracker records the verifier refuses rather than falling back 
 })
 
 test('a structured payload document is DATA, not prose: an excerpt never relocates into it', () => {
+  // CHANGED (anchor-preview): the old input quoted `metric accuracy = 0.9` while
+  // the only document was a PRETTY-PRINTED export. That could not fail for the
+  // reason the title gives — a JSON line is wrapped in its own quotes and keys, so
+  // it can never equal a bare prose line, and the assertion was passing on the
+  // unrelated `named === null` branch. The needle is now the export's own single
+  // line, which the export genuinely does contain: without the
+  // `isStructuredDocument` filter this WOULD anchor, so the title's property is
+  // what is being tested.
+  const content = JSON.stringify({ experiments: [{ id: 'a', metrics: [{ name: 'accuracy', value: 0.9 }] }] })
   const verdict = anchor.verify(
-    { kind: 'experiment-metric', path: 'experiments/a/metrics.json', locator: { experimentId: 'a', metricName: 'accuracy' }, excerpt: 'metric accuracy = 0.9' },
-    {
-      path: 'experiments/a/metrics.json',
-      documents: [{ path: 'experiments/records.json', content: JSON.stringify({ experiments: [{ id: 'a', metrics: [{ name: 'accuracy', value: 0.9 }] }] }) }],
-    },
+    { kind: 'experiment-metric', path: 'experiments/a/metrics.json', locator: { experimentId: 'a', metricName: 'accuracy' }, excerpt: content },
+    { path: 'experiments/a/metrics.json', documents: [{ path: 'experiments/records.json', content }] },
   )
   assert.equal(verdict.status, 'unanchored')
   assert.equal(verdict.tier, 'no-match')
+})
+
+test('the card the domain renders is a LAST RESORT, and only for the experiment’s own card path', () => {
+  // The work order prints `metric accuracy = 0.9` and `submit` demands it back
+  // verbatim, but that line is RENDERED from the record — it is a line of no file
+  // on disk, so before the fallback the loop was unclosable (six `no-match`
+  // refusals in a real session, zero anchored findings, P6 never running).
+  const records = { experiments: [{ id: 'a', metrics: [{ name: 'accuracy', value: 0.9, definition: 'top-1' }] }] }
+  const documents = [{ path: 'experiments/records.json', content: JSON.stringify(records) }]
+  const subject = { path: 'experiments/a/metrics.json', documents }
+  const claim = (excerpt, path = 'experiments/a/metrics.json') => ({
+    kind: 'experiment-metric', path, locator: { experimentId: 'a', metricName: 'accuracy' }, excerpt,
+  })
+
+  const printed = source.enumerate({ experiments: records.experiments }, {}).candidates[0].text
+  assert.equal(printed, 'metric accuracy = 0.9', 'the line the work order shows is the line submit will require')
+
+  const anchored = anchor.verify(claim(printed), subject)
+  assert.equal(anchored.status, 'anchored')
+  assert.equal(anchored.tier, 'recomputed-unique')
+  assert.equal(anchored.code, 'metric-confirmed')
+
+  // SHAPE CONTROL 1: the fallback is a LAST resort, not a bypass — the record is
+  // still recomputed first, and the quote must match it. A paraphrase is refused.
+  const paraphrased = anchor.verify(claim('accuracy 0.9'), subject)
+  assert.equal(paraphrased.status, 'unanchored')
+  assert.equal(paraphrased.tier, 'no-match')
+
+  // SHAPE CONTROL 2: a claim naming some OTHER path gets no card at all — the
+  // domain renders exactly one card per experiment, at its own convention path.
+  const otherPath = anchor.verify(claim(printed, 'experiments/b/metrics.json'), { path: 'experiments/a/metrics.json', documents })
+  assert.equal(otherPath.status, 'unanchored')
+  assert.equal(otherPath.tier, 'no-match')
 })
 
 test('a wrong line number is refused rather than repaired', () => {
