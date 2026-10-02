@@ -414,6 +414,12 @@ test('the source refuses malformed input instead of returning a silent empty set
   assert.throws(() => source.enumerate({ nodes: 'nope' }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ nodes: [], schema: [] }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ nodes: [], runs: {} }, {}), /E_INPUT_FORMAT/u)
+  // CHANGED (input-format): `schema` is ONE flat map keyed by "db.table". A
+  // malformed table definition was read as "no columns", which silently drops
+  // the field-level candidates for that chain (16 -> 13) instead of saying so.
+  assert.throws(() => source.enumerate({ nodes: [], schema: { 'raw.orders': 'nope' } }, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate({ nodes: [], schema: { 'raw.orders': [] } }, {}), /E_INPUT_FORMAT/u)
+  assert.doesNotThrow(() => source.enumerate({ nodes: [], schema: { 'raw.orders': { columns: [] } } }, {}))
   // A missing `nodes` is NOT the same as an empty graph: one is a malformed
   // request, the other is a legitimate "there is nothing here".
   assert.doesNotThrow(() => source.enumerate({ nodes: [] }, {}))

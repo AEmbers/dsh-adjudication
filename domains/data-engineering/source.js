@@ -244,6 +244,22 @@ export function enumerate(input, context = {}) {
   if (input.schema !== undefined && (input.schema === null || typeof input.schema !== 'object' || Array.isArray(input.schema))) {
     throw contractError(ERROR_CODES.E_INPUT_FORMAT, '`schema` 必须是对象 { "db.table": { columns: [...] } }')
   }
+  // CHANGED (input-format): the outer map was validated, the TABLE DEFINITIONS
+  // inside it were not. `schema["db.table"]` is one flat key whose value holds
+  // `columns`, and a non-object there is read as "this table declares no
+  // columns" — which silently drops every field-level candidate for that table's
+  // chain (measured: 16 candidates → 13) without saying so. Refused, like
+  // `baseline` in algo-model and `coverage.files` in tech-test.
+  if (input.schema !== undefined && input.schema !== null) {
+    for (const [table, declared] of Object.entries(input.schema)) {
+      if (declared === undefined || declared === null) continue
+      if (typeof declared !== 'object' || Array.isArray(declared)) {
+        throw contractError(ERROR_CODES.E_INPUT_FORMAT,
+          `\`schema["${table}"]\` 必须是对象 { columns: [{ name, type, nullable }] }，收到 ${Array.isArray(declared) ? 'array' : typeof declared}`
+          + ' —— 非法形状会被读成「这张表没有列」，于是该链的字段级候选会静默消失')
+      }
+    }
+  }
   if (input.runs !== undefined && !Array.isArray(input.runs)) {
     throw contractError(ERROR_CODES.E_INPUT_FORMAT, '`runs` 必须是数组 [{ nodeId, status, at? }]（可省略）')
   }
