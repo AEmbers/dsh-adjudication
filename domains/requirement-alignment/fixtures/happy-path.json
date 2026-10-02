@@ -306,6 +306,35 @@
             }
           ]
         }
+      },
+      {
+        "note": "枚举器的节点侧卡：`trace-node-side` 断言这个节点在追踪图里有一条记录，并且卡片渲染的是 `upstream` 这一侧 —— 逐字对照 R1。",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-node-side",
+            "graphPath": "chains/checkout/trace.json",
+            "fromId": "R1",
+            "side": "upstream"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectNodes": [
+          "R1"
+        ],
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            }
+          ]
+        }
       }
     ],
     "negative": [
@@ -424,6 +453,58 @@
             {
               "path": "chains/refund/trace.json",
               "content": "{\"nodes\":[{\"id\":\"R2\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u5\"},{\"id\":\"P2\",\"type\":\"plan\",\"ref\":\"plans/p2/serves/r2\"},{\"id\":\"I2\",\"type\":\"implementation\",\"ref\":\"src/refund.ts#L3-L11\"},{\"id\":\"C2\",\"type\":\"case\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}],\"edges\":[{\"from\":\"R2\",\"to\":\"P2\",\"kind\":\"derives\"},{\"from\":\"P2\",\"to\":\"I2\",\"kind\":\"implements\"},{\"from\":\"I2\",\"to\":\"C2\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u5\"},{\"domain\":\"plans\",\"ref\":\"plans/p2/serves/r2\"},{\"domain\":\"src\",\"ref\":\"src/refund.ts#L3-L11\"},{\"domain\":\"tests\",\"ref\":\"tests/refund.spec.ts#L2-L6\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "节点侧卡指向一个图上没有记录的节点：ZZ9 不在检查过的那张图里 —— no-match，既不确认也不当成矛盾。",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-node-side",
+            "graphPath": "chains/checkout/trace.json",
+            "fromId": "ZZ9",
+            "side": "upstream"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "no-match",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
+            }
+          ]
+        }
+      },
+      {
+        "note": "side 不是 upstream / downstream 时直接拒绝：不认识的一侧不会落到默认值 —— empty-excerpt。",
+        "claim": {
+          "kind": "trace-node-and-edge",
+          "path": "chains/checkout/trace.json",
+          "locator": {
+            "kind": "trace-node-side",
+            "graphPath": "chains/checkout/trace.json",
+            "fromId": "R1",
+            "side": "sideways"
+          }
+        },
+        "subjectPath": "chains/checkout/trace.json",
+        "expectStatus": "unanchored",
+        "expectTier": "empty-excerpt",
+        "subject": {
+          "path": "chains/checkout/trace.json",
+          "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}",
+          "documents": [
+            {
+              "path": "chains/checkout/trace.json",
+              "content": "{\"nodes\":[{\"id\":\"F1\",\"type\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"id\":\"R1\",\"type\":\"requirement\",\"ref\":\"sessions/s1/u2\"},{\"id\":\"P1\",\"type\":\"plan\",\"ref\":\"plans/p1/serves/r1\"},{\"id\":\"D1\",\"type\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"id\":\"I1\",\"type\":\"implementation\",\"ref\":\"src/cart.ts#L12-L20\"},{\"id\":\"C1\",\"type\":\"case\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}],\"edges\":[{\"from\":\"F1\",\"to\":\"R1\",\"kind\":\"informs\"},{\"from\":\"R1\",\"to\":\"P1\",\"kind\":\"derives\"},{\"from\":\"P1\",\"to\":\"D1\",\"kind\":\"specifies\"},{\"from\":\"D1\",\"to\":\"I1\",\"kind\":\"implements\"},{\"from\":\"I1\",\"to\":\"C1\",\"kind\":\"verifies\"}],\"upstream\":[{\"domain\":\"feedback\",\"ref\":\"feedback/fb-1\"},{\"domain\":\"sessions\",\"ref\":\"sessions/s1/u2\"},{\"domain\":\"plans\",\"ref\":\"plans/p1/serves/r1\"},{\"domain\":\"design\",\"ref\":\"design/checkout.md#L10-L24\"},{\"domain\":\"src\",\"ref\":\"src/cart.ts#L12-L20\"},{\"domain\":\"tests\",\"ref\":\"tests/cart.spec.ts#L5-L9\"}]}"
             }
           ]
         }

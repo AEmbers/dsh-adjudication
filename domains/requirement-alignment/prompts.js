@@ -92,6 +92,7 @@ const ORIENTATION_LINE = Object.freeze({
 const ANCHOR_LAW = [
   '锚点铁律：**锚点是 ID 对（或单个 ID），不是描述**。你提交的是 `locator.kind` 加上具体的 `fromId` / `toId`，引擎在追踪图上重算这条关系是否存在。',
   '可以声明的只有七种：`trace-edge`（`{fromId,toId,edgeKind?}` —— 「R1→I1 是一条 implements 边」）、`chain-path`（`{fromId,toId,route?}` —— 「R1 能走到 I1」）、`dangling-ref`（`{fromId,toId?}` —— 「这条边的端点在图上没有节点记录」）、`uncovered-requirement`（`{fromId,toId?}` —— 「这个需求没走到任何实现」）、`orphan-node`（`{fromId}` —— 「这个节点没有任何边」）、`cross-domain-ref`（`{fromId,ref?}` —— 「这个节点的 ref 是可消费的跨域锚点」）、`stale-ref`（`{fromId,ref?}` —— 「这个节点的 ref 上游已经不产出了」）。',
+  '候选卡片自带的第八种叫法引擎同样认：`trace-node-side`（`{fromId,side}`，side 为 `upstream` / `downstream` —— 「这个节点在图上有一条记录，这张卡渲染的是它那一侧」）。side 不是 `upstream` 或 `downstream` 会被直接拒绝，不会落到默认值。',
   'ID 必须**逐字抄写**，包括连字符与大小写：`R-12` 不是 `R12`，`I1` 不是 `i1`。写错一个字符，引擎就会判未锚定，而它不会替你猜你想写的是哪个。',
   '**方向是有意义的**：`derives` 是需求指向方案，`informs` 是反馈指向需求。反过来写就是另一条边，引擎会直接判 `locator-mismatch`。',
   '**跨域 ref 有两档强度，不要混用**：形状可消费（`REF_SHAPES` 认得出它属于哪个域）是一档；上游真的还在产出它（出现在 `upstream[]` 里）是另一档。语料没有声明 `upstream[]` 时，第二档**无法回答** —— 必须标为未回答，不得当成通过。',

@@ -19,6 +19,16 @@
  *   orphan-task  `{ taskId }` — "T9 is unreachable in this plan". Confirmed only
  *                when the task exists AND has no incoming and no outgoing edge.
  *
+ * THE FOUR ENUMERATOR KINDS
+ * -------------------------
+ * The domain's own P0 emits `dependency-edge`, `task-node`, `risk-entry` and
+ * `milestone-entry` — see `source.js` `CANDIDATE_KINDS`. They are claims too, and
+ * they are verified here rather than waved through: `dependency-edge` is the same
+ * directed edge as `task-edge` with `edgeKind` additionally pinned, and the three
+ * record kinds claim exactly the existence of the row they name. The
+ * producer → consumer self-audit (`lib/self-audit.mjs`) drives the enumerator's
+ * own output through THIS function, which is how the four names came to be here.
+ *
  * THE LADDER, AND WHICH TIERS ARE TERMINAL
  * ----------------------------------------
  *   declared-locator    the graph the claim named holds the claim exactly. (tier 1)
@@ -82,9 +92,27 @@ import { EDGE_KIND, declaredIds, taskEdgePairs } from './source.js'
  */
 const KIND = 'task-and-edge'
 
-/** The claim shapes `locator.kind` may take. Exported for the domain's tests. */
+/**
+ * The claim shapes `locator.kind` may take. Exported for the domain's tests.
+ *
+ * The first five are the CLAIM-level names the prompts hand a reviewer. The last
+ * four are the names this domain's own ENUMERATOR ships on its candidates
+ * (`source.js` `CANDIDATE_KINDS`), and they were missing here until the
+ * producer → consumer self-audit walked that edge: every one of the fourteen
+ * candidates the source emits came back `kind-mismatch` from its own verifier, and
+ * no test could see it because the fixtures hand-write locators in the CLAIM
+ * vocabulary rather than feeding the enumerator's own output back in.
+ *
+ *   dependency-edge  the same directed edge as `task-edge`. The enumerator also
+ *                    pins `edgeKind` (a `dependsOn` edge and a `blockedBy` edge
+ *                    are different claims), so this verifier checks it too.
+ *   task-node        "this task has a record in this plan"
+ *   risk-entry       "this risk-register entry exists"
+ *   milestone-entry  "this milestone exists"
+ */
 export const ANCHOR_KINDS = Object.freeze([
   'task-edge', 'cycle-path', 'orphan-task', 'unregistered-target', 'hedged-target',
+  'dependency-edge', 'task-node', 'risk-entry', 'milestone-entry',
 ])
 
 /**
@@ -132,8 +160,20 @@ function byId(list) {
 /** Every fact the verifier needs about one graph document, derived once. */
 function analyse(document) {
   const tasks = Array.isArray(document.payload.tasks) ? document.payload.tasks : []
+  const risks = Array.isArray(document.payload.risks) ? document.payload.risks : []
+  const milestones = Array.isArray(document.payload.milestones) ? document.payload.milestones : []
   const idSpace = (Array.isArray(document.payload.idSpace) ? document.payload.idSpace : []).filter((id) => typeof id === 'string' && id !== '')
-  const edges = taskEdgePairs(document).map(([from, to]) => [from, to])
+  const pairs = taskEdgePairs(document)
+  const edges = pairs.map(([from, to]) => [from, to])
+  // `dependency-edge` pins the edge KIND as well as its direction: a `depends-on`
+  // edge and a `blocked-by` edge are different claims about the same pair, and the
+  // enumerator hands the reviewer both. The pair alone would confirm either.
+  const edgeKinds = new Map()
+  for (const [from, to, kind] of pairs) {
+    const key = `${from}\u0000${to}`
+    if (!edgeKinds.has(key)) edgeKinds.set(key, [])
+    edgeKinds.get(key).push(kind)
+  }
   const declared = declaredIds(document)
   const counts = new Map()
   for (const id of declared) counts.set(id, (counts.get(id) ?? 0) + 1)
@@ -150,6 +190,11 @@ function analyse(document) {
     byTask: byId(tasks),
     idSpace,
     edges,
+    edgeKinds,
+    risks,
+    byRisk: byId(risks),
+    milestones,
+    byMilestone: byId(milestones),
     nodes,
     declared,
     duplicated: [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id).sort(),
@@ -170,10 +215,10 @@ function against(graph, claim) {
   const locator = claim.locator ?? {}
   const kind = locator.kind
 
-  if (kind === 'task-edge') {
+  if (kind === 'task-edge' || kind === 'dependency-edge') {
     const from = String(locator.from ?? '')
     const to = String(locator.to ?? '')
-    if (from === '' || to === '') return { tier: 'empty-excerpt', conflict: 'task-edge 声明缺少 from / to' }
+    if (from === '' || to === '') return { tier: 'empty-excerpt', conflict: `${kind} 声明缺少 from / to` }
     // Membership is checked BEFORE the edge, and both ids must be in the SAME
     // graph. A graph that knows only one end has not refuted the claim — it simply
     // cannot speak to it — so it returns `null` and the caller may relocate. A
@@ -181,7 +226,23 @@ function against(graph, claim) {
     // that statement is a contradiction.
     if (!graph.has(from) || !graph.has(to)) return null
     const holds = graph.edges.some(([a, b]) => a === from && b === to)
-    if (holds) return { tier: 'declared-locator', hit: { from, to } }
+    if (holds) {
+      // `dependency-edge` is the enumerator's name for the same directed edge, and
+      // its locator additionally pins `edgeKind`. A claim that pins a kind the edge
+      // does not carry is REFUTED, not confirmed: `T2 dependsOn T1` and
+      // `T2 blockedBy T1` are not the same claim about T2.
+      const pinnedKind = typeof locator.edgeKind === 'string' && locator.edgeKind.trim() !== '' ? String(locator.edgeKind) : null
+      if (kind === 'dependency-edge' && pinnedKind !== null) {
+        const present = graph.edgeKinds.get(`${from}\u0000${to}`) ?? []
+        if (!present.includes(pinnedKind)) {
+          return {
+            tier: 'locator-mismatch',
+            conflict: `${from}→${to} 这条边存在，但 kind 是 ${present.join('/')}，声明的是 ${pinnedKind} —— 关系类型不同，拒绝按「大概是一回事」接受`,
+          }
+        }
+      }
+      return { tier: 'declared-locator', hit: { from, to } }
+    }
     // The graph names both vertices and does not have the edge: that is a
     // CONTRADICTION, not an absence. The reversed edge is reported so the reader
     // can see which way round the model had it.
@@ -252,6 +313,37 @@ function against(graph, claim) {
     }
   }
 
+  // The enumerator's node kinds. Each claims ONE thing and only one: the record it
+  // names has a record of its own in this plan. That is the whole content of the
+  // candidate card, and it is what makes the card falsifiable — a graph that does
+  // not hold the record says so (`no-match` after `against` returns null), rather
+  // than the verifier inventing a relationship the enumerator never claimed.
+  //
+  // Membership is read from the SAME record list the enumerator walked (`tasks[]`,
+  // `risks[]`, `milestones[]`), not from the looser `declared` set: an id-space
+  // entry that names a task id is not a task record, and confirming it would
+  // anchor a claim about a record that does not exist.
+  if (kind === 'task-node') {
+    const taskId = String(locator.taskId ?? '')
+    if (taskId === '') return { tier: 'empty-excerpt', conflict: 'task-node 声明缺少 taskId' }
+    if (!graph.byTask.has(taskId)) return null
+    return { tier: 'declared-locator', hit: { taskId } }
+  }
+
+  if (kind === 'risk-entry') {
+    const riskId = String(locator.riskId ?? '')
+    if (riskId === '') return { tier: 'empty-excerpt', conflict: 'risk-entry 声明缺少 riskId' }
+    if (!graph.byRisk.has(riskId)) return null
+    return { tier: 'declared-locator', hit: { riskId } }
+  }
+
+  if (kind === 'milestone-entry') {
+    const milestoneId = String(locator.milestoneId ?? '')
+    if (milestoneId === '') return { tier: 'empty-excerpt', conflict: 'milestone-entry 声明缺少 milestoneId' }
+    if (!graph.byMilestone.has(milestoneId)) return null
+    return { tier: 'declared-locator', hit: { milestoneId } }
+  }
+
   if (kind === 'unregistered-target' || kind === 'hedged-target') {
     const targetId = String(locator.targetId ?? '')
     const referrer = String(locator.referrer ?? '')
@@ -314,7 +406,7 @@ function against(graph, claim) {
 /** Turn a confirmation into the shared verdict shape. */
 function confirm(kind, graph, hit, tier, detail) {
   const extra = { scope: 'single-graph' }
-  if (kind === 'task-edge') {
+  if (kind === 'task-edge' || kind === 'dependency-edge') {
     return anchored({
       path: graph.path, start: 1, end: 1, position: 'edge', tier, claim: kind, detail,
       nodes: [hit.from, hit.to],
@@ -339,6 +431,20 @@ function confirm(kind, graph, hit, tier, detail) {
           ...(hit.hedged === true ? { hedged: true } : { dangling: true }),
         },
       },
+    })
+  }
+  if (kind === 'risk-entry') {
+    return anchored({
+      path: graph.path, start: 1, end: 1, position: 'node', tier, claim: kind, detail,
+      nodes: [hit.riskId],
+      extra: { ...extra, graph: { riskId: hit.riskId } },
+    })
+  }
+  if (kind === 'milestone-entry') {
+    return anchored({
+      path: graph.path, start: 1, end: 1, position: 'node', tier, claim: kind, detail,
+      nodes: [hit.milestoneId],
+      extra: { ...extra, graph: { milestoneId: hit.milestoneId } },
     })
   }
   return anchored({
@@ -393,20 +499,24 @@ function refuse(kind, tier, detail, extra = {}) {
 export function constituentsDeclared(kind, locator) {
   if (locator === null || typeof locator !== 'object') return false
   const text = (value) => typeof value === 'string' && value.trim() !== ''
-  if (kind === 'task-edge') return text(locator.from) && text(locator.to)
+  if (kind === 'task-edge' || kind === 'dependency-edge') return text(locator.from) && text(locator.to)
   if (kind === 'cycle-path') {
     return Array.isArray(locator.cycle) && locator.cycle.length >= 2 && locator.cycle.every(text)
   }
   if (kind === 'unregistered-target' || kind === 'hedged-target') return text(locator.targetId)
-  if (kind === 'orphan-task') return text(locator.taskId)
+  if (kind === 'orphan-task' || kind === 'task-node') return text(locator.taskId)
+  if (kind === 'risk-entry') return text(locator.riskId)
+  if (kind === 'milestone-entry') return text(locator.milestoneId)
   return false
 }
 
 /** The fields each claim kind needs before it can be called declared. */
 function describeRequired(kind) {
-  if (kind === 'task-edge') return 'from / to'
+  if (kind === 'task-edge' || kind === 'dependency-edge') return 'from / to'
   if (kind === 'cycle-path') return 'cycle[]'
-  if (kind === 'orphan-task') return 'taskId'
+  if (kind === 'orphan-task' || kind === 'task-node') return 'taskId'
+  if (kind === 'risk-entry') return 'riskId'
+  if (kind === 'milestone-entry') return 'milestoneId'
   return 'targetId'
 }
 
@@ -446,6 +556,14 @@ function recompute(claim, kind, documents) {
   if (kind === 'cycle-path') {
     return refuse(kind, 'empty-excerpt',
       `cycle-path 必须给出 cycle[]：一段摘录无法说明这几个节点以什么顺序闭合，引擎拒绝按顺序猜测`)
+  }
+  // The record kinds name ONE row of one register. An excerpt cannot say WHICH row
+  // the reviewer meant — two risks can quote the same trigger sentence — so this
+  // path refuses rather than picking a row. Same judgement as `cycle-path`: the
+  // claim is refused, never narrowed.
+  if (kind === 'task-node' || kind === 'risk-entry' || kind === 'milestone-entry') {
+    return refuse(kind, 'empty-excerpt',
+      `${kind} 必须给出 ${describeRequired(kind)}：一张卡片对应一条记录，一段摘录无法唯一确定你看的是哪一条 —— 引擎拒绝按顺序猜测`)
   }
 
   const hits = []
@@ -548,9 +666,12 @@ export function verify(claim, subject) {
 
   /** The ids this claim is about — the ones whose identity must be unambiguous. */
   const touchedIds = () => {
-    if (claimKind === 'task-edge') return [String(claim.locator.from ?? ''), String(claim.locator.to ?? '')]
+    if (claimKind === 'task-edge' || claimKind === 'dependency-edge') return [String(claim.locator.from ?? ''), String(claim.locator.to ?? '')]
     if (claimKind === 'cycle-path') return (Array.isArray(claim.locator.cycle) ? claim.locator.cycle : []).map(String)
     if (claimKind === 'unregistered-target' || claimKind === 'hedged-target') return [String(claim.locator.targetId ?? '')]
+    if (claimKind === 'task-node') return [String(claim.locator.taskId ?? '')]
+    if (claimKind === 'risk-entry') return [String(claim.locator.riskId ?? '')]
+    if (claimKind === 'milestone-entry') return [String(claim.locator.milestoneId ?? '')]
     return [String(claim.locator.taskId ?? '')]
   }
 

@@ -48,13 +48,14 @@ const ORIENTATION_LINE = Object.freeze({
 /**
  * The anchor law, in this domain's vocabulary.
  *
- * Deliberately explicit about the three claim kinds: a model that does not know
+ * Deliberately explicit about the claim kinds: a model that does not know
  * what a claimable relationship is will invent one, and the engine will return
  * `kind-mismatch` for every finding in the run.
  */
 const ANCHOR_LAW = [
   '锚点铁律：**锚点是 ID 对，不是描述**。你提交的是 `locator.kind` 加上具体的 ID，引擎在任务图上重算这条关系是否存在。',
   '可以声明的只有五种：`task-edge`（`{from,to}` —— 「T4 依赖 T2」）、`cycle-path`（`{cycle:[T1,T2,T3]}` —— 「这三个任务互相阻塞」）、`orphan-task`（`{taskId}` —— 「T9 在这个计划里没有上下游」）、`unregistered-target`（`{targetId,referrer}` —— 「T1 等的那个 ID 图上根本不存在」）、`hedged-target`（`{targetId,referrer}` —— 「那个 ID 只出现在依赖里，没有任何记录说它是什么」）。',
+  '候选卡片自带的四种叫法是**同一批事实的另一种说法**，引擎同样认：`dependency-edge`（`{from,to,edgeKind}` —— 与 `task-edge` 同一条边，另外逐字核 `edgeKind`）、`task-node`（`{taskId}` —— 「这个任务在计划里有一条记录」）、`risk-entry`（`{riskId}` —— 「这条风险登记项存在」）、`milestone-entry`（`{milestoneId}` —— 「这个里程碑存在」）。',
   'ID 必须**逐字抄写**，包括连字符与大小写：`T-12` 不是 `T12`，`T12` 不是 `t12`。写错一个字符，引擎就会判定未锚定，而它不会替你猜你想写的是哪个。',
   '**方向是有意义的**：`T4 dependsOn T2` 与 `T2 dependsOn T4` 是两条不同的边，前者成立不代表后者成立。声明方向时以 `dependsOn` 的实际值为准，不要按「谁先做」的直觉推断。',
   '**不要写「存在依赖问题」这类结论**。「图上有个环」不是可锚定的发现 —— 环必须给出完整路径。「T9 有问题」不是可锚定的发现 —— 要么它是孤儿，要么它有一条具体的边。',

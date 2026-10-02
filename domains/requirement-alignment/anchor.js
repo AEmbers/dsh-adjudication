@@ -41,6 +41,11 @@
  *   orphan-node          `{fromId}`                 the node has no edges at all
  *   cross-domain-ref     `{fromId,ref?}`            the node's ref is consumable
  *   stale-ref            `{fromId,ref?}`            the node's ref is NO LONGER produced
+ *   trace-node-side      `{fromId,side}`            the node has a record here, and
+ *                        `side` (upstream/downstream) is the side named. This is the
+ *                        ENUMERATOR's name for the card it emits once per side of
+ *                        every node; the side's neighbours are card content, not a
+ *                        second claim.
  *
  * THE TIER IS DECIDED BY THE LOCATOR, NOT BY A FLAG
  * -------------------------------------------------
@@ -111,7 +116,7 @@ import {
   slash,
   unanchored,
 } from '../_lib/graph.js'
-import { declaredIds, edgePath, edgeTriples, nodeFacts, nodeSidePath, refShape, upstreamSet } from './source.js'
+import { declaredIds, edgePath, edgeTriples, nodeFacts, nodeSidePath, refShape, SIDES, upstreamSet } from './source.js'
 
 /**
  * The anchor kind this domain declares in `index.js`.
@@ -127,6 +132,13 @@ const KIND = 'trace-node-and-edge'
 export const ANCHOR_KINDS = Object.freeze([
   'trace-edge', 'chain-path', 'dangling-ref', 'uncovered-requirement',
   'orphan-node', 'cross-domain-ref', 'stale-ref',
+  // ADDED (self-audit): the ENUMERATOR's own node-side kind (`source.js`
+  // `CANDIDATE_KINDS.nodeSide`). It shipped `trace-node-side` on all twenty of the
+  // node-side candidates this domain emits, while this list knew only the
+  // claim-level names above — so every one of them came back `kind-mismatch` from
+  // its own verifier. No test could see it: the fixtures hand-write locators in the
+  // CLAIM vocabulary and had never fed the enumerator's output back in.
+  'trace-node-side',
 ])
 
 /**
@@ -389,6 +401,26 @@ function against(graph, claim) {
     return { tier: tierFor(true), hit: { nodes: [fromId], position: 'node' } }
   }
 
+  if (kind === 'trace-node-side') {
+    // The enumerator emits ONE candidate per SIDE of every node (`source.js`
+    // `SIDES`), and its card asserts the node's existence in this trace together
+    // with which side it renders. The side-specific facts — its in/out neighbours,
+    // its ref — are the card's CONTENT, not a second claim, so the anchor confirms
+    // the record and the side name and nothing more. An unrecognised side is
+    // refused rather than defaulted to `upstream`: "we do not know which side you
+    // mean" is not the same claim as "the upstream side".
+    if (fromId === '') return { tier: 'empty-excerpt', conflict: 'trace-node-side 声明缺少 fromId' }
+    const side = isNonEmpty(locator.side) ? String(locator.side) : null
+    if (side === null || !SIDES.includes(side)) {
+      return {
+        tier: 'empty-excerpt',
+        conflict: `trace-node-side 的 side 必须是 ${SIDES.join(' / ')}，收到 "${String(locator.side)}" —— 不认识的一侧就拒绝，不落到默认值`,
+      }
+    }
+    if (!graph.hasRecord(fromId)) return null
+    return { tier: tierFor(true), hit: { nodes: [fromId], position: 'node', extra: { side } } }
+  }
+
   if (kind === 'cross-domain-ref' || kind === 'stale-ref') {
     if (fromId === '') return { tier: 'empty-excerpt', conflict: `${kind} 声明缺少 fromId` }
     if (!graph.hasRecord(fromId)) return null
@@ -533,6 +565,9 @@ export function itemPath(graphPath, claim) {
       return nodeSidePath(graphPath, fromId, 'downstream')
     case 'orphan-node':
       return nodeSidePath(graphPath, fromId, 'upstream')
+    case 'trace-node-side':
+      // The enumerator's own card path, byte for byte: `node-<id>-<side>`.
+      return nodeSidePath(graphPath, fromId, isNonEmpty(locator.side) ? String(locator.side) : 'upstream')
     case 'cross-domain-ref':
     case 'stale-ref':
       // A binding points UPSTREAM at the domain that produced the anchor.

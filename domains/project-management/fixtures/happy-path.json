@@ -246,6 +246,144 @@
         "expectStatus": "anchored",
         "expectTier": "declared-locator",
         "expectPath": "project/plan.json"
+      },
+      {
+        "note": "枚举器的叫法：`dependency-edge` 与 `task-edge` 是同一条有向边，另外逐字核 `edgeKind` —— T2 dependsOn T1。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "dependency-edge",
+            "from": "T2",
+            "to": "T1",
+            "edgeKind": "depends-on"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "枚举器的节点卡：`task-node` 断言该任务在计划里有一条记录 —— 逐字定位到 T1。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-node",
+            "taskId": "T1"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "枚举器的风险卡：`risk-entry` 断言这条风险登记项存在 —— 逐字定位到 R1。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "risk-entry",
+            "riskId": "R1",
+            "owners": [
+              "bob"
+            ]
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "risks": [
+                  {
+                    "id": "R1",
+                    "trigger": "合作方结算接口延期交付",
+                    "mitigation": "10-15 前索取接口契约"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
+      },
+      {
+        "note": "枚举器的里程碑卡：`milestone-entry` 断言这个里程碑存在 —— 逐字定位到 M1。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "milestone-entry",
+            "milestoneId": "M1",
+            "tasks": [
+              "T3"
+            ]
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "milestones": [
+                  {
+                    "id": "M1",
+                    "title": "购物车上线",
+                    "tasks": [
+                      "T3"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "anchored",
+        "expectTier": "declared-locator",
+        "expectPath": "project/plan.json"
       }
     ],
     "negative": [
@@ -344,6 +482,166 @@
                     "dependsOn": [
                       "T1"
                     ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "反向的边不成立：图上是 T2 依赖 T1，声明写成 T1 依赖 T2 —— locator-mismatch，不按方向猜测。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "dependency-edge",
+            "from": "T1",
+            "to": "T2",
+            "edgeKind": "depends-on"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "边在、kind 不对也是证伪：T2→T1 存在但 kind=depends-on，声明成 blocked-by 不是同一句话。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "dependency-edge",
+            "from": "T2",
+            "to": "T1",
+            "edgeKind": "blocked-by"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  },
+                  {
+                    "id": "T2",
+                    "dependsOn": [
+                      "T1"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "locator-mismatch"
+      },
+      {
+        "note": "节点卡指向一个不存在的任务：计划里没有 T9 —— no-match，既不确认也不当成矛盾。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "task-node",
+            "taskId": "T9"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [
+                  {
+                    "id": "T1"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "风险卡指向一个不存在的登记项：台账里没有 R9 —— no-match。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "risk-entry",
+            "riskId": "R9"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "risks": [
+                  {
+                    "id": "R1",
+                    "trigger": "合作方结算接口延期交付"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "expectStatus": "unanchored",
+        "expectTier": "no-match"
+      },
+      {
+        "note": "里程碑卡指向一个不存在的里程碑：没有 M9 —— no-match。",
+        "claim": {
+          "kind": "task-and-edge",
+          "path": "project/plan.json",
+          "locator": {
+            "kind": "milestone-entry",
+            "milestoneId": "M9"
+          }
+        },
+        "subject": {
+          "path": "project/plan.json",
+          "documents": [
+            {
+              "path": "project/plan.json",
+              "payload": {
+                "tasks": [],
+                "milestones": [
+                  {
+                    "id": "M1",
+                    "title": "购物车上线"
                   }
                 ]
               }

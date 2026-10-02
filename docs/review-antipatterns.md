@@ -558,7 +558,7 @@ what is the assertion proving?"
 *disfigured by construction*: it holds for every id that is absent, and it is the
 absence that is the whole content of the kind. The command below feeds 200
 independently fabricated ids to such a kind in `domains/project-management/anchor.js`
-(`ANCHOR_KINDS`, `domains/project-management/anchor.js:86-88`) and gets **one**
+(`ANCHOR_KINDS`, `domains/project-management/anchor.js:113-116`) and gets **one**
 distinct verdict — `anchored` — every time. Such a case cannot distinguish a real
 finding from a randomly generated string.
 
