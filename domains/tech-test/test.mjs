@@ -314,6 +314,15 @@ test('the source refuses malformed input instead of returning a silent empty set
   assert.throws(() => source.enumerate({ coverage: { files: {} } }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ cases: [], source: [] }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ cases: [], coverage: [] }, {}), /E_INPUT_FORMAT/u)
+  // CHANGED (input-format): the maps INSIDE `coverage` and `source` carry the
+  // domain's evidence. Reading a malformed one as "empty" does not shrink the
+  // review — it makes the domain assert that files are unexecuted on the
+  // strength of a field it could not read (one mutation produced 16 exclusions).
+  assert.throws(() => source.enumerate({ cases: [], coverage: { files: 'nope' } }, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate({ cases: [], coverage: { files: [] } }, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate({ cases: [], source: { 'a.ts': 'nope' } }, {}), /E_INPUT_FORMAT/u)
+  assert.doesNotThrow(() => source.enumerate({ cases: [], coverage: { files: {} } }, {}))
+  assert.doesNotThrow(() => source.enumerate({ cases: [], source: { 'a.ts': { lines: [] } } }, {}))
   // An EMPTY inventory is NOT malformed: "nothing to look at" is a legitimate
   // answer, and it must be distinguishable from "your request made no sense".
   assert.doesNotThrow(() => source.enumerate({ cases: [] }, {}))

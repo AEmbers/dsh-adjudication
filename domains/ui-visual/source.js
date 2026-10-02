@@ -127,6 +127,21 @@ export function enumerate(input, context = {}) {
   if (input.layers !== undefined && !Array.isArray(input.layers)) {
     throw contractError(ERROR_CODES.E_INPUT_FORMAT, '`layers` 必须是数组（可省略）')
   }
+  // CHANGED (input-format): the outer `tokens` map was validated; the GROUP map
+  // inside it was not, and `flattenTokens` reads a non-object group as "this
+  // family has no tokens". That is not a smaller review — the domain then EXCLUDES
+  // the family, i.e. it makes a statement about the subject out of a field it
+  // could not read. Refused, like `baseline` in algo-model.
+  if (input.tokens !== undefined && input.tokens !== null) {
+    for (const [group, members] of Object.entries(input.tokens)) {
+      if (members === undefined || members === null) continue
+      if (typeof members !== 'object' || Array.isArray(members)) {
+        throw contractError(ERROR_CODES.E_INPUT_FORMAT,
+          `\`tokens["${group}"]\` 必须是对象 { name: { value } }，收到 ${Array.isArray(members) ? 'array' : typeof members}`
+          + ' —— 非法形状会被读成「这一族没有任何 token」，于是本域的判定依据凭空消失')
+      }
+    }
+  }
 
   const maxCandidates = Number(context.maxCandidates) > 0 ? Number(context.maxCandidates) : 400
   const maxExcerptLines = Number(context.maxExcerptLines) > 0 ? Number(context.maxExcerptLines) : 500

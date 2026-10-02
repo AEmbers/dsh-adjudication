@@ -122,6 +122,39 @@ export function enumerate(input, context = {}) {
   if (input.source !== undefined && (input.source === null || typeof input.source !== 'object' || Array.isArray(input.source))) {
     throw contractError(ERROR_CODES.E_INPUT_FORMAT, '`source` 必须是对象 { "<path>": { lines } }（可省略 = 没有源码快照）')
   }
+  // CHANGED (input-format): the OUTER `coverage`/`source` were validated; the
+  // maps INSIDE them were not. A malformed map was then read as "empty", and
+  // `coverage.files: "…"` does not produce a smaller review — it produces
+  // SIXTEEN exclusions, i.e. the domain asserts that files are unexecuted on the
+  // strength of a field it could not read. A shape the contract does not allow
+  // is now refused, for the same reason the sibling copy is: the empty state is
+  // a claim here, not an absence.
+  if (input.coverage?.files !== undefined && input.coverage?.files !== null
+    && (typeof input.coverage.files !== 'object' || Array.isArray(input.coverage.files))) {
+    throw contractError(ERROR_CODES.E_INPUT_FORMAT,
+      '`coverage.files` 必须是对象 { "<path>": { lines, branches? } }'
+      + ' —— 传别的形状会被读成「一个文件都没覆盖」，而那是一条关于被测对象的断言，不是「没给数据」')
+  }
+  if (input.coverage?.files !== undefined && input.coverage?.files !== null) {
+    for (const [path, entry] of Object.entries(input.coverage.files)) {
+      if (entry === undefined || entry === null) continue
+      if (typeof entry !== 'object' || Array.isArray(entry)) {
+        throw contractError(ERROR_CODES.E_INPUT_FORMAT,
+          `\`coverage.files["${path}"]\` 必须是对象 { lines, branches? }，收到 ${Array.isArray(entry) ? 'array' : typeof entry}`
+          + ' —— 非法形状会被读成「这个文件没有被执行」，于是凭空多出一条未覆盖')
+      }
+    }
+  }
+  if (input.source !== undefined && input.source !== null) {
+    for (const [path, entry] of Object.entries(input.source)) {
+      if (entry === undefined || entry === null) continue
+      if (typeof entry !== 'object' || Array.isArray(entry)) {
+        throw contractError(ERROR_CODES.E_INPUT_FORMAT,
+          `\`source["${path}"]\` 必须是对象 { lines }，收到 ${Array.isArray(entry) ? 'array' : typeof entry}`
+          + ' —— 非法形状会被读成「没有源码快照」，于是这个文件凭空多出一条未覆盖')
+      }
+    }
+  }
 
   const maxCandidates = Number(context.maxCandidates) > 0 ? Number(context.maxCandidates) : 400
   const maxExcerptLines = Number(context.maxExcerptLines) > 0 ? Number(context.maxExcerptLines) : 500

@@ -381,6 +381,12 @@ test('the source refuses malformed input instead of returning a silent empty set
   assert.throws(() => source.enumerate({ tokens: [] }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ layers: 'nope' }, {}), /E_INPUT_FORMAT/u)
   assert.throws(() => source.enumerate({ tokens: 'nope', layers: [] }, {}), /E_INPUT_FORMAT/u)
+  // CHANGED (input-format): a malformed token GROUP used to be read as "this
+  // family has no tokens", and the domain then EXCLUDES the family — a statement
+  // about the design system made out of a field it could not read.
+  assert.throws(() => source.enumerate({ tokens: { color: 'nope' }, layers: [] }, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate({ tokens: { spacing: [] }, layers: [] }, {}), /E_INPUT_FORMAT/u)
+  assert.doesNotThrow(() => source.enumerate({ tokens: { color: {} }, layers: [] }, {}))
   assert.doesNotThrow(() => source.enumerate({ tokens: {}, layers: [] }, {}))
 })
 

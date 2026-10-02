@@ -132,7 +132,7 @@ dsh web --patch ./scratch.cordis.patch.yml
 | `ui-visual` | UI 视觉设计 | A | precision-first | 图层 ID + token 名 | 23 | 3 | 4 | 97 | 8→8 / 3 |
 | `architecture` | 架构设计 | A | precision-first | 模块 ID + ADR 编号 | 32 | 3 | 4 | 106 | 8→8 / 3 ⚠ |
 | `data-engineering` | 数据工程 | A | **recall-first** | 表.字段 + 血缘节点 | 24 | 3 | 5 | 99 | 16→16 / 3 ⚠ |
-| `algo-model` | 算法模型 | A | **recall-first** | 指标名 + 实验 ID | 23 | 3 | 4 | 91 | 5→5 / 3 |
+| `algo-model` | 算法模型 | A | **recall-first** | 指标名 + 实验 ID | 23 | 3 | 4 | 92 | 5→5 / 3 |
 | `tech-test` | 技术测试 | A | **recall-first** | 用例 ID + 覆盖行 | 25 | 3 | 4 | 89 | 8→8 / 3 |
 | `tech-doc` | 技术文档 | A | precision-first | 段落锚 + API 签名 | 25 | 3 | 4 | 86 | 6→6 / 2 ⚠ |
 | `operator-design` | 算子设计 | A | **recall-first** | 算子签名 + 数值容差 | 26 | 3 | 4 | 89 | 5→5 / 2 |

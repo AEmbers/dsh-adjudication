@@ -393,6 +393,32 @@ test('the source refuses malformed input instead of returning a silent empty set
   assert.doesNotThrow(() => source.enumerate({ experiments: [] }, {}))
 })
 
+test('a malformed `baseline` is REFUSED, never silently read as "no baseline"', () => {
+  // `"baseline": "纯噪声 0.978 / 合成光栅 0.509"` is what a caller writes when
+  // they have a baseline and the schema wants `{ id, metrics? }`. Reading the
+  // string as ABSENT is not lenient, it is wrong: "no baseline" is a MEANINGFUL
+  // state here and it produces a real finding — the experiment gets accused of
+  // supporting a claim it was never supposed to support. A refused call is
+  // strictly better than a false accusation, so the malformed shape throws.
+  const stringBaseline = { experiments: [{ id: 'e1', baseline: '纯噪声 0.978', metrics: [{ name: 'm', value: 1 }] }] }
+  assert.throws(() => source.enumerate(stringBaseline, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate(stringBaseline, {}), /baseline 必须是对象/u)
+  assert.throws(() => source.enumerate({ experiments: [{ id: 'e1', baseline: 42, metrics: [{ name: 'm', value: 1 }] }] }, {}), /E_INPUT_FORMAT/u)
+  assert.throws(() => source.enumerate({ experiments: [{ id: 'e1', baseline: ['noise'], metrics: [{ name: 'm', value: 1 }] }] }, {}), /E_INPUT_FORMAT/u)
+
+  // The two legitimate spellings of "this experiment has no baseline" still mean
+  // exactly that — the new check must not make the normal case louder.
+  assert.doesNotThrow(() => source.enumerate({ experiments: [{ id: 'e1', metrics: [{ name: 'm', value: 1 }] }] }, {}))
+  assert.doesNotThrow(() => source.enumerate({ experiments: [{ id: 'e1', baseline: null, metrics: [{ name: 'm', value: 1 }] }] }, {}))
+
+  // SHAPE CONTROL: a well-formed baseline is accepted AND produces no warning,
+  // so the assertion above is not passing merely because nothing ever warns.
+  const good = source.enumerate({ experiments: [{ id: 'e1', baseline: { id: 'noise' }, metrics: [{ name: 'm', value: 1 }] }] }, {})
+  assert.doesNotMatch(JSON.stringify(good), /没有 baseline/u)
+  const none = source.enumerate({ experiments: [{ id: 'e1', metrics: [{ name: 'm', value: 1 }] }] }, {})
+  assert.match(JSON.stringify(none), /没有 baseline/u)
+})
+
 test('candidate ids are unique and `path` stays a gate-globable file path', () => {
   const { enumerated } = runP0P1('happy-path')
   const ids = enumerated.candidates.map((candidate) => candidate.id)

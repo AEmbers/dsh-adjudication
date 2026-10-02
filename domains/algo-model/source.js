@@ -171,6 +171,25 @@ export function enumerate(input, context = {}) {
       notes.push('一条实验记录没有 id，已跳过（指标无法归属到一个没有 id 的实验）')
       continue
     }
+    // CHANGED (input-format): a `baseline` that is NOT an object used to be read
+    // as "this experiment has no baseline" — which is a MEANINGFUL state here,
+    // and it produced a real finding ("没有 baseline … 不得作为有提升的证据")
+    // for what was in fact a malformed field. A string like
+    // `"纯噪声 0.978 / 合成光栅 0.509"` therefore bought you a false accusation
+    // instead of an error. `null`/absent still mean "none"; anything else that
+    // is not `{ id, metrics? }` is rejected the way the sibling diff domains
+    // reject a non-string `diff`.
+    if (experiment.baseline !== undefined && experiment.baseline !== null) {
+      const shape = Array.isArray(experiment.baseline) ? 'array' : typeof experiment.baseline
+      if (typeof experiment.baseline !== 'object' || Array.isArray(experiment.baseline)) {
+        throw contractError(
+          ERROR_CODES.E_INPUT_FORMAT,
+          `实验 "${id}" 的 baseline 必须是对象 { id, metrics? }，收到 ${shape}`
+          + ' —— 基线名不要写成字符串：一个非法的 baseline 会被读成「没有 baseline」，'
+          + '而那是一条假发现（该实验会被判定为「不得作为有提升的证据」）',
+        )
+      }
+    }
     if (seenIds.has(id)) {
       notes.push(`实验 id "${id}" 重复出现；只保留第一条（重复的实验会让指标的归属变成猜测）`)
       continue
