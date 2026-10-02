@@ -216,6 +216,18 @@ function locateText(claim, subject, preferred) {
   // Structured payloads are DATA, not prose: an excerpt must never "relocate"
   // into a line of the lineage export.
   const others = documents.filter((document) => document.path !== preferred && !isStructuredDocument(document))
+  // A structured lineage payload is DATA, never prose: the filter above is what
+  // makes `a structured payload document is DATA, not prose: an excerpt never
+  // relocates into it` true, and `test.mjs` pins it so it cannot pass for the
+  // wrong reason. But the refusal that follows must not claim "no comparable
+  // document contains this text" when one demonstrably does. That message is
+  // false, and a false reason sends the caller hunting for a typo that is not
+  // there instead of quoting the node's SQL. So the structured holders are found
+  // here and named in the refusal.
+  const structuredHolders = documents
+    .filter((document) => document.path !== preferred && isStructuredDocument(document))
+    .filter((document) => allMatches(document.content, needle).length > 0)
+    .map((document) => document.path)
 
   if (named === null && documents.length === 0) {
     return unanchored('no-documents', 'no-documents', '没有提供任何可比对的文档内容 —— 无法重算锚点')
@@ -258,6 +270,11 @@ function locateText(claim, subject, preferred) {
     return unanchored('relocation-ambiguous', 'relocation-ambiguous',
       `声明的 "${preferred}" 不在可比对文档中，且原文在 ${hits.length} 处命中 —— 跨文件搬迁不唯一，拒绝猜测`,
       { ambiguousIn: hits.map((hit) => `${hit.path}:${hit.start}`) })
+  }
+  if (structuredHolders.length > 0) {
+    return unanchored('no-match', 'no-match',
+      `抄写原文逐字出现在结构化血缘导出 ${structuredHolders.join('、')} 里，但它是 DATA 而不是 prose：本域只从它重算节点与边，不拿它当可引用原文（一条 JSON 行永远不等于一段 SQL）。`
+      + `请引用节点自己的 SQL 那一行 —— 本域按节点 SQL 定位原文。`)
   }
   return unanchored('no-match', 'no-match', `声明的 "${preferred}" 与任何可比对文档都不含这段原文`)
 }

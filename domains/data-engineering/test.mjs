@@ -657,6 +657,27 @@ test('a claim of the wrong kind is refused, not coerced', () => {
   assert.equal(verdict.tier, 'kind-mismatch')
 })
 
+test('that refusal NAMES the structured export instead of denying it holds the text', () => {
+  // The behaviour pinned below is deliberate. What was not: the refusal said
+  // 「与任何可比对文档都不含这段原文」 while the supplied document demonstrably DID
+  // contain it. A false reason sends the caller hunting for a typo that is not
+  // there; the refusal must name the document, say why it still does not count,
+  // and point at the prose that does — the node's own SQL.
+  const graphDocument = {
+    path: 'lineage/graph.json',
+    content: JSON.stringify({ nodes: [{ id: 'a', inputs: [], outputs: ['raw.one'], sql: 'insert into raw.one\nselect 1' }] }),
+  }
+  const verdict = anchor.verify(
+    { kind: 'lineage-ref', path: 'models/x.sql', locator: { nodeId: 'a', from: 'a', to: 'raw.one' }, excerpt: graphDocument.content },
+    { path: 'models/x.sql', documents: [graphDocument] },
+  )
+  assert.equal(verdict.status, 'unanchored')
+  assert.equal(verdict.tier, 'no-match')
+  assert.match(verdict.detail, /lineage\/graph\.json/u, 'the refusal must name the document that holds the text')
+  assert.match(verdict.detail, /DATA/u, 'and say why it still does not count as quoted prose')
+  assert.match(verdict.detail, /SQL/u, 'and point at what SHOULD be quoted')
+})
+
 test('a structured payload document is DATA, not prose: an excerpt never relocates into it', () => {
   const graphDocument = {
     path: 'lineage/graph.json',
