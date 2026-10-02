@@ -1080,7 +1080,19 @@ export function apply(ctx, config) {
     // CHANGED (t17): the engine's OWN admission count is remembered, so the
     // coverage denominator at submit time has a trustworthy source instead of
     // being whatever the caller typed.
-    plannedAdmissions.set(pack.id, { admitted: capped.length, target: target ?? null })
+    //
+    // CHANGED (t51): the floor is kept in the UNIT the coverage rate is reported
+    // in. `coverage()` counts DISTINCT ANCHORED PATHS, so a floor expressed as a
+    // candidate count is not comparable with the numerator and can exceed the
+    // largest reachable value by construction: in `code-review` 29 admitted hunks
+    // live in 4 files, so `reviewed.size` could never exceed 4 while `total` was
+    // 29 — `complete` was unreachable for every multi-hunk domain. `admitted` is
+    // still recorded, because the plan's own report wants it.
+    plannedAdmissions.set(pack.id, {
+      admitted: capped.length,
+      paths: new Set(capped.map((candidate) => candidate.path)).size,
+      target: target ?? null,
+    })
 
     // CHANGED (t21): and the admitted candidates themselves are remembered, so
     // the verifier is handed the locator space the contract promises it. Kept as
@@ -1670,8 +1682,13 @@ export function apply(ctx, config) {
         let totalSource = declared === null ? 'anchored-count' : 'caller'
         const planApplies = planned !== undefined
           && (declared === null || planned.target === (args.target ?? null))
-        if (planApplies && planned.admitted > total) {
-          total = planned.admitted
+        // The floor is the plan's admission measured in the unit `coverage()`
+        // reports: distinct paths. See the `plannedAdmissions.set` note (t51).
+        const floor = Number.isSafeInteger(planned?.paths) && planned.paths > 0
+          ? planned.paths
+          : (planned?.admitted ?? 0)
+        if (planApplies && floor > total) {
+          total = floor
           totalSource = 'plan'
         }
         if (anchoredFindings.length > total) {
@@ -1752,7 +1769,14 @@ export function apply(ctx, config) {
                     ? `，其中 ${verifyOutcome.verdicts.filter((entry) => entry.keep === false).length} 条复核判不通过`
                     : '')
                   + '。P6 的裁决不改变准入：准入由损失取向与受保护主题决定（见上一行的保留/丢弃数）。'
-                : `未执行：${verifyOutcome.reason ?? '(无原因)'}。`),
+                : `未执行：${verifyOutcome.reason ?? '(无原因)'}`
+                  // CHANGED (t51): the failing branch used to print only `reason`, so
+                  // the one thing a reader needs — the actual exception — was captured
+                  // in `errors[0].detail` and then dropped. That is the silence this
+                  // file's own doctrine forbids, and it is why a real-host P6 failure
+                  // read as a generic capability error instead of naming the cause.
+                  + (verifyOutcome.errors?.[0]?.detail ? ` —— ${verifyOutcome.errors[0].detail}` : '')
+                  + '。'),
           verifyOutcome.available ? '' : '本宿主没有注入 ctx.subagents / ctx.llm：P6 只能由调用方 agent 自行完成。',
           '',
           `## 覆盖度`,

@@ -1351,7 +1351,7 @@ await testAsync('a finding carrying this domain\'s locator is anchored THROUGH a
   assert.equal(finding.anchorLocator.backend, 'cuda')
   assert.equal(finding.anchorLocator.shapeBranch, 'contiguous')
   assert.equal(anchored.coverage.reviewed, 1, 'the anchored path must be counted as reviewed')
-  assert.equal(anchored.coverage.total, plan.gate.admitted)
+  assert.equal(anchored.coverage.total, new Set(happy.expect.paths).size, 't51: the denominator is the plan admission measured in the unit coverage() reports (distinct paths, not candidates)')
   assert.equal(anchored.coverage.totalSource, 'plan')
   assert.equal(anchored.criticismKind, 'triage')
 

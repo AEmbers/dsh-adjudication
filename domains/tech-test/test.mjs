@@ -1345,7 +1345,12 @@ await testAsync('adjudication_submit over report-real anchors reports an INCOMPL
   }, {})
 
   assert.equal(submitted.unanchored, 1, 'the unanchored finding must be counted separately')
-  assert.equal(submitted.coverage.total, 8)
+  // t51: the denominator is the plan's admission measured in the unit `coverage()`
+  // reports — DISTINCT paths. This coverage-report fixture is the case where the
+  // two units happen to COINCIDE (8 candidates, 8 distinct paths), which is why
+  // the number is unchanged; in a domain whose candidates share files they differ,
+  // and the old candidate-count floor made `complete` unreachable there.
+  assert.equal(submitted.coverage.total, 8, 'coverage counts DISTINCT ANCHORED paths')
   assert.equal(submitted.coverage.reviewed, 1, 'coverage counts DISTINCT ANCHORED paths')
   assert.equal(submitted.coverage.complete, false)
   assert.equal(submitted.coverage.required, true)
@@ -1479,9 +1484,9 @@ await testAsync('a finding carrying this domain\'s locator is anchored THROUGH a
   assert.equal(finding.anchorLocator.caseId, 'c-1')
   assert.equal(finding.anchorLocator.branch, 'bad-request')
 
-  assert.equal(submitted.coverage.total, plan.gate.admitted)
+  assert.equal(submitted.coverage.total, new Set(happy.expect.paths).size, 't51: the denominator is the plan admission measured in the unit coverage() reports (distinct paths, not candidates)')
   assert.equal(submitted.coverage.reviewed, 1, 'the anchored path must be counted as reviewed')
-  assert.equal(submitted.coverage.coverageRate, Number((1 / plan.gate.admitted).toFixed(4)))
+  assert.equal(submitted.coverage.coverageRate, Number((1 / new Set(happy.expect.paths).size).toFixed(4)))
   assert.equal(submitted.coverage.totalSource, 'plan')
 })
 

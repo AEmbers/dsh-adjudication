@@ -1565,7 +1565,7 @@ await testAsync('a finding carrying this domain\'s locator is anchored THROUGH a
   assert.equal(finding.anchorLocator.moduleId, 'api')
   assert.equal(finding.anchorLocator.targetId, 'core')
   assert.equal(submitted.coverage.reviewed, 1, 'the anchored path must be counted as reviewed')
-  assert.equal(submitted.coverage.total, plan.gate.admitted)
+  assert.equal(submitted.coverage.total, new Set(happy.expect.paths).size, 't51: the denominator is the plan admission measured in the unit coverage() reports (distinct paths, not candidates)')
   assert.equal(submitted.coverage.totalSource, 'plan')
   assert.equal(submitted.criticismKind, 'fact-checker')
 
