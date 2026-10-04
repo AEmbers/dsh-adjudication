@@ -1,6 +1,6 @@
 {
   "name": "dsh-adjudication",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Multi-domain adjudication engine for DeepSeek Harness — deterministic gate/bundle/anchor/critique primitives plus a registry of on-demand domain packs.",
   "license": "Apache-2.0",
   "type": "module",
@@ -40,7 +40,8 @@
     "domain-pack"
   ],
   "engines": {
-    "node": "^22.19.0 || >=24.0.0"
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.1 <0.3.0-0"
   },
   "repository": {
     "type": "git",
@@ -64,6 +65,14 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": ">=0.2.0-rc.1 <0.3.0-0",
+      "dshReleases": {
+        "0.2.0-rc.1": "compatible",
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-alpha.1": "compatible"
+      }
     }
   }
 }

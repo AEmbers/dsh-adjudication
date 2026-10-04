@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 0.1.1 — 双代核心兼容声明（0.2.0-rc.2 + 0.2.1-alpha.1）
+
+### 变更
+
+- **`package.json` 补上两代核心的兼容声明**（0.1.0 是零声明）：
+  - `engines.dsh` = `>=0.2.0-rc.1 <0.3.0-0`
+  - `dsh.compatibility.dsh` = `>=0.2.0-rc.1 <0.3.0-0`，`dshReleases` 里
+    `0.2.0-rc.1` / `0.2.0-rc.2` / `0.2.1-alpha.1` 均标 `compatible`
+
+### 为什么两代都写
+
+当前 Desktop 宿主打包的核心仍是 **0.2.0-rc.2**，profile 无法单独升级核心。
+只声明 `0.2.1-alpha.1` 会在过渡期被宿主整体拒绝（`dsh: installation rejected`，
+一次 `add` 多个包会整批回滚），所以声明必须同时覆盖两代。
+
+### 闸门说明（实测）
+
+DSH 的安装闸门只看 `peerDependencies`：`dsh-app-boot/lib/index.js` 的
+`evaluatePluginCompatibility()` 只遍历名字为 `@deepseek-ai/dsh` 或以 `@deepseek-ai/dsh-`
+开头的条目，用 `semver.satisfies(runtime, range, {includePrerelease:true})` 判定；
+`engines.dsh` 与 `dsh.compatibility` 不参与闸门，是给插件管理 UI 看的声明层。
+
+本插件是纯服务端插件：没有 `@deepseek-ai/dsh-*` peer 条目，也**不提供浏览器半区**
+（`package.json` 里没有 `dsh.client`，也没有 `./client` export）。所以它本来就能过闸门，
+本次补的是声明层。
+
+### 验证
+
+- 0.2.1-alpha.1 沙箱：`plugin add` 通过；boot 成功保活；bundle patch 正常合并。
+- 0.2.0-rc.2 沙箱：`plugin add` 通过；boot 成功保活。
+
 ## 0.1.0 — 十九个领域包（未发布，本文件靠前的条目最新）
 
 （同一版本号仍在开发中。这一节描述「从只有声明到端到端可运行」的落地；下面两节记录契约 v2 与 v1 的机制。）
